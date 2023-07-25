@@ -1,0 +1,38 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write # This is required to allow the GitHub Action to authenticate with Deno Deploy.
+      contents: read
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Download Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Install Pyro
+        run: deno run -Ar https://deno.land/x/pyro/install.ts
+
+      - name: Build the website
+        run: pyro build
+        working-directory: ./docs
+
+      - name: Deploy to Deno Deploy
+        uses: denoland/deployctl@v1
+        with:
+          project: astral
+          entrypoint: https://deno.land/std/http/file_server.ts
+          root: ./docs/build
