@@ -119,6 +119,7 @@ let celestial = `export class Celestial {
 
       const handler = this.#handlers.get(data.id);
 
+      console.log(e.data)
       if(handler) {
         handler(data.result);
       }
@@ -151,7 +152,8 @@ for (const domain of protocol.domains) {
     if (command.parameters) {
       celestial += `opts: {${
         command.parameters.map((param) => {
-          let p = `${param.name}: `;
+          let p = param.name;
+          p += param.optional ? "?: " : ":";
           if ("$ref" in param) {
             if (param.$ref.includes(".")) {
               p += param.$ref.replaceAll(".", "_");
@@ -201,5 +203,5 @@ for (const domain of protocol.domains) {
 
 celestial += "}";
 
-// 4. Write data to ./src/celestial.ts
-Deno.writeTextFileSync("./src/celestial.ts", types + celestial);
+// 4. Write data to ./bindings/celestial.ts
+Deno.writeTextFileSync("./bindings/celestial.ts", types + celestial);

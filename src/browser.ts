@@ -1,10 +1,11 @@
 import { Page } from "./page.ts";
+import { websocketReady } from "./util.ts";
 
 export interface BrowserOpts {
   path: string;
 }
 
-class Browser {
+export class Browser {
   #path: string;
   #ws?: WebSocket;
   #process?: Deno.ChildProcess;
@@ -50,12 +51,7 @@ class Browser {
     this.#ws = new WebSocket(browserRes.webSocketDebuggerUrl);
 
     // Make sure that websocket is open before continuing
-    await new Promise<void>((res) => {
-      if (!this.#ws) return res();
-      this.#ws.onopen = () => {
-        res();
-      };
-    });
+    await websocketReady(this.#ws);
   }
 
   async newPage(url: string) {
@@ -67,7 +63,12 @@ class Browser {
     );
     const browserRes = await browserReq.json();
     const websocket = new WebSocket(browserRes.webSocketDebuggerUrl);
-    console.log(browserRes);
+    await websocketReady(websocket);
+
+    const page = new Page(websocket, this);
+    this.pages.push(page);
+    
+    return page;
   }
 
   close() {

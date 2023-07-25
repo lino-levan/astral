@@ -81,6 +81,8 @@ export type CommandParameter =
 export type Command = JSDocable & {
   name: string;
   parameters?: CommandParameter[];
+  // TODO: strongly type events
+  events?: {}[];
   // TODO: strongly return command return value
   returns?: {}[];
 };

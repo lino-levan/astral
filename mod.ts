@@ -6,6 +6,11 @@ const path =
 const browser = await launch({ path });
 const page = await browser.newPage("https://google.com");
 
+await page.sleep(2000)
+
+const screenshot = await page.screenshot();
+Deno.writeFileSync("screenshot.png", screenshot);
+
 browser.close();
 
 // const url = "https://google.com";
