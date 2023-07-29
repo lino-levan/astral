@@ -1,24 +1,29 @@
+import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
 import { Page } from "./page.ts";
-import { websocketReady } from "./util.ts";
+import { BASE_URL, websocketReady } from "./util.ts";
 
 export interface BrowserOpts {
   path: string;
+  headless?: boolean;
 }
 
 export class Browser {
-  #path: string;
+  #options: Required<BrowserOpts>;
   #ws?: WebSocket;
   #process?: Deno.ChildProcess;
-  pages: Page[] = [];
+  readonly pages: Page[] = [];
 
   constructor(opts: BrowserOpts) {
-    this.#path = opts.path;
+    this.#options = {
+      headless: true,
+      ...opts,
+    };
   }
 
-  get ws() {
-    return this.#ws;
-  }
-
+  /**
+   * @internal
+   * DO NOT USE
+   */
   async launch() {
     if (this.#process) {
       throw new Error(
@@ -27,10 +32,12 @@ export class Browser {
     }
 
     // Launch child process
-    const launch = new Deno.Command(this.#path, {
+    const launch = new Deno.Command(this.#options.path, {
       args: [
         "-remote-debugging-port=9222",
-        "--headless=new",
+        ...(
+          this.#options.headless ? ["--headless=new"] : []
+        ),
       ],
       stderr: "piped",
     });
@@ -44,31 +51,20 @@ export class Browser {
     await reader.read();
 
     // Fetch browser websocket
-    const browserReq = await fetch("http://localhost:9222/json/version");
+    const browserReq = await fetch(`${BASE_URL}/json/version`);
     const browserRes = await browserReq.json();
+
+    if (browserRes["Protocol-Version"] !== PROTOCOL_VERSION) {
+      throw new Error(
+        "Differing protocol versions between binary and bindings.",
+      );
+    }
 
     // Set up browser websocket
     this.#ws = new WebSocket(browserRes.webSocketDebuggerUrl);
 
     // Make sure that websocket is open before continuing
     await websocketReady(this.#ws);
-  }
-
-  async newPage(url: string) {
-    const browserReq = await fetch(
-      `http://localhost:9222/json/new?${encodeURIComponent(url)}`,
-      {
-        method: "PUT",
-      },
-    );
-    const browserRes = await browserReq.json();
-    const websocket = new WebSocket(browserRes.webSocketDebuggerUrl);
-    await websocketReady(websocket);
-
-    const page = new Page(websocket, this);
-    this.pages.push(page);
-    
-    return page;
   }
 
   close() {
@@ -79,6 +75,47 @@ export class Browser {
     }
     this.#process.kill();
     this.#process = undefined;
+  }
+
+  async newPage(url: string) {
+    const browserReq = await fetch(
+      `${BASE_URL}/json/new?${encodeURIComponent(url)}`,
+      {
+        method: "PUT",
+      },
+    );
+    const browserRes = await browserReq.json();
+    const websocket = new WebSocket(browserRes.webSocketDebuggerUrl);
+    await websocketReady(websocket);
+
+    const page = new Page(browserRes.id, websocket, this);
+    this.pages.push(page);
+
+    return page;
+  }
+
+  async userAgent() {
+    if (!this.#ws) throw "Not connected";
+
+    const celestial = new Celestial(this.#ws);
+    const { userAgent } = await celestial.Browser.getVersion();
+
+    return userAgent;
+  }
+
+  async version() {
+    if (!this.#ws) throw "Not connected";
+
+    const celestial = new Celestial(this.#ws);
+    const { product, revision } = await celestial.Browser.getVersion();
+
+    return `${product}/${revision}`;
+  }
+
+  wsEndpoint() {
+    if (!this.#ws) throw "Not connected";
+
+    return this.#ws.url;
   }
 }
 

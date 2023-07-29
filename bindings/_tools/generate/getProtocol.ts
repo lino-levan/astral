@@ -1,4 +1,4 @@
-import { existsSync } from "https://deno.land/std@0.195.0/fs/exists.ts";
+import { existsSync } from "https://deno.land/std@0.196.0/fs/exists.ts";
 
 export interface JSDocable {
   description?: string;
@@ -81,16 +81,21 @@ export type CommandParameter =
 export type Command = JSDocable & {
   name: string;
   parameters?: CommandParameter[];
-  // TODO: strongly type events
-  events?: {}[];
-  // TODO: strongly return command return value
-  returns?: {}[];
+  // TODO: verify typing here
+  returns?: CommandParameter[];
+};
+
+export type Event = JSDocable & {
+  name: string;
+  // TODO: verify typing here
+  parameters?: CommandParameter[];
 };
 
 export type Domain = JSDocable & {
   domain: string;
   dependencies?: string[];
   types?: Type[];
+  events?: Event[];
   commands?: Command[];
 };
 

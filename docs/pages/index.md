@@ -4,7 +4,8 @@ description: A simple introduction to Astral
 index: 0
 ---
 
-Astral is a Puppeteer/Playwright-like library designed with Deno in mind. Before we go into the depths of the API, let's see a quick demo first:
+Astral is a Puppeteer/Playwright-like library designed with Deno in mind. Before
+we go into the depths of the API, let's see a quick demo first:
 
 ```ts
 import { launch } from "https://deno.land/x/astral/mod.ts";

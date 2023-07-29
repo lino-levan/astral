@@ -1,5 +1,5 @@
 import { addJSDoc } from "./addJSDoc.ts";
-import { Domain, getProtocol } from "./getProtocol.ts";
+import { CommandParameter, Domain, getProtocol } from "./getProtocol.ts";
 
 // 1. Get current protocol version
 const protocol = await getProtocol();
@@ -103,7 +103,49 @@ function generateTypes(domain: Domain) {
   }
 }
 
-let celestial = `export class Celestial {
+function generateParameters(commandParams: CommandParameter[], domain: string) {
+  return commandParams.map((param) => {
+    let p = addJSDoc(param);
+    p += param.name;
+    p += param.optional ? "?: " : ":";
+    if ("$ref" in param) {
+      if (param.$ref.includes(".")) {
+        p += param.$ref.replaceAll(".", "_");
+      } else {
+        p += `${domain}_${param.$ref}`;
+      }
+    } else {
+      if (param.type === "array") {
+        if ("type" in param.items) {
+          p += `${nameToType(param.items.type)}[]`;
+        } else {
+          if (param.items.$ref.includes(".")) {
+            p += param.items.$ref.replaceAll(".", "_") + "[]";
+          } else {
+            p += `${domain}_${param.items.$ref}[]`;
+          }
+        }
+      } else if (param.type === "string") {
+        if (param.enum) {
+          p += (param.enum as string[]).map((str) => `"${str}"`)
+            .join(" | ");
+        } else {
+          p += "string";
+        }
+      } else {
+        p += nameToType(param.type);
+      }
+    }
+    return p;
+  }).join(", \n");
+}
+
+let events = "";
+let eventMap = "const CelestialEvents = {\n";
+let eventMapType = "\ninterface CelestialEventMap {";
+
+let celestial = `
+export class Celestial extends EventTarget {
   #ws: WebSocket;
   #id = 0;
   #handlers: Map<number, (value: unknown) => void> = new Map();
@@ -112,6 +154,8 @@ let celestial = `export class Celestial {
    * Celestial expects a open websocket to communicate over
    */
   constructor(ws: WebSocket) {
+    super();
+
     this.#ws = ws;
 
     this.#ws.onmessage = (e) => {
@@ -119,14 +163,28 @@ let celestial = `export class Celestial {
 
       const handler = this.#handlers.get(data.id);
 
-      console.log(e.data)
       if(handler) {
         handler(data.result);
+        this.#handlers.delete(data.id);
+      } else {
+        const className = CelestialEvents[data.method.replaceAll(".", "_") as keyof CelestialEventMap];
+        if(data.params) {
+          this.dispatchEvent(new className(data.params))
+        } else {
+          // @ts-ignore trust me
+          this.dispatchEvent(new className())
+        }
       }
     };
   }
 
-  #sendReq(method: string, params?: unknown) {
+  // @ts-ignore everything is fine
+  addEventListener<K extends keyof CelestialEventMap>(type: K, listener: (this: Celestial, ev: CelestialEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void {
+    // @ts-ignore and I am calm.
+    super.addEventListener(type, listener, options);
+  }
+
+  #sendReq(method: string, params?: unknown): Promise<any> {
     this.#ws.send(JSON.stringify({
       id: ++this.#id,
       method,
@@ -140,7 +198,7 @@ let celestial = `export class Celestial {
 `;
 
 for (const domain of protocol.domains) {
-  types += `// ----------------- ${domain.domain} -----------------\n\n`;
+  types += `// ----------------- ${domain.domain} Types -----------------\n\n`;
   generateTypes(domain);
 
   celestial += addJSDoc(domain);
@@ -151,43 +209,16 @@ for (const domain of protocol.domains) {
     celestial += `\n${command.name} = async (`;
     if (command.parameters) {
       celestial += `opts: {${
-        command.parameters.map((param) => {
-          let p = param.name;
-          p += param.optional ? "?: " : ":";
-          if ("$ref" in param) {
-            if (param.$ref.includes(".")) {
-              p += param.$ref.replaceAll(".", "_");
-            } else {
-              p += `${domain.domain}_${param.$ref}`;
-            }
-          } else {
-            if (param.type === "array") {
-              if ("type" in param.items) {
-                p += `${nameToType(param.items.type)}[]`;
-              } else {
-                if (param.items.$ref.includes(".")) {
-                  p += param.items.$ref.replaceAll(".", "_") + "[]";
-                } else {
-                  p += `${domain.domain}_${param.items.$ref}[]`;
-                }
-              }
-            } else if (param.type === "string") {
-              if (param.enum) {
-                p += (param.enum as string[]).map((str) => `"${str}"`)
-                  .join(" | ");
-              } else {
-                p += "string";
-              }
-            } else {
-              p += nameToType(param.type);
-            }
-          }
-          return p;
-        }).join(", ")
+        generateParameters(command.parameters, domain.domain)
       }}`;
     }
-    // TODO: strongly type return value
-    celestial += "): Promise<any> => {\n";
+    celestial += "): Promise<";
+    if (command.returns) {
+      celestial += `{${generateParameters(command.returns, domain.domain)}}`;
+    } else {
+      celestial += "void";
+    }
+    celestial += "> => {\n";
     if (command.parameters) {
       celestial +=
         `return await this.#sendReq("${domain.domain}.${command.name}", opts)`;
@@ -197,11 +228,37 @@ for (const domain of protocol.domains) {
     }
     celestial += `},\n\n`;
   }
-
   celestial += "}\n\n";
+
+  for (const event of domain.events || []) {
+    if (event.parameters) {
+      events += `
+      interface ${domain.domain}_${event.name} {
+        ${generateParameters(event.parameters, domain.domain)}
+      }
+
+      class ${domain.domain}_${event.name}Event extends CustomEvent<${domain.domain}_${event.name}> {
+        constructor(detail: ${domain.domain}_${event.name}) {
+          super("${domain.domain}_${event.name}", { detail })
+        }
+      }\n\n`;
+      eventMap +=
+        `\t"${domain.domain}_${event.name}": ${domain.domain}_${event.name}Event,\n`;
+      eventMapType +=
+        `\t"${domain.domain}_${event.name}": ${domain.domain}_${event.name}Event;\n`;
+    } else {
+      eventMap += `\t"${domain.domain}_${event.name}": Event,\n`;
+      eventMapType += `\t"${domain.domain}_${event.name}": Event;\n`;
+    }
+  }
 }
 
-celestial += "}";
+celestial += "}\n";
+eventMap += "}\n";
+eventMapType += "}\n";
 
 // 4. Write data to ./bindings/celestial.ts
-Deno.writeTextFileSync("./bindings/celestial.ts", types + celestial);
+Deno.writeTextFileSync(
+  "./bindings/celestial.ts",
+  types + events + eventMap + eventMapType + celestial,
+);

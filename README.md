@@ -8,4 +8,4 @@ Deno in mind.
 
 All of our docs are written in markdown and rendered using
 [Pyro](https://pyro.deno.dev). They can be viewed at
-[atral.deno.dev](https://astral.deno.dev).
+[astral.deno.dev](https://astral.deno.dev).
