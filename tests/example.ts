@@ -1,7 +1,7 @@
 import { launch } from "../mod.ts";
 
 // Launch browser
-const browser = await launch({ headless: false });
+const browser = await launch();
 
 // Open the webpage
 const page = await browser.newPage("https://deno.land");

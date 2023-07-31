@@ -122,15 +122,15 @@ export class Browser {
   }
 }
 
-export async function launch(opts: BrowserOpts) {
-  let path = opts.path;
+export async function launch(opts?: BrowserOpts) {
+  let path = opts?.path;
 
   if (!path) {
     path = await getBinary();
   }
 
   const options: Required<BrowserOpts> = {
-    headless: opts.headless ?? true,
+    headless: opts?.headless ?? true,
     path,
   };
 
