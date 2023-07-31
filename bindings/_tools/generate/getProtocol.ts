@@ -1,4 +1,5 @@
 import { existsSync } from "https://deno.land/std@0.196.0/fs/exists.ts";
+import { getBinary } from "../../../src/cache.ts";
 
 export interface JSDocable {
   description?: string;
@@ -112,8 +113,7 @@ export async function getProtocol(): Promise<Protocol> {
     return JSON.parse(Deno.readTextFileSync("types.json"));
   } else {
     // Configuration
-    const path =
-      `/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary`;
+    const path = await getBinary();
 
     // Launch child process
     const launch = new Deno.Command(path, {

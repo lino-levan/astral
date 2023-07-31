@@ -10,6 +10,5 @@ export async function websocketReady(ws: WebSocket) {
 
 export function convertToUint8Array(data: string) {
   const byteString = atob(data);
-  // @ts-ignore secret tech from andreu
-  return new Uint8Array([...byteString]);
+  return new Uint8Array([...byteString].map((ch) => ch.charCodeAt(0)));
 }

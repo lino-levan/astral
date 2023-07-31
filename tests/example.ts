@@ -1,8 +1,7 @@
 import { launch } from "../mod.ts";
 
-const path =
-  "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary";
-const browser = await launch({ path, headless: false });
+// Launch browser
+const browser = await launch({ headless: false });
 
 // Open the webpage
 const page = await browser.newPage("https://deno.land");
@@ -19,4 +18,5 @@ const input = await page.$("#search-input");
 await input!.type("pyro", { delay: 100 });
 Deno.writeFileSync("tests/images/3.png", await page.screenshot());
 
+// Close browser
 browser.close();

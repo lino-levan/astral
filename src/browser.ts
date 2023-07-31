@@ -1,9 +1,10 @@
 import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
+import { getBinary } from "./cache.ts";
 import { Page } from "./page.ts";
 import { BASE_URL, websocketReady } from "./util.ts";
 
 export interface BrowserOpts {
-  path: string;
+  path?: string;
   headless?: boolean;
 }
 
@@ -13,9 +14,8 @@ export class Browser {
   #process?: Deno.ChildProcess;
   readonly pages: Page[] = [];
 
-  constructor(opts: BrowserOpts) {
+  constructor(opts: Required<BrowserOpts>) {
     this.#options = {
-      headless: true,
       ...opts,
     };
   }
@@ -48,7 +48,10 @@ export class Browser {
     const reader = this.#process.stderr
       .pipeThrough(new TextDecoderStream())
       .getReader();
-    await reader.read();
+    let message: string;
+    do {
+      message = (await reader.read()).value!;
+    } while (!message.includes("127.0.0.1:9222"));
 
     // Fetch browser websocket
     const browserReq = await fetch(`${BASE_URL}/json/version`);
@@ -120,7 +123,18 @@ export class Browser {
 }
 
 export async function launch(opts: BrowserOpts) {
-  const browser = new Browser(opts);
+  let path = opts.path;
+
+  if (!path) {
+    path = await getBinary();
+  }
+
+  const options: Required<BrowserOpts> = {
+    headless: opts.headless ?? true,
+    path,
+  };
+
+  const browser = new Browser(options);
   await browser.launch();
   return browser;
 }

@@ -294,8 +294,12 @@ export class Page {
   /**
    * Waits for the page to navigate to a new URL or to reload. It is useful when you run code that will indirectly cause the page to navigate.
    */
-  waitForNavigation(options?: WaitForOptions) {
+  async waitForNavigation(options?: WaitForOptions) {
     options = options ?? { waitUntil: "networkidle2" };
+
+    if (options.waitUntil !== "load") {
+      await this.waitForNavigation({ waitUntil: "load" });
+    }
 
     return deadline(
       new Promise<void>((resolve) => {
