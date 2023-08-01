@@ -1,6 +1,6 @@
 import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
 import { getBinary } from "./cache.ts";
-import { Page } from "./page.ts";
+import { Page, WaitForOptions } from "./page.ts";
 import { BASE_URL, websocketReady } from "./util.ts";
 
 export interface BrowserOpts {
@@ -80,9 +80,9 @@ export class Browser {
     this.#process = undefined;
   }
 
-  async newPage(url: string) {
+  async newPage(url?: string, options?: WaitForOptions) {
     const browserReq = await fetch(
-      `${BASE_URL}/json/new?${encodeURIComponent(url)}`,
+      `${BASE_URL}/json/new?${url ? encodeURIComponent(url) : ""}`,
       {
         method: "PUT",
       },
@@ -93,6 +93,10 @@ export class Browser {
 
     const page = new Page(browserRes.id, websocket, this);
     this.pages.push(page);
+
+    if (url) {
+      await page.waitForNavigation(options);
+    }
 
     return page;
   }

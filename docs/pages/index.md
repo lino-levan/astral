@@ -1,5 +1,5 @@
 ---
-title: Astral
+title: 1 - Astral
 description: A simple introduction to Astral
 index: 0
 ---
@@ -17,8 +17,8 @@ Here are a few examples to get you started:
 - Crawl a SPA (Single-Page Application) and generate pre-rendered content (i.e.
   "SSR" (Server-Side Rendering)).
 - Automate form submission, UI testing, keyboard input, etc.
-- Create an automated testing environment using the latest JavaScript and
-  browser features.
+- Create a reproducable, automated testing environment using the latest
+  JavaScript and browser features.
 
 ## Usage
 

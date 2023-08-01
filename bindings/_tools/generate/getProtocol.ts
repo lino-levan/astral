@@ -125,12 +125,14 @@ export async function getProtocol(): Promise<Protocol> {
     });
     const process = launch.spawn();
 
-    // Wait until first write to stdout
-    // This probably means that the process is read to accept communication
     const reader = process.stderr
       .pipeThrough(new TextDecoderStream())
       .getReader();
-    await reader.read();
+
+    let message: string | undefined;
+    do {
+      message = (await reader.read()).value;
+    } while (message && !message.includes("127.0.0.1:9222"));
 
     // Get protocol information and close process
     const protocolReq = await fetch("http://localhost:9222/json/protocol");
