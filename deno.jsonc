@@ -1,6 +1,7 @@
 {
   "tasks": {
     // The task to automatically generate `./src/celestial.ts`
-    "bind": "deno run -A ./bindings/_tools/generate/mod.ts && deno fmt"
+    "bind": "deno run -A ./bindings/_tools/generate/mod.ts && deno fmt",
+    "test": "deno test -A"
   }
 }

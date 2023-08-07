@@ -178,6 +178,13 @@ export class Celestial extends EventTarget {
     };
   }
 
+  /**
+   * Close the websocket connection, does nothing if already closed.
+   */
+  close() {
+    this.#ws.close();
+  }
+
   // @ts-ignore everything is fine
   addEventListener<K extends keyof CelestialEventMap>(type: K, listener: (this: Celestial, ev: CelestialEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void {
     // @ts-ignore and I am calm.

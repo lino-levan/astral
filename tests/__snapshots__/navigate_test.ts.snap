@@ -1,0 +1,93 @@
+export const snapshot = {};
+
+snapshot[`General navigation 1`] = `
+\`<!DOCTYPE html>
+<html lang="en"><head><title>Pyro | Pyro</title><link rel="stylesheet" href="/_pyro/bundle.css"><meta name="description" content="Pyro was designed from the ground up to be no-config and incredibly fast."><link rel="icon" type="image/png" href="/icon.png"><style>/* layer: preflights */
+*,::before,::after{--un-rotate:0;--un-rotate-x:0;--un-rotate-y:0;--un-rotate-z:0;--un-scale-x:1;--un-scale-y:1;--un-scale-z:1;--un-skew-x:0;--un-skew-y:0;--un-translate-x:0;--un-translate-y:0;--un-translate-z:0;--un-pan-x: ;--un-pan-y: ;--un-pinch-zoom: ;--un-scroll-snap-strictness:proximity;--un-ordinal: ;--un-slashed-zero: ;--un-numeric-figure: ;--un-numeric-spacing: ;--un-numeric-fraction: ;--un-border-spacing-x:0;--un-border-spacing-y:0;--un-ring-offset-shadow:0 0 rgba(0,0,0,0);--un-ring-shadow:0 0 rgba(0,0,0,0);--un-shadow-inset: ;--un-shadow:0 0 rgba(0,0,0,0);--un-ring-inset: ;--un-ring-offset-width:0px;--un-ring-offset-color:#fff;--un-ring-width:0px;--un-ring-color:rgba(147,197,253,0.5);--un-blur: ;--un-brightness: ;--un-contrast: ;--un-drop-shadow: ;--un-grayscale: ;--un-hue-rotate: ;--un-invert: ;--un-saturate: ;--un-sepia: ;--un-backdrop-blur: ;--un-backdrop-brightness: ;--un-backdrop-contrast: ;--un-backdrop-grayscale: ;--un-backdrop-hue-rotate: ;--un-backdrop-invert: ;--un-backdrop-opacity: ;--un-backdrop-saturate: ;--un-backdrop-sepia: ;}::backdrop{--un-rotate:0;--un-rotate-x:0;--un-rotate-y:0;--un-rotate-z:0;--un-scale-x:1;--un-scale-y:1;--un-scale-z:1;--un-skew-x:0;--un-skew-y:0;--un-translate-x:0;--un-translate-y:0;--un-translate-z:0;--un-pan-x: ;--un-pan-y: ;--un-pinch-zoom: ;--un-scroll-snap-strictness:proximity;--un-ordinal: ;--un-slashed-zero: ;--un-numeric-figure: ;--un-numeric-spacing: ;--un-numeric-fraction: ;--un-border-spacing-x:0;--un-border-spacing-y:0;--un-ring-offset-shadow:0 0 rgba(0,0,0,0);--un-ring-shadow:0 0 rgba(0,0,0,0);--un-shadow-inset: ;--un-shadow:0 0 rgba(0,0,0,0);--un-ring-inset: ;--un-ring-offset-width:0px;--un-ring-offset-color:#fff;--un-ring-width:0px;--un-ring-color:rgba(147,197,253,0.5);--un-blur: ;--un-brightness: ;--un-contrast: ;--un-drop-shadow: ;--un-grayscale: ;--un-hue-rotate: ;--un-invert: ;--un-saturate: ;--un-sepia: ;--un-backdrop-blur: ;--un-backdrop-brightness: ;--un-backdrop-contrast: ;--un-backdrop-grayscale: ;--un-backdrop-hue-rotate: ;--un-backdrop-invert: ;--un-backdrop-opacity: ;--un-backdrop-saturate: ;--un-backdrop-sepia: ;}
+/* layer: default */
+.z-10{z-index:10;}
+.grid{display:grid;}
+.ml-4{margin-left:1rem;}
+.ml-auto{margin-left:auto;}
+.mr-4{margin-right:1rem;}
+.mt-8{margin-top:2rem;}
+.inline{display:inline;}
+.hidden{display:none;}
+.h-16{height:4rem;}
+.h-8{height:2rem;}
+.h-full{height:100%;}
+.w-4{width:1rem;}
+.w-8{width:2rem;}
+.w-full{width:100%;}
+.w-max{width:max-content;}
+.w-min{width:min-content;}
+.max-w-screen-lg{max-width:1024px;}
+.max-w-screen-md{max-width:768px;}
+.max-w-screen-xl{max-width:1280px;}
+.flex{display:flex;}
+.grow{flex-grow:1;}
+.flex-col{flex-direction:column;}
+.flex-wrap{flex-wrap:wrap;}
+.list-disc{list-style-type:disc;}
+.list-inside{list-style-position:inside;}
+.items-center{align-items:center;}
+.justify-center{justify-content:center;}
+.justify-between{justify-content:space-between;}
+.justify-around{justify-content:space-around;}
+.gap-1{gap:0.25rem;}
+.gap-2{gap:0.5rem;}
+.gap-4{gap:1rem;}
+.gap-8{gap:2rem;}
+.overflow-hidden{overflow:hidden;}
+.whitespace-pre{white-space:pre;}
+.border-t{border-top-width:1px;}
+.dark .dark\\\\:border-gray-700{--un-border-opacity:1;border-color:rgba(55,65,81,var(--un-border-opacity));}
+.rounded{border-radius:0.25rem;}
+.bg-gray-100{--un-bg-opacity:1;background-color:rgba(243,244,246,var(--un-bg-opacity));}
+.bg-red-500{--un-bg-opacity:1;background-color:rgba(239,68,68,var(--un-bg-opacity));}
+.bg-white{--un-bg-opacity:1;background-color:rgba(255,255,255,var(--un-bg-opacity));}
+.dark .dark\\\\:bg-black{--un-bg-opacity:1;background-color:rgba(0,0,0,var(--un-bg-opacity));}
+.dark .dark\\\\:bg-gray-900{--un-bg-opacity:1;background-color:rgba(17,24,39,var(--un-bg-opacity));}
+.p-4{padding:1rem;}
+.px-4{padding-left:1rem;padding-right:1rem;}
+.px-8{padding-left:2rem;padding-right:2rem;}
+.py-12{padding-top:3rem;padding-bottom:3rem;}
+.py-32{padding-top:8rem;padding-bottom:8rem;}
+.pb-16{padding-bottom:4rem;}
+.pb-4{padding-bottom:1rem;}
+.pb-8{padding-bottom:2rem;}
+.pl-4{padding-left:1rem;}
+.text-center{text-align:center;}
+.text-4xl{font-size:2.25rem;line-height:2.5rem;}
+.text-lg{font-size:1.125rem;line-height:1.75rem;}
+.text-sm{font-size:0.875rem;line-height:1.25rem;}
+.text-xl{font-size:1.25rem;line-height:1.75rem;}
+.font-bold{font-weight:700;}
+.font-semibold{font-weight:600;}
+.dark .dark\\\\:text-gray-200{--un-text-opacity:1;color:rgba(229,231,235,var(--un-text-opacity));}
+.dark .dark\\\\:text-gray-400{--un-text-opacity:1;color:rgba(156,163,175,var(--un-text-opacity));}
+.dark .dark\\\\:text-white,
+.text-white{--un-text-opacity:1;color:rgba(255,255,255,var(--un-text-opacity));}
+.text-black{--un-text-opacity:1;color:rgba(0,0,0,var(--un-text-opacity));}
+.text-gray-100{--un-text-opacity:1;color:rgba(243,244,246,var(--un-text-opacity));}
+.text-gray-500{--un-text-opacity:1;color:rgba(107,114,128,var(--un-text-opacity));}
+.text-gray-600{--un-text-opacity:1;color:rgba(75,85,99,var(--un-text-opacity));}
+.text-gray-800{--un-text-opacity:1;color:rgba(31,41,55,var(--un-text-opacity));}
+.text-red-500{--un-text-opacity:1;color:rgba(239,68,68,var(--un-text-opacity));}
+.dark .dark\\\\:hover\\\\:text-gray-400:hover{--un-text-opacity:1;color:rgba(156,163,175,var(--un-text-opacity));}
+.hover\\\\:text-gray-500:hover{--un-text-opacity:1;color:rgba(107,114,128,var(--un-text-opacity));}
+.hover\\\\:text-gray-900:hover{--un-text-opacity:1;color:rgba(17,24,39,var(--un-text-opacity));}
+.underline{text-decoration-line:underline;}
+.hover\\\\:underline:hover{text-decoration-line:underline;}
+.shadow-sm{--un-shadow:var(--un-shadow-inset) 0 1px 2px 0 var(--un-shadow-color, rgba(0,0,0,0.05));box-shadow:var(--un-ring-offset-shadow), var(--un-ring-shadow), var(--un-shadow);}
+@media (min-width: 640px){
+.sm\\\\:flex{display:flex;}
+.sm\\\\:text-left{text-align:left;}
+.sm\\\\:text-6xl{font-size:3.75rem;line-height:1;}
+}
+@media (min-width: 768px){
+.md\\\\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr));}
+.md\\\\:flex{display:flex;}
+}</style></head><body style="background-color:rgb(255, 122, 97);"><div class="flex flex-col items-center pb-16 bg-white dark:bg-black dark:text-white"><header class="w-full h-16 shadow-sm flex gap-4 items-center px-4 bg-white dark:bg-black z-10"><a href="/"><h1 class="font-semibold text-lg text-gray-800 flex items-center gap-2 dark:text-gray-200 mr-4"><img src="/icon.png" class="w-8 h-8">Pyro</h1></a><a class="hover:text-gray-500 dark:hover:text-gray-400" href="/getting-started/installation">Docs</a><div class="flex gap-4 items-center ml-auto text-gray-100"><a target="_blank" class="text-black dark:text-white" href="https://github.com/lino-levan/pyro"><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"></path></svg></a></div></header><div class="flex justify-center items-center py-32 max-w-screen-xl"><div class="flex flex-col gap-8 items-center px-8 max-w-screen-md"><h1 class="text-4xl sm:text-6xl font-bold text-center sm:text-left">The <span class="text-red-500">SSG documentation site framework</span> you've been waiting for.</h1><div class="w-full hidden sm:flex flex-col gap-1"><p class="text-gray-600 dark:text-gray-400">Run the following to <a href="/getting-started/installation" class="underline text-red-500">install Pyro</a>:</p><code class="bg-gray-100 dark:bg-gray-900 rounded flex items-center justify-between pl-4 overflow-hidden w-max">deno run -Ar https://deno.land/x/pyro/install.ts <a href="/getting-started/installation" class="bg-red-500 ml-4 p-4 text-white h-full"><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-arrow-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path><path d="M13 18l6 -6"></path><path d="M13 6l6 6"></path></svg></a></code></div></div><div class="grow hidden md:flex items-center justify-center px-8"><img class="w-full" src="/pyro_bg.png"></div></div><div class="px-8 pb-8 flex flex-col gap-4 max-w-screen-lg"><h1 class="text-4xl font-semibold">Rundown</h1><ul class="grid md:grid-cols-2 w-full text-xl gap-8"><li class="bg-gray-100 dark:bg-gray-900 rounded p-4 flex items-center gap-4"><span class="text-4xl">⚡️</span> <span>Pyro will help you ship a <b>beautiful documentation site in no time</b>.</span></li><li class="bg-gray-100 dark:bg-gray-900 rounded p-4 flex items-center gap-4"><span class="text-4xl">💸</span> <span>Building a custom tech stack is expensive. Instead, <b>focus on your content</b> and just write Markdown files.</span></li><li class="bg-gray-100 dark:bg-gray-900 rounded p-4 flex items-center gap-4"><span class="text-4xl">💥</span> <span>Ready for more? <b>Advanced features</b> like versioning, i18n, search and theme customizations are built-in with zero config required.</span></li><li class="bg-gray-100 dark:bg-gray-900 rounded p-4 flex items-center gap-4"><span class="text-4xl">🧐</span> <span>Pyro at its core is a <b>static-site generator</b>. That means it can be deployed <b>anywhere</b>.</span></li></ul><h2 class="text-4xl font-semibold mt-8">Getting started</h2><p>Understand Pyro in <b>5 minutes</b> by trying it out!</p><p>First install Pyro</p><code class="bg-gray-100 dark:bg-gray-900 rounded p-4">deno run -Ar https://deno.land/x/pyro/install.ts</code><p>Create the site</p><code class="bg-gray-100 dark:bg-gray-900 rounded p-4">pyro gen my-site</code><p>Start the dev server</p><code class="bg-gray-100 dark:bg-gray-900 rounded p-4">cd my-site &amp;&amp; pyro dev</code><p>Open <a href="http://localhost:8000" class="underline text-red-500">http://localhost:8000</a> and create your first site!</p><h1 class="text-4xl font-semibold mt-8">Features</h1><p>Pyro was built from the ground up to maximize DX.</p><ul class="list-disc list-inside flex flex-col gap-4"><li><b>Built with Deno, Preact, and Typescript</b><br>Stop using antiquated technology in your stack. Embrace the new!</li><li><b>Created for developer experience first</b><br>Stop using tools that make you miserable. Life is too short.</li><li><b>No configuration required</b><br>Pyro has fantastic defaults, and uses a lot of magic to make sure that your experience is as smooth as possible. No more hunting down plugins!</li></ul></div><footer class="px-4 py-12 w-full flex justify-center text-gray-800 dark:text-gray-200 border-t dark:border-gray-700 bg-white dark:bg-black"><div class="max-w-screen-lg w-full flex flex-wrap justify-around"><img src="/icon.png" class="w-8 h-8"><div><p class="font-bold pb-4">Learn</p><ul class="flex flex-col gap-2"><li><a class="flex items-center gap-1 hover:underline" href="/">Introduction</a></li><li><a class="flex items-center gap-1 hover:underline" href="/getting-started/installation">Installation</a></li></ul></div><div><p class="font-bold pb-4">Community</p><ul class="flex flex-col gap-2"><li><a class="flex items-center gap-1 hover:underline" href="https://discord.gg/XJMMSSC4Fj">Discord<svg xmlns="http://www.w3.org/2000/svg" class="inline w-4" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M11 7h-5a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-5"></path><path d="M10 14l10 -10"></path><path d="M15 4l5 0l0 5"></path></svg></a></li><li><a class="flex items-center gap-1 hover:underline" href="https://github.com/lino-levan/pyro/issues/new">Support<svg xmlns="http://www.w3.org/2000/svg" class="inline w-4" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M11 7h-5a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-5"></path><path d="M10 14l10 -10"></path><path d="M15 4l5 0l0 5"></path></svg></a></li></ul></div><div class="h-full flex flex-col justify-around"><p class="whitespace-pre text-gray-500 dark:text-gray-400 text-sm">Copyright © 2023 Lino Le Van
+MIT Licensed</p><div><a target="_blank" class="w-min" href="https://github.com/lino-levan/pyro"><svg xmlns="http://www.w3.org/2000/svg" class="text-gray-500 hover:text-gray-900" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"></path></svg></a></div></div></div></footer></div></body></html>\`
+`;

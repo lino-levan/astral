@@ -43,14 +43,22 @@ export class Browser {
     });
     this.#process = launch.spawn();
 
-    // Wait until first write to stdout
+    // Wait until write to stdout containing the localhost address
     // This probably means that the process is read to accept communication
     const reader = this.#process.stderr
       .pipeThrough(new TextDecoderStream())
       .getReader();
-    let message: string;
+
+    const stack: string[] = [];
+    let message: string | undefined;
     do {
-      message = (await reader.read()).value!;
+      message = (await reader.read()).value;
+
+      if (message === undefined) {
+        console.error(stack.join("\n"));
+        throw new Error("Your binary refused to boot");
+      }
+      stack.push(message);
     } while (!message.includes("127.0.0.1:9222"));
 
     // Fetch browser websocket
@@ -70,13 +78,15 @@ export class Browser {
     await websocketReady(this.#ws);
   }
 
-  close() {
-    if (!this.#process) {
+  async close() {
+    if (!this.#process || !this.#ws) {
       throw new Error(
         "You tried to close a browser you never launched or already closed. Don't do that.",
       );
     }
+    this.#ws.close();
     this.#process.kill();
+    await this.#process.status;
     this.#process = undefined;
   }
 

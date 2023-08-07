@@ -1,5 +1,5 @@
 // Import Astral
-import { launch } from "../../mod.ts";
+import { launch } from "../mod.ts";
 
 // Launch the browser
 const browser = await launch();

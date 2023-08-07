@@ -158,12 +158,12 @@ export class ElementHandle {
     const { x, y } = getTopLeft(model.content);
 
     if (opts?.offset) {
-      this.#page.mouse.click(
+      await this.#page.mouse.click(
         x + opts.offset.x,
         y + opts.offset.y,
       );
     } else {
-      this.#page.mouse.click(
+      await this.#page.mouse.click(
         x + (model.width / 2),
         y + (model.height / 2),
       );

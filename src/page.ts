@@ -1,4 +1,4 @@
-import { deadline } from "https://deno.land/std@0.196.0/async/deadline.ts";
+import { deadline } from "https://deno.land/std@0.197.0/async/deadline.ts";
 
 import { Celestial, Network_Cookie } from "../bindings/celestial.ts";
 import { Browser } from "./browser.ts";
@@ -125,6 +125,8 @@ export class Page {
       return;
     }
 
+    this.#celestial.close();
+
     throw new Error(`Page has already been closed or doesn't exist (${res})`);
   }
 
@@ -190,26 +192,30 @@ export class Page {
     if (typeof func === "function") {
       func = `(${func.toString()})()`;
     }
-    const { result } = await deadline(
+    const { result, exceptionDetails } = await deadline(
       this.#celestial.Runtime.evaluate({
         expression: func,
+        awaitPromise: true,
+        returnByValue: true,
       }),
       this.#timeout,
     );
 
-    if (result.type === "undefined") {
-      return undefined;
-    } else if (
-      result.type === "string" || result.type === "number" ||
-      result.type === "boolean"
-    ) {
-      return result.value;
-    } else if (result.type === "bigint" && result.unserializableValue) {
-      return BigInt(result.unserializableValue.slice(0, -1));
+    if (exceptionDetails) {
+      throw exceptionDetails;
     }
 
-    // TODO: investigate more serialization nonsense that we can do
-    throw new Error("Unserializable value being returned from page.evaluate()");
+    if (result.type === "bigint") {
+      return BigInt(result.unserializableValue!.slice(0, -1));
+    } else if (result.type === "undefined") {
+      return undefined;
+    } else if (result.type === "object") {
+      if (result.subtype === "null") {
+        return null;
+      }
+    }
+
+    return result.value;
   }
 
   /**
