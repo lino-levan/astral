@@ -135,7 +135,7 @@ export class Page {
    */
   async content(): Promise<string> {
     // https://stackoverflow.com/questions/6088972/get-doctype-of-an-html-as-string-with-javascript
-    const result = await deadline(
+    const { result } = await deadline(
       this.#celestial.Runtime.evaluate({
         expression:
           `"<!DOCTYPE " + document.doctype.name + (document.doctype.publicId ? ' PUBLIC "' + document.doctype.publicId + '"' : '') + (!document.doctype.publicId && document.doctype.systemId ? ' SYSTEM' : '') + (document.doctype.systemId ? ' "' + document.doctype.systemId + '"' : '') + '>\\n' + document.documentElement.outerHTML`,
@@ -143,7 +143,7 @@ export class Page {
       this.#timeout,
     );
 
-    return result.result.value;
+    return result.value;
   }
 
   /**
