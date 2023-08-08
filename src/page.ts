@@ -52,9 +52,13 @@ export class Page {
 
     this.mouse = new Mouse(this.#celestial);
     this.keyboard = new Keyboard(this.#celestial);
+  }
 
-    this.#celestial.Page.enable();
-    this.#celestial.Page.setInterceptFileChooserDialog({ enabled: true });
+  /**
+   * Returns raw celestial bindings for the page. Super unsafe unless you know what you're doing.
+   */
+  unsafelyGetCelestialBindings() {
+    return this.#celestial;
   }
 
   /**

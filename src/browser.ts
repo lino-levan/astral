@@ -3,6 +3,43 @@ import { getBinary } from "./cache.ts";
 import { Page, WaitForOptions } from "./page.ts";
 import { BASE_URL, websocketReady } from "./util.ts";
 
+async function runCommand(command: Deno.Command) {
+  const process = command.spawn();
+
+  // Wait until write to stdout containing the localhost address
+  // This probably means that the process is read to accept communication
+  const textDecoder = new TextDecoder();
+  const stack: string[] = [];
+  let error = true;
+  for await (const chunk of process.stderr) {
+    const message = textDecoder.decode(chunk);
+    stack.push(message);
+
+    if (message.includes("127.0.0.1:9222")) {
+      error = false;
+      break;
+    }
+
+    // Recover from garbage "SingletonLock" nonsense
+    if (message.includes("SingletonLock")) {
+      const path = message.split("Failed to create ")[1].split(":")[0];
+
+      process.kill();
+      await process.status;
+
+      Deno.removeSync(path);
+      return runCommand(command);
+    }
+  }
+
+  if (error) {
+    console.error(stack.join("\n"));
+    throw new Error("Your binary refused to boot");
+  }
+
+  return process;
+}
+
 export interface BrowserOpts {
   path?: string;
   headless?: boolean;
@@ -41,27 +78,7 @@ export class Browser {
       ],
       stderr: "piped",
     });
-    this.#process = launch.spawn();
-
-    // Wait until write to stdout containing the localhost address
-    // This probably means that the process is read to accept communication
-    const textDecoder = new TextDecoder();
-    const stack: string[] = [];
-    let error = true;
-    for await (const chunk of this.#process.stderr) {
-      const message = textDecoder.decode(chunk);
-      stack.push(message);
-
-      if (message.includes("127.0.0.1:9222")) {
-        error = false;
-        break;
-      }
-    }
-
-    if (error) {
-      console.error(stack.join("\n"));
-      throw new Error("Your binary refused to boot");
-    }
+    this.#process = await runCommand(launch);
 
     // Fetch browser websocket
     const browserReq = await fetch(`${BASE_URL}/json/version`);
@@ -106,8 +123,15 @@ export class Browser {
     const page = new Page(browserRes.id, websocket, this);
     this.pages.push(page);
 
+    const celestial = await page.unsafelyGetCelestialBindings();
+
     if (url) {
-      await page.waitForNavigation(options);
+      await celestial.Page.enable();
+
+      await Promise.all([
+        celestial.Page.setInterceptFileChooserDialog({ enabled: true }),
+        page.waitForNavigation(options),
+      ]);
     }
 
     return page;
