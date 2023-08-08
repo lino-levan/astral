@@ -45,21 +45,23 @@ export class Browser {
 
     // Wait until write to stdout containing the localhost address
     // This probably means that the process is read to accept communication
-    const reader = this.#process.stderr
-      .pipeThrough(new TextDecoderStream())
-      .getReader();
-
+    const textDecoder = new TextDecoder();
     const stack: string[] = [];
-    let message: string | undefined;
-    do {
-      message = (await reader.read()).value;
-
-      if (message === undefined) {
-        console.error(stack.join("\n"));
-        throw new Error("Your binary refused to boot");
-      }
+    let error = true;
+    for await (const chunk of this.#process.stderr) {
+      const message = textDecoder.decode(chunk);
       stack.push(message);
-    } while (!message.includes("127.0.0.1:9222"));
+
+      if (message.includes("127.0.0.1:9222")) {
+        error = false;
+        break;
+      }
+    }
+
+    if (error) {
+      console.error(stack.join("\n"));
+      throw new Error("Your binary refused to boot");
+    }
 
     // Fetch browser websocket
     const browserReq = await fetch(`${BASE_URL}/json/version`);
