@@ -6,6 +6,7 @@ import { ElementHandle } from "./elementHandle.ts";
 import { BASE_URL, convertToUint8Array } from "./util.ts";
 import { Mouse } from "./mouse.ts";
 import { Keyboard } from "./keyboard.ts";
+import { Touchscreen } from "./touchscreen.ts";
 
 export type DeleteCookieOptions = Omit<
   Parameters<Celestial["Network"]["deleteCookies"]>[0],
@@ -44,6 +45,7 @@ export class Page {
 
   readonly mouse: Mouse;
   readonly keyboard: Keyboard;
+  readonly touchscreen: Touchscreen;
 
   constructor(id: string, ws: WebSocket, browser: Browser) {
     this.#id = id;
@@ -52,6 +54,7 @@ export class Page {
 
     this.mouse = new Mouse(this.#celestial);
     this.keyboard = new Keyboard(this.#celestial);
+    this.touchscreen = new Touchscreen(this.#celestial);
   }
 
   /**

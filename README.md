@@ -35,7 +35,6 @@ browser.close();
 ## TODO
 
 - [ ] Locators API
-- [ ] Touchscreen API
 - [ ] FileChooser API
 - [ ] Dialog API
 - [ ] JSHandle
