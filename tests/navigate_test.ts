@@ -1,6 +1,6 @@
 import { launch } from "../mod.ts";
 
-Deno.test("General navigation", async () => {
+Deno.test("General navigation", async (t) => {
   // Launch browser
   const browser = await launch();
 
@@ -18,14 +18,14 @@ Deno.test("General navigation", async () => {
   // Wait for the search results to come back
   await page.waitForNetworkIdle({ idleConnections: 0, idleTime: 1000 });
 
-  // Click the "pyro" link
+  // Click the 'pyro' link
   const xLink = await page.$("a.justify-between:nth-child(1)");
   await Promise.all([
     xLink!.click(),
     page.waitForNavigation(),
   ]);
 
-  // Click the link to "pyro.deno.dev"
+  // Click the link to 'pyro.deno.dev'
   const dLink = await page.$(
     ".markdown-body > p:nth-child(8) > a:nth-child(1)",
   );

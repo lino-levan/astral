@@ -111,7 +111,7 @@ export class Browser {
 
   async newPage(url?: string, options?: WaitForOptions) {
     const browserReq = await fetch(
-      `${BASE_URL}/json/new?${url ? encodeURIComponent(url) : ""}`,
+      `${BASE_URL}/json/new`,
       {
         method: "PUT",
       },
@@ -130,7 +130,7 @@ export class Browser {
 
       await Promise.all([
         celestial.Page.setInterceptFileChooserDialog({ enabled: true }),
-        page.waitForNavigation(options),
+        page.goto(url, options),
       ]);
     }
 
