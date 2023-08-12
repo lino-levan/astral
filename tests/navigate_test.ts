@@ -1,6 +1,6 @@
 import { launch } from "../mod.ts";
 
-Deno.test("General navigation", async (t) => {
+Deno.test("General navigation", async () => {
   // Launch browser
   const browser = await launch();
 
