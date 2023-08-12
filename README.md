@@ -34,8 +34,6 @@ browser.close();
 
 ## TODO
 
-- [ ] Locators API
 - [ ] FileChooser API
 - [ ] Dialog API
-- [ ] JSHandle
 - [ ] Test it on FF
