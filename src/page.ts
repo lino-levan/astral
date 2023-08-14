@@ -1,4 +1,4 @@
-import { deadline } from "https://deno.land/std@0.197.0/async/deadline.ts";
+import { deadline } from "https://deno.land/std@0.198.0/async/deadline.ts";
 
 import { Celestial, Network_Cookie } from "../bindings/celestial.ts";
 import { Browser } from "./browser.ts";
@@ -41,8 +41,8 @@ export class Page {
   #id: string;
   #celestial: Celestial;
   #browser: Browser;
-  #timeout = 10000;
 
+  readonly timeout = 10000;
   readonly mouse: Mouse;
   readonly keyboard: Keyboard;
   readonly touchscreen: Touchscreen;
@@ -75,10 +75,10 @@ export class Page {
   async $(selector: string) {
     const doc = await deadline(
       this.#celestial.DOM.getDocument({ depth: 0 }),
-      this.#timeout,
+      this.timeout,
     );
     const root = new ElementHandle(doc.root.nodeId, this.#celestial, this);
-    return deadline(root.$(selector), this.#timeout);
+    return root.$(selector);
   }
 
   /**
@@ -92,10 +92,10 @@ export class Page {
   async $$(selector: string) {
     const doc = await deadline(
       this.#celestial.DOM.getDocument({ depth: 0 }),
-      this.#timeout,
+      this.timeout,
     );
     const root = new ElementHandle(doc.root.nodeId, this.#celestial, this);
-    return deadline(root.$$(selector), this.#timeout);
+    return deadline(root.$$(selector), this.timeout);
   }
 
   /**
@@ -107,7 +107,7 @@ export class Page {
    * ```
    */
   async bringToFront() {
-    await deadline(this.#celestial.Page.bringToFront(), this.#timeout);
+    await deadline(this.#celestial.Page.bringToFront(), this.timeout);
   }
 
   /**
@@ -147,7 +147,7 @@ export class Page {
         expression:
           `"<!DOCTYPE " + document.doctype.name + (document.doctype.publicId ? ' PUBLIC "' + document.doctype.publicId + '"' : '') + (!document.doctype.publicId && document.doctype.systemId ? ' SYSTEM' : '') + (document.doctype.systemId ? ' "' + document.doctype.systemId + '"' : '') + '>\\n' + document.documentElement.outerHTML`,
       }),
-      this.#timeout,
+      this.timeout,
     );
 
     return result.value;
@@ -159,7 +159,7 @@ export class Page {
   async cookies(...urls: string[]): Promise<Cookie[]> {
     const result = await deadline(
       this.#celestial.Network.getCookies({ urls }),
-      this.#timeout,
+      this.timeout,
     );
     return result.cookies;
   }
@@ -170,7 +170,7 @@ export class Page {
   async deleteCookies(cookieDescription: DeleteCookieOptions) {
     await deadline(
       this.#celestial.Network.deleteCookies(cookieDescription),
-      this.#timeout,
+      this.timeout,
     );
   }
 
@@ -182,7 +182,7 @@ export class Page {
   async emulateCPUThrottling(factor: number) {
     await deadline(
       this.#celestial.Emulation.setCPUThrottlingRate({ rate: factor }),
-      this.#timeout,
+      this.timeout,
     );
   }
 
@@ -205,7 +205,7 @@ export class Page {
         awaitPromise: true,
         returnByValue: true,
       }),
-      this.#timeout,
+      this.timeout,
     );
 
     if (exceptionDetails) {
@@ -247,7 +247,7 @@ export class Page {
     await Promise.all([
       deadline(
         this.#celestial.Page.navigate({ url, ...options }),
-        this.#timeout,
+        this.timeout,
       ),
       this.waitForNavigation(options),
     ]);
@@ -266,7 +266,7 @@ export class Page {
     opts = opts ?? {};
     const { data } = await deadline(
       this.#celestial.Page.printToPDF(opts),
-      this.#timeout,
+      this.timeout,
     );
     return convertToUint8Array(data);
   }
@@ -281,7 +281,7 @@ export class Page {
    */
   async reload(options?: WaitForOptions) {
     await Promise.all([
-      deadline(this.#celestial.Page.reload({}), this.#timeout),
+      deadline(this.#celestial.Page.reload({}), this.timeout),
       this.waitForNavigation(options),
     ]);
   }
@@ -299,7 +299,7 @@ export class Page {
     opts = opts ?? {};
     const { data } = await deadline(
       this.#celestial.Page.captureScreenshot(opts),
-      this.#timeout,
+      this.timeout,
     );
     return convertToUint8Array(data);
   }
@@ -337,7 +337,7 @@ export class Page {
           );
         }
       }),
-      this.#timeout,
+      this.timeout,
     );
   }
 
@@ -395,7 +395,7 @@ export class Page {
           requestFinished,
         );
       }),
-      this.#timeout,
+      this.timeout,
     );
   }
 

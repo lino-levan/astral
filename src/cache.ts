@@ -1,5 +1,5 @@
-import { ensureDirSync } from "https://deno.land/std@0.197.0/fs/ensure_dir.ts";
-import { resolve } from "https://deno.land/std@0.197.0/path/mod.ts";
+import { ensureDirSync } from "https://deno.land/std@0.198.0/fs/ensure_dir.ts";
+import { resolve } from "https://deno.land/std@0.198.0/path/mod.ts";
 
 const REVISION = "1176526";
 const HOME_PATH = Deno.build.os === "windows"

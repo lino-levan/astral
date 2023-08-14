@@ -1,3 +1,5 @@
+import { deadline } from "https://deno.land/std@0.198.0/async/deadline.ts";
+
 import { Celestial } from "../bindings/celestial.ts";
 import { KeyboardTypeOptions } from "./keyboard.ts";
 import { Page, ScreenshotOptions } from "./page.ts";
@@ -68,10 +70,13 @@ export class ElementHandle {
    * ```
    */
   async $(selector: string) {
-    const result = await this.#celestial.DOM.querySelector({
-      nodeId: this.#id,
-      selector,
-    });
+    const result = await deadline(
+      this.#celestial.DOM.querySelector({
+        nodeId: this.#id,
+        selector,
+      }),
+      this.#page.timeout,
+    );
 
     if (!result) {
       return null;
@@ -89,10 +94,13 @@ export class ElementHandle {
    * ```
    */
   async $$(selector: string) {
-    const result = await this.#celestial.DOM.querySelectorAll({
-      nodeId: this.#id,
-      selector,
-    });
+    const result = await deadline(
+      this.#celestial.DOM.querySelectorAll({
+        nodeId: this.#id,
+        selector,
+      }),
+      this.#page.timeout,
+    );
 
     if (!result) {
       return [];
@@ -127,7 +135,10 @@ export class ElementHandle {
    * This method returns boxes of the element, or `null` if the element is not visible.
    */
   async boxModel(): Promise<BoxModel | null> {
-    const result = await this.#celestial.DOM.getBoxModel({ nodeId: this.#id });
+    const result = await deadline(
+      this.#celestial.DOM.getBoxModel({ nodeId: this.#id }),
+      this.#page.timeout,
+    );
 
     if (!result) {
       return null;
@@ -174,7 +185,10 @@ export class ElementHandle {
    * Calls `focus` on the element.
    */
   async focus() {
-    await this.#celestial.DOM.focus({ nodeId: this.#id });
+    await deadline(
+      this.#celestial.DOM.focus({ nodeId: this.#id }),
+      this.#page.timeout,
+    );
   }
 
   /**
@@ -203,7 +217,10 @@ export class ElementHandle {
    * Scrolls the element into view using the automation protocol client.
    */
   async scrollIntoView() {
-    await this.#celestial.DOM.scrollIntoViewIfNeeded({ nodeId: this.#id });
+    await deadline(
+      this.#celestial.DOM.scrollIntoViewIfNeeded({ nodeId: this.#id }),
+      this.#page.timeout,
+    );
   }
 
   /**
