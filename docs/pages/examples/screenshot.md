@@ -4,6 +4,12 @@ description: A small example on how to do screenshots in Astral
 index: 0
 ---
 
+## Running
+
+```bash
+deno run -A https://deno.land/x/astral/examples/screenshot.ts
+```
+
 ## Code
 
 ```ts

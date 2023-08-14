@@ -45,5 +45,5 @@ browser.close();
 You can run this from the command line using:
 
 ```bash
-deno run -A https://deno.land/x/astral/tests/examples/screenshot.ts
+deno run -A https://deno.land/x/astral/examples/screenshot.ts
 ```
