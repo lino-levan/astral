@@ -12,4 +12,4 @@ const screenshot = await page.screenshot();
 Deno.writeFileSync("screenshot.png", screenshot);
 
 // Close the browser
-browser.close();
+await browser.close();

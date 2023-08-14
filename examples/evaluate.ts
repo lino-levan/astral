@@ -16,4 +16,4 @@ const value = await page.evaluate(() => {
 console.log(value);
 
 // Close the browser
-browser.close();
+await browser.close();
