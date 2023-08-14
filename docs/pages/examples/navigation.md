@@ -1,7 +1,7 @@
 ---
 title: 2.2 - Navigation
 description: A small example on how to do complex navigation in Astral
-index: 0
+index: 1
 ---
 
 ## Running
