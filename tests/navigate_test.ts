@@ -12,6 +12,7 @@ Deno.test("General navigation", async () => {
   // Click the search button
   const button = await page.$("button");
   console.log("obtaining button from page...");
+  console.log(await page.content())
   await button!.click();
   console.log("clicked search button");
 
