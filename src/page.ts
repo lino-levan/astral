@@ -1,9 +1,7 @@
-import { deadline } from "https://deno.land/std@0.198.0/async/deadline.ts";
-
 import { Celestial, Network_Cookie } from "../bindings/celestial.ts";
 import { Browser } from "./browser.ts";
 import { ElementHandle } from "./elementHandle.ts";
-import { BASE_URL, convertToUint8Array } from "./util.ts";
+import { BASE_URL, convertToUint8Array, retryDeadline } from "./util.ts";
 import { Mouse } from "./mouse.ts";
 import { Keyboard } from "./keyboard.ts";
 import { Touchscreen } from "./touchscreen.ts";
@@ -73,7 +71,7 @@ export class Page {
    * ```
    */
   async $(selector: string) {
-    const doc = await deadline(
+    const doc = await retryDeadline(
       this.#celestial.DOM.getDocument({ depth: 0 }),
       this.timeout,
     );
@@ -90,12 +88,12 @@ export class Page {
    * ```
    */
   async $$(selector: string) {
-    const doc = await deadline(
+    const doc = await retryDeadline(
       this.#celestial.DOM.getDocument({ depth: 0 }),
       this.timeout,
     );
     const root = new ElementHandle(doc.root.nodeId, this.#celestial, this);
-    return deadline(root.$$(selector), this.timeout);
+    return retryDeadline(root.$$(selector), this.timeout);
   }
 
   /**
@@ -107,7 +105,7 @@ export class Page {
    * ```
    */
   async bringToFront() {
-    await deadline(this.#celestial.Page.bringToFront(), this.timeout);
+    await retryDeadline(this.#celestial.Page.bringToFront(), this.timeout);
   }
 
   /**
@@ -142,7 +140,7 @@ export class Page {
    */
   async content(): Promise<string> {
     // https://stackoverflow.com/questions/6088972/get-doctype-of-an-html-as-string-with-javascript
-    const { result } = await deadline(
+    const { result } = await retryDeadline(
       this.#celestial.Runtime.evaluate({
         expression:
           `"<!DOCTYPE " + document.doctype.name + (document.doctype.publicId ? ' PUBLIC "' + document.doctype.publicId + '"' : '') + (!document.doctype.publicId && document.doctype.systemId ? ' SYSTEM' : '') + (document.doctype.systemId ? ' "' + document.doctype.systemId + '"' : '') + '>\\n' + document.documentElement.outerHTML`,
@@ -157,7 +155,7 @@ export class Page {
    * If no URLs are specified, this method returns cookies for the current page URL. If URLs are specified, only cookies for those URLs are returned.
    */
   async cookies(...urls: string[]): Promise<Cookie[]> {
-    const result = await deadline(
+    const result = await retryDeadline(
       this.#celestial.Network.getCookies({ urls }),
       this.timeout,
     );
@@ -168,7 +166,7 @@ export class Page {
    * Deletes browser cookies with matching name and url or domain/path pair.
    */
   async deleteCookies(cookieDescription: DeleteCookieOptions) {
-    await deadline(
+    await retryDeadline(
       this.#celestial.Network.deleteCookies(cookieDescription),
       this.timeout,
     );
@@ -180,7 +178,7 @@ export class Page {
    * Enables CPU throttling to emulate slow CPUs.
    */
   async emulateCPUThrottling(factor: number) {
-    await deadline(
+    await retryDeadline(
       this.#celestial.Emulation.setCPUThrottlingRate({ rate: factor }),
       this.timeout,
     );
@@ -199,7 +197,7 @@ export class Page {
     if (typeof func === "function") {
       func = `(${func.toString()})()`;
     }
-    const { result, exceptionDetails } = await deadline(
+    const { result, exceptionDetails } = await retryDeadline(
       this.#celestial.Runtime.evaluate({
         expression: func,
         awaitPromise: true,
@@ -245,7 +243,7 @@ export class Page {
   async goto(url: string, options?: GoToOptions) {
     options = options ?? {};
     await Promise.all([
-      deadline(
+      retryDeadline(
         this.#celestial.Page.navigate({ url, ...options }),
         this.timeout,
       ),
@@ -264,7 +262,7 @@ export class Page {
    */
   async pdf(opts?: PdfOptions): Promise<Uint8Array> {
     opts = opts ?? {};
-    const { data } = await deadline(
+    const { data } = await retryDeadline(
       this.#celestial.Page.printToPDF(opts),
       this.timeout,
     );
@@ -281,7 +279,7 @@ export class Page {
    */
   async reload(options?: WaitForOptions) {
     await Promise.all([
-      deadline(this.#celestial.Page.reload({}), this.timeout),
+      retryDeadline(this.#celestial.Page.reload({}), this.timeout),
       this.waitForNavigation(options),
     ]);
   }
@@ -297,7 +295,7 @@ export class Page {
    */
   async screenshot(opts?: ScreenshotOptions) {
     opts = opts ?? {};
-    const { data } = await deadline(
+    const { data } = await retryDeadline(
       this.#celestial.Page.captureScreenshot(opts),
       this.timeout,
     );
@@ -314,7 +312,7 @@ export class Page {
       await this.waitForNavigation({ waitUntil: "load" });
     }
 
-    return deadline(
+    return retryDeadline(
       new Promise<void>((resolve) => {
         if (options?.waitUntil === "load") {
           const callback = () => {
@@ -345,7 +343,7 @@ export class Page {
     const idleTime = options?.idleTime ?? 500;
     const idleConnections = options?.idleConnections ?? 0;
 
-    return deadline(
+    return retryDeadline(
       new Promise<void>((resolve) => {
         const timeoutDone = () => {
           this.#celestial.removeEventListener(

@@ -1,8 +1,7 @@
-import { deadline } from "https://deno.land/std@0.198.0/async/deadline.ts";
-
 import { Celestial } from "../bindings/celestial.ts";
 import { KeyboardTypeOptions } from "./keyboard.ts";
 import { Page, ScreenshotOptions } from "./page.ts";
+import { retryDeadline } from "./util.ts";
 
 export interface Offset {
   x: number;
@@ -70,7 +69,7 @@ export class ElementHandle {
    * ```
    */
   async $(selector: string) {
-    const result = await deadline(
+    const result = await retryDeadline(
       this.#celestial.DOM.querySelector({
         nodeId: this.#id,
         selector,
@@ -94,7 +93,7 @@ export class ElementHandle {
    * ```
    */
   async $$(selector: string) {
-    const result = await deadline(
+    const result = await retryDeadline(
       this.#celestial.DOM.querySelectorAll({
         nodeId: this.#id,
         selector,
@@ -135,7 +134,7 @@ export class ElementHandle {
    * This method returns boxes of the element, or `null` if the element is not visible.
    */
   async boxModel(): Promise<BoxModel | null> {
-    const result = await deadline(
+    const result = await retryDeadline(
       this.#celestial.DOM.getBoxModel({ nodeId: this.#id }),
       this.#page.timeout,
     );
@@ -161,10 +160,9 @@ export class ElementHandle {
    */
   async click(opts?: { offset?: Offset }) {
     await this.scrollIntoView();
-    let model: BoxModel | null;
-    do {
-      model = await this.boxModel();
-    } while (!model);
+
+    const model: BoxModel | null = await this.boxModel();
+    if (!model) throw new Error("Unable to get stable box model to click on");
 
     const { x, y } = getTopLeft(model.content);
 
@@ -185,7 +183,7 @@ export class ElementHandle {
    * Calls `focus` on the element.
    */
   async focus() {
-    await deadline(
+    await retryDeadline(
       this.#celestial.DOM.focus({ nodeId: this.#id }),
       this.#page.timeout,
     );
@@ -217,7 +215,7 @@ export class ElementHandle {
    * Scrolls the element into view using the automation protocol client.
    */
   async scrollIntoView() {
-    await deadline(
+    await retryDeadline(
       this.#celestial.DOM.scrollIntoViewIfNeeded({ nodeId: this.#id }),
       this.#page.timeout,
     );
