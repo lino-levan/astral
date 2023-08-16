@@ -39,6 +39,9 @@ export type WaitForNetworkIdleOptions = {
 
 export type EvalFunc<T> = string | (() => T);
 
+/**
+ * Page provides methods to interact with a single tab in the browser
+ */
 export class Page {
   #id: string;
   #celestial: Celestial;
@@ -362,6 +365,9 @@ export class Page {
     );
   }
 
+  /**
+   * Create a promise which resolves when network is idle
+   */
   waitForNetworkIdle(options?: WaitForNetworkIdleOptions) {
     const idleTime = options?.idleTime ?? 500;
     const idleConnections = options?.idleConnections ?? 0;

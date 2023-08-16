@@ -45,6 +45,14 @@ export interface BrowserOpts {
   path?: string;
 }
 
+/**
+ * The browser class is instantiated when you run the `launch` method.
+ *
+ * @example
+ * ```ts
+ * const browser = await launch();
+ * ```
+ */
 export class Browser {
   #options: Required<BrowserOpts>;
   #ws?: WebSocket;
@@ -97,6 +105,9 @@ export class Browser {
     await websocketReady(this.#ws);
   }
 
+  /**
+   * Closes the browser and all of its pages (if any were opened). The Browser object itself is considered to be disposed and cannot be used anymore.
+   */
   async close() {
     if (!this.#process || !this.#ws) {
       throw new Error(
@@ -109,6 +120,9 @@ export class Browser {
     this.#process = undefined;
   }
 
+  /**
+   * Promise which resolves to a new `Page` object.
+   */
   async newPage(url?: string, options?: WaitForOptions) {
     const browserReq = await fetch(
       `${BASE_URL}/json/new`,
@@ -137,6 +151,9 @@ export class Browser {
     return page;
   }
 
+  /**
+   * The browser's original user agent.
+   */
   async userAgent() {
     if (!this.#ws) throw "Not connected";
 
@@ -146,6 +163,9 @@ export class Browser {
     return userAgent;
   }
 
+  /**
+   * A string representing the browser name and version.
+   */
   async version() {
     if (!this.#ws) throw "Not connected";
 
@@ -155,6 +175,9 @@ export class Browser {
     return `${product}/${revision}`;
   }
 
+  /**
+   * The browser's websocket endpoint
+   */
   wsEndpoint() {
     if (!this.#ws) throw "Not connected";
 
@@ -162,6 +185,9 @@ export class Browser {
   }
 }
 
+/**
+ * Launches a browser instance with given arguments and options when specified.
+ */
 export async function launch(opts?: BrowserOpts) {
   let path = opts?.path;
 

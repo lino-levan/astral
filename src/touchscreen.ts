@@ -1,5 +1,8 @@
 import { Celestial } from "../bindings/celestial.ts";
 
+/**
+ * The Touchscreen class exposes touchscreen events.
+ */
 export class Touchscreen {
   #celestial: Celestial;
 

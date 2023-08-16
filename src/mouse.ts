@@ -10,6 +10,9 @@ export interface MouseOptions {
   clickCount?: number;
 }
 
+/**
+ * The Mouse class operates in main-frame CSS pixels relative to the top-left corner of the viewport.
+ */
 export class Mouse {
   #celestial: Celestial;
   #x = 0;

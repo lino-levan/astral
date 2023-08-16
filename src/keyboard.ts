@@ -262,6 +262,9 @@ export interface KeyboardTypeOptions {
   delay?: number;
 }
 
+/**
+ * Keyboard provides an api for managing a virtual keyboard. The high level api is `Keyboard.type()`, which takes raw characters and generates proper `keydown`, `keypress`/`input`, and `keyup` events on your page.
+ */
 export class Keyboard {
   #celestial: Celestial;
   #modifiers = 0;

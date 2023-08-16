@@ -51,6 +51,9 @@ function getTopLeft(points: Point[]) {
   return result;
 }
 
+/**
+ * ElementHandle represents an in-page DOM element.
+ */
 export class ElementHandle {
   #id: number;
   #celestial: Celestial;
