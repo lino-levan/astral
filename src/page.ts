@@ -398,6 +398,23 @@ export class Page {
   }
 
   /**
+   * Wait for the `selector` to appear in page. If at the moment of calling the method the `selector` already exists, the method will return immediately. If the `selector` doesn't appear after the timeout milliseconds of waiting, the function will throw.
+   *
+   * @example
+   * ```ts
+   * await page.waitForSelector(".class");
+   * ```
+   */
+  async waitForSelector(selector: string) {
+    const doc = await retryDeadline(
+      this.#celestial.DOM.getDocument({ depth: 0 }),
+      this.timeout,
+    );
+    const root = new ElementHandle(doc.root.nodeId, this.#celestial, this);
+    return root.waitForSelector(selector);
+  }
+
+  /**
    * Do not use if there is an alterate way of doing your thing
    *
    * @example

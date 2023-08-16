@@ -1,3 +1,5 @@
+import { deadline } from "https://deno.land/std@0.198.0/async/deadline.ts";
+
 import { Celestial } from "../bindings/celestial.ts";
 import { KeyboardTypeOptions } from "./keyboard.ts";
 import { Page, ScreenshotOptions } from "./page.ts";
@@ -227,5 +229,29 @@ export class ElementHandle {
   async type(text: string, opts?: KeyboardTypeOptions) {
     await this.focus();
     await this.#page.keyboard.type(text, opts);
+  }
+
+  /**
+   * Wait for an element matching the given selector to appear in the current element.
+   */
+  async waitForSelector(selector: string) {
+    // TODO(lino-levan): Make this easier to read, it's a little scuffed
+    return await deadline<ElementHandle>(
+      (async () => {
+        while (true) {
+          const result = await this.#celestial.DOM.querySelector({
+            nodeId: this.#id,
+            selector,
+          });
+
+          if (!result) {
+            continue;
+          }
+
+          return new ElementHandle(result.nodeId, this.#celestial, this.#page);
+        }
+      })(),
+      this.#page.timeout,
+    );
   }
 }
