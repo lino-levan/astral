@@ -1,3 +1,5 @@
+import { deadline } from "https://deno.land/std@0.198.0/async/deadline.ts";
+
 import { Celestial, Network_Cookie } from "../bindings/celestial.ts";
 import { Browser } from "./browser.ts";
 import { ElementHandle } from "./elementHandle.ts";
@@ -34,6 +36,8 @@ export type WaitForNetworkIdleOptions = {
   idleTime?: number;
   idleConnections?: number;
 };
+
+export type EvalFunc<T> = string | (() => T);
 
 export class Page {
   #id: string;
@@ -193,7 +197,7 @@ export class Page {
    * const innerHTML = await page.evaluate(()=>document.body.innerHTML)
    * ```
    */
-  async evaluate<T>(func: string | (() => T)) {
+  async evaluate<T>(func: EvalFunc<T>) {
     if (typeof func === "function") {
       func = `(${func.toString()})()`;
     }
@@ -300,6 +304,25 @@ export class Page {
       this.timeout,
     );
     return convertToUint8Array(data);
+  }
+
+  /**
+   * Runs a function in the context of the page until it returns a truthy value.
+   */
+  async waitForFunction<T>(func: EvalFunc<T>) {
+    // TODO(lino-levan): Make this easier to read
+    await deadline(
+      (async () => {
+        while (true) {
+          const result = await this.evaluate(func);
+
+          if (result) {
+            return result;
+          }
+        }
+      })(),
+      this.timeout,
+    );
   }
 
   /**
