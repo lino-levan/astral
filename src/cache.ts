@@ -1,7 +1,10 @@
 import { ensureDirSync } from "https://deno.land/std@0.198.0/fs/ensure_dir.ts";
 import { resolve } from "https://deno.land/std@0.198.0/path/mod.ts";
 
-const REVISION = "1176526";
+export const SUPPORTED_VERSIONS = {
+  chrome: "118.0.5943.0",
+} as const;
+
 const HOME_PATH = Deno.build.os === "windows"
   ? Deno.env.get("USERPROFILE")!
   : Deno.env.get("HOME")!;
@@ -65,14 +68,18 @@ async function decompressArchive(source: string, destination: string) {
  * Get path for the binary for this OS. Downloads a browser if none is cached.
  */
 export async function getBinary(): Promise<string> {
+  // TODO(lino-levan): turn this into an argument
+  const browser = "chrome";
+  const VERSION = SUPPORTED_VERSIONS[browser];
+
   const config = getCache();
 
   // If the config doesn't have the revision, download it and return that
-  if (!config[REVISION]) {
+  if (!config[VERSION]) {
     ensureDirSync(BASE_PATH);
     const versions = await knownGoodVersions();
     const version = versions.versions.filter((val) =>
-      val.revision === REVISION
+      val.version === VERSION
     )[0];
     const download = version.downloads.chrome.filter((val) => {
       if (Deno.build.os === "darwin" && Deno.build.arch === "aarch64") {
@@ -98,19 +105,19 @@ export async function getBinary(): Promise<string> {
         "Download failed, please check your internet connection and try again",
       );
     }
-    await Deno.writeFile(resolve(BASE_PATH, `raw_${REVISION}.zip`), req.body);
-    console.log(`Download complete (chrome revision ${REVISION})`);
+    await Deno.writeFile(resolve(BASE_PATH, `raw_${VERSION}.zip`), req.body);
+    console.log(`Download complete (${browser} version ${VERSION})`);
     await decompressArchive(
-      resolve(BASE_PATH, `raw_${REVISION}.zip`),
-      resolve(BASE_PATH, REVISION),
+      resolve(BASE_PATH, `raw_${VERSION}.zip`),
+      resolve(BASE_PATH, VERSION),
     );
 
-    config[REVISION] = resolve(BASE_PATH, REVISION);
+    config[VERSION] = resolve(BASE_PATH, VERSION);
     Deno.writeTextFileSync(CONFIG_PATH, JSON.stringify(config));
   }
 
   // It now exists, return the path to the known good binary
-  const folder = config[REVISION];
+  const folder = config[VERSION];
 
   if (Deno.build.os === "darwin" && Deno.build.arch === "aarch64") {
     return resolve(

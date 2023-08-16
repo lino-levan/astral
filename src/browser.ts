@@ -41,8 +41,8 @@ async function runCommand(command: Deno.Command) {
 }
 
 export interface BrowserOpts {
-  path?: string;
   headless?: boolean;
+  path?: string;
 }
 
 export class Browser {
