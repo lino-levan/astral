@@ -167,7 +167,7 @@ export class Celestial extends EventTarget {
         handler(data.result);
         this.#handlers.delete(data.id);
       } else {
-        const className = CelestialEvents[data.method.replaceAll(".", "_") as keyof CelestialEventMap];
+        const className = CelestialEvents[data.method as keyof CelestialEventMap];
         if(data.params) {
           this.dispatchEvent(new className(data.params))
         } else {
@@ -246,16 +246,16 @@ for (const domain of protocol.domains) {
 
       class ${domain.domain}_${event.name}Event extends CustomEvent<${domain.domain}_${event.name}> {
         constructor(detail: ${domain.domain}_${event.name}) {
-          super("${domain.domain}_${event.name}", { detail })
+          super("${domain.domain}.${event.name}", { detail })
         }
       }\n\n`;
       eventMap +=
-        `\t"${domain.domain}_${event.name}": ${domain.domain}_${event.name}Event,\n`;
+        `\t"${domain.domain}.${event.name}": ${domain.domain}_${event.name}Event,\n`;
       eventMapType +=
-        `\t"${domain.domain}_${event.name}": ${domain.domain}_${event.name}Event;\n`;
+        `\t"${domain.domain}.${event.name}": ${domain.domain}_${event.name}Event;\n`;
     } else {
-      eventMap += `\t"${domain.domain}_${event.name}": Event,\n`;
-      eventMapType += `\t"${domain.domain}_${event.name}": Event;\n`;
+      eventMap += `\t"${domain.domain}.${event.name}": Event,\n`;
+      eventMapType += `\t"${domain.domain}.${event.name}": Event;\n`;
     }
   }
 }

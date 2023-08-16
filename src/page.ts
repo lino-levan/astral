@@ -348,7 +348,7 @@ export class Page {
               callback,
             );
           };
-          this.#celestial.addEventListener("Page_loadEventFired", callback);
+          this.#celestial.addEventListener("Page.loadEventFired", callback);
         } else if (options?.waitUntil === "networkidle0") {
           this.waitForNetworkIdle({ idleTime: 500 }).then(() => {
             resolve();
@@ -410,15 +410,15 @@ export class Page {
         };
 
         this.#celestial.addEventListener(
-          "Network_requestWillBeSent",
+          "Network.requestWillBeSent",
           requestStarted,
         );
         this.#celestial.addEventListener(
-          "Network_loadingFailed",
+          "Network.loadingFailed",
           requestFinished,
         );
         this.#celestial.addEventListener(
-          "Network_loadingFinished",
+          "Network.loadingFinished",
           requestFinished,
         );
       }),
