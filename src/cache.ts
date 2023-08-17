@@ -3,6 +3,7 @@ import { resolve } from "https://deno.land/std@0.198.0/path/mod.ts";
 
 export const SUPPORTED_VERSIONS = {
   chrome: "118.0.5943.0",
+  firefox: "116.0",
 } as const;
 
 const HOME_PATH = Deno.build.os === "windows"
@@ -67,9 +68,10 @@ async function decompressArchive(source: string, destination: string) {
 /**
  * Get path for the binary for this OS. Downloads a browser if none is cached.
  */
-export async function getBinary(): Promise<string> {
-  // TODO(lino-levan): turn this into an argument
-  const browser = "chrome";
+export async function getBinary(
+  browser: "chrome" | "firefox",
+): Promise<string> {
+  // TODO(lino-levan): fix firefox downloading
   const VERSION = SUPPORTED_VERSIONS[browser];
 
   const config = getCache();
