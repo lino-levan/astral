@@ -91,8 +91,12 @@ export class Browser {
     this.pages.push(page);
 
     const celestial = page.unsafelyGetCelestialBindings();
+    const { userAgent } = await celestial.Browser.getVersion();
 
     await Promise.all([
+      celestial.Emulation.setUserAgentOverride({
+        userAgent: userAgent.replaceAll("Headless", ""),
+      }),
       celestial.Page.enable(),
       celestial.Page.setInterceptFileChooserDialog({ enabled: true }),
     ]);
