@@ -1,7 +1,20 @@
-/// <reference lib="dom" />
+---
+title: 2.3 - Evaluate
+description: A small example on how to do complex evaluation in Astral
+index: 1
+---
 
+## Running
+
+```bash
+deno run -A https://deno.land/x/astral/examples/evaluate.ts
+```
+
+## Code
+
+```ts
 // Import Astral
-import { launch } from "../mod.ts";
+import { launch } from "https://deno.land/x/astral/mod.ts";
 
 // Launch the browser
 const browser = await launch();
@@ -25,3 +38,4 @@ console.log(result);
 
 // Close the browser
 await browser.close();
+```

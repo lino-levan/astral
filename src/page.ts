@@ -37,7 +37,15 @@ export type WaitForNetworkIdleOptions = {
   idleConnections?: number;
 };
 
-export type EvalFunc<T> = string | (() => T);
+type AnyArray = readonly unknown[];
+
+export type EvaluateFunction<T, R extends AnyArray> =
+  | string
+  | ((...args: R) => T);
+
+export interface EvaluateOptions<T> {
+  args: Readonly<T>;
+}
 
 /**
  * Page provides methods to interact with a single tab in the browser
@@ -207,9 +215,15 @@ export class Page {
    * const innerHTML = await page.evaluate(()=>document.body.innerHTML)
    * ```
    */
-  async evaluate<T>(func: EvalFunc<T>) {
+  async evaluate<T, R extends AnyArray>(
+    func: EvaluateFunction<T, R>,
+    evaluateOptions?: EvaluateOptions<R>,
+  ) {
     if (typeof func === "function") {
-      func = `(${func.toString()})()`;
+      const args = evaluateOptions?.args ?? [];
+      func = `(${func.toString()})(${
+        args.map((arg) => `${JSON.stringify(arg)}`).join(",")
+      })`;
     }
     const { result, exceptionDetails } = await retryDeadline(
       this.#celestial.Runtime.evaluate({
@@ -319,12 +333,15 @@ export class Page {
   /**
    * Runs a function in the context of the page until it returns a truthy value.
    */
-  async waitForFunction<T>(func: EvalFunc<T>) {
+  async waitForFunction<T, R extends AnyArray>(
+    func: EvaluateFunction<T, R>,
+    evaluateOptions?: EvaluateOptions<R>,
+  ) {
     // TODO(lino-levan): Make this easier to read
     await deadline(
       (async () => {
         while (true) {
-          const result = await this.evaluate(func);
+          const result = await this.evaluate(func, evaluateOptions);
 
           if (result) {
             return result;
