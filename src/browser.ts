@@ -132,6 +132,7 @@ export interface LaunchOptions {
   headless?: boolean;
   path?: string;
   product?: "chrome" | "firefox";
+  args?: string[];
 }
 
 /**
@@ -140,6 +141,7 @@ export interface LaunchOptions {
 export async function launch(opts?: LaunchOptions) {
   const headless = opts?.headless ?? true;
   const product = opts?.product ?? "chrome";
+  const args = opts?.args ?? [];
   let path = opts?.path;
 
   if (!path) {
@@ -158,6 +160,7 @@ export async function launch(opts?: LaunchOptions) {
       ...(
         headless ? [product === "chrome" ? "--headless=new" : "--headless"] : []
       ),
+      ...args,
     ],
     stderr: "piped",
   });
