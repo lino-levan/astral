@@ -15,7 +15,7 @@ Deno.test("Testing stealth", async () => {
   const userAgent: string = await page.evaluate(() => {
     return navigator.userAgent;
   });
-  assert(userAgent.toLowerCase().includes("headless"));
+  assert(!userAgent.toLowerCase().includes("headless"));
 
   // Close browser
   await browser.close();
