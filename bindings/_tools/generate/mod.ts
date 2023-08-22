@@ -146,7 +146,7 @@ let eventMapType = "\ninterface CelestialEventMap {";
 
 let celestial = `
 export class Celestial extends EventTarget {
-  #ws: WebSocket;
+  ws: WebSocket;
   #id = 0;
   #handlers: Map<number, (value: unknown) => void> = new Map();
 
@@ -156,9 +156,9 @@ export class Celestial extends EventTarget {
   constructor(ws: WebSocket) {
     super();
 
-    this.#ws = ws;
+    this.ws = ws;
 
-    this.#ws.onmessage = (e) => {
+    this.ws.onmessage = (e) => {
       const data = JSON.parse(e.data);
 
       const handler = this.#handlers.get(data.id);
@@ -182,7 +182,7 @@ export class Celestial extends EventTarget {
    * Close the websocket connection, does nothing if already closed.
    */
   close() {
-    this.#ws.close();
+    this.ws.close();
   }
 
   // @ts-ignore everything is fine
@@ -192,7 +192,7 @@ export class Celestial extends EventTarget {
   }
 
   #sendReq(method: string, params?: unknown): Promise<any> {
-    this.#ws.send(JSON.stringify({
+    this.ws.send(JSON.stringify({
       id: ++this.#id,
       method,
       params

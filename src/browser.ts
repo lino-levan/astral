@@ -1,3 +1,5 @@
+import { retry } from "https://deno.land/std@0.198.0/async/retry.ts";
+
 import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
 import { getBinary } from "./cache.ts";
 import { Page, WaitForOptions } from "./page.ts";
@@ -40,9 +42,9 @@ async function runCommand(command: Deno.Command) {
   return process;
 }
 
-export interface BrowserOpts {
-  headless?: boolean;
-  path?: string;
+export interface BrowserOptions {
+  headless: boolean;
+  product: "chrome" | "firefox";
 }
 
 /**
@@ -54,98 +56,49 @@ export interface BrowserOpts {
  * ```
  */
 export class Browser {
-  #options: Required<BrowserOpts>;
-  #ws?: WebSocket;
-  #process?: Deno.ChildProcess;
+  #options: BrowserOptions;
+  #celestial: Celestial;
+  #process: Deno.ChildProcess;
   readonly pages: Page[] = [];
 
-  constructor(opts: Required<BrowserOpts>) {
-    this.#options = {
-      ...opts,
-    };
-  }
-
-  /**
-   * @internal
-   * DO NOT USE
-   */
-  async launch() {
-    if (this.#process) {
-      throw new Error(
-        "You tried to launch the same browser twice. Don't do that.",
-      );
-    }
-
-    // Launch child process
-    const launch = new Deno.Command(this.#options.path, {
-      args: [
-        "-remote-debugging-port=9222",
-        ...(
-          this.#options.headless ? ["--headless=new"] : []
-        ),
-      ],
-      stderr: "piped",
-    });
-    this.#process = await runCommand(launch);
-
-    // Fetch browser websocket
-    const browserReq = await fetch(`${BASE_URL}/json/version`);
-    const browserRes = await browserReq.json();
-
-    if (browserRes["Protocol-Version"] !== PROTOCOL_VERSION) {
-      throw new Error(
-        "Differing protocol versions between binary and bindings.",
-      );
-    }
-
-    // Set up browser websocket
-    this.#ws = new WebSocket(browserRes.webSocketDebuggerUrl);
-
-    // Make sure that websocket is open before continuing
-    await websocketReady(this.#ws);
+  constructor(ws: WebSocket, process: Deno.ChildProcess, opts: BrowserOptions) {
+    this.#celestial = new Celestial(ws);
+    this.#process = process;
+    this.#options = opts;
   }
 
   /**
    * Closes the browser and all of its pages (if any were opened). The Browser object itself is considered to be disposed and cannot be used anymore.
    */
   async close() {
-    if (!this.#process || !this.#ws) {
-      throw new Error(
-        "You tried to close a browser you never launched or already closed. Don't do that.",
-      );
-    }
-    this.#ws.close();
+    this.#celestial.close();
     this.#process.kill();
     await this.#process.status;
-    this.#process = undefined;
   }
 
   /**
    * Promise which resolves to a new `Page` object.
    */
   async newPage(url?: string, options?: WaitForOptions) {
-    const browserReq = await fetch(
-      `${BASE_URL}/json/new`,
-      {
-        method: "PUT",
-      },
-    );
-    const browserRes = await browserReq.json();
-    const websocket = new WebSocket(browserRes.webSocketDebuggerUrl);
+    const { targetId } = await this.#celestial.Target.createTarget({
+      url: "",
+    });
+    const wsUrl = `${BASE_URL}/devtools/page/${targetId}`;
+    const websocket = new WebSocket(wsUrl);
     await websocketReady(websocket);
 
-    const page = new Page(browserRes.id, websocket, this);
+    const page = new Page(targetId, websocket, this);
     this.pages.push(page);
 
-    const celestial = await page.unsafelyGetCelestialBindings();
+    const celestial = page.unsafelyGetCelestialBindings();
+
+    await Promise.all([
+      celestial.Page.enable(),
+      celestial.Page.setInterceptFileChooserDialog({ enabled: true }),
+    ]);
 
     if (url) {
-      await celestial.Page.enable();
-
-      await Promise.all([
-        celestial.Page.setInterceptFileChooserDialog({ enabled: true }),
-        page.goto(url, options),
-      ]);
+      await page.goto(url, options);
     }
 
     return page;
@@ -155,11 +108,7 @@ export class Browser {
    * The browser's original user agent.
    */
   async userAgent() {
-    if (!this.#ws) throw "Not connected";
-
-    const celestial = new Celestial(this.#ws);
-    const { userAgent } = await celestial.Browser.getVersion();
-
+    const { userAgent } = await this.#celestial.Browser.getVersion();
     return userAgent;
   }
 
@@ -167,11 +116,7 @@ export class Browser {
    * A string representing the browser name and version.
    */
   async version() {
-    if (!this.#ws) throw "Not connected";
-
-    const celestial = new Celestial(this.#ws);
-    const { product, revision } = await celestial.Browser.getVersion();
-
+    const { product, revision } = await this.#celestial.Browser.getVersion();
     return `${product}/${revision}`;
   }
 
@@ -179,28 +124,63 @@ export class Browser {
    * The browser's websocket endpoint
    */
   wsEndpoint() {
-    if (!this.#ws) throw "Not connected";
-
-    return this.#ws.url;
+    return this.#celestial.ws.url;
   }
+}
+
+export interface LaunchOptions {
+  headless?: boolean;
+  path?: string;
+  product?: "chrome" | "firefox";
 }
 
 /**
  * Launches a browser instance with given arguments and options when specified.
  */
-export async function launch(opts?: BrowserOpts) {
+export async function launch(opts?: LaunchOptions) {
+  const headless = opts?.headless ?? true;
+  const product = opts?.product ?? "chrome";
   let path = opts?.path;
 
   if (!path) {
-    path = await getBinary();
+    path = await getBinary(product);
   }
 
-  const options: Required<BrowserOpts> = {
-    headless: opts?.headless ?? true,
-    path,
+  const options: BrowserOptions = {
+    headless,
+    product,
   };
 
-  const browser = new Browser(options);
-  await browser.launch();
-  return browser;
+  // Launch child process
+  const launch = new Deno.Command(path, {
+    args: [
+      "--remote-debugging-port=9222",
+      ...(
+        headless ? [product === "chrome" ? "--headless=new" : "--headless"] : []
+      ),
+    ],
+    stderr: "piped",
+  });
+  const process = await runCommand(launch);
+
+  // Fetch browser websocket
+  const browserRes = await retry(async () => {
+    const browserReq = await fetch(`${BASE_URL}/json/version`);
+    return await browserReq.json();
+  });
+
+  if (browserRes["Protocol-Version"] !== PROTOCOL_VERSION) {
+    throw new Error(
+      "Differing protocol versions between binary and bindings.",
+    );
+  }
+
+  // Set up browser websocket
+  const ws = new WebSocket(browserRes.webSocketDebuggerUrl);
+
+  // Make sure that websocket is open before continuing
+  await websocketReady(ws);
+
+  // Construct browser and return
+  return new Browser(ws, process, options);
 }

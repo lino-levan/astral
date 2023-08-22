@@ -113,7 +113,7 @@ export async function getProtocol(): Promise<Protocol> {
     return JSON.parse(Deno.readTextFileSync("types.json"));
   } else {
     // Configuration
-    const path = await getBinary();
+    const path = await getBinary("chrome");
 
     // Launch child process
     const launch = new Deno.Command(path, {

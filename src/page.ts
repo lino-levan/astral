@@ -62,6 +62,21 @@ export class Page {
     this.touchscreen = new Touchscreen(this.#celestial);
   }
 
+  async #getRoot() {
+    const doc = await retryDeadline(
+      (async () => {
+        while (true) {
+          const root = await this.#celestial.DOM.getDocument({
+            depth: 0,
+          });
+          if (root) return root;
+        }
+      })(),
+      this.timeout,
+    );
+    return new ElementHandle(doc.root.nodeId, this.#celestial, this);
+  }
+
   /**
    * Returns raw celestial bindings for the page. Super unsafe unless you know what you're doing.
    */
@@ -78,11 +93,7 @@ export class Page {
    * ```
    */
   async $(selector: string) {
-    const doc = await retryDeadline(
-      this.#celestial.DOM.getDocument({ depth: 0 }),
-      this.timeout,
-    );
-    const root = new ElementHandle(doc.root.nodeId, this.#celestial, this);
+    const root = await this.#getRoot();
     return root.$(selector);
   }
 
@@ -95,11 +106,7 @@ export class Page {
    * ```
    */
   async $$(selector: string) {
-    const doc = await retryDeadline(
-      this.#celestial.DOM.getDocument({ depth: 0 }),
-      this.timeout,
-    );
-    const root = new ElementHandle(doc.root.nodeId, this.#celestial, this);
+    const root = await this.#getRoot();
     return retryDeadline(root.$$(selector), this.timeout);
   }
 
@@ -435,11 +442,7 @@ export class Page {
    * ```
    */
   async waitForSelector(selector: string) {
-    const doc = await retryDeadline(
-      this.#celestial.DOM.getDocument({ depth: 0 }),
-      this.timeout,
-    );
-    const root = new ElementHandle(doc.root.nodeId, this.#celestial, this);
+    const root = await this.#getRoot();
     return root.waitForSelector(selector);
   }
 
