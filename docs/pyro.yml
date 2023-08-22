@@ -3,6 +3,10 @@ github: https://github.com/lino-levan/astral
 copyright: |-
   Copyright © 2023 Lino Le Van
   MIT Licensed
+header:
+  left:
+    - Docs /
+    - Showcase /showcase
 footer:
   Learn:
     - Introduction /

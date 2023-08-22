@@ -1,5 +1,5 @@
 ---
-title: 3.3 - Polish
+title: Polish
 description: How Astral finalizes the polish to make a usable API.
 index: 2
 ---

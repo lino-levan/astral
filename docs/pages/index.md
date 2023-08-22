@@ -1,5 +1,5 @@
 ---
-title: 1 - Astral
+title: Introduction
 description: A simple introduction to Astral
 index: 0
 ---
@@ -19,6 +19,8 @@ Here are a few examples to get you started:
 - Automate form submission, UI testing, keyboard input, etc.
 - Create a reproducable, automated testing environment using the latest
   JavaScript and browser features.
+- Stealthy by default. No need to install or setup extra libraries to get
+  features that should come by default.
 
 ## Usage
 

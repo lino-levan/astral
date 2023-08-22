@@ -2,6 +2,11 @@
   "tasks": {
     // The task to automatically generate `./src/celestial.ts`
     "bind": "deno run -A ./bindings/_tools/generate/mod.ts && deno fmt",
-    "test": "deno test -A --trace-ops"
+    "test": "deno test -A --trace-ops",
+    "www": "cd docs && pyro dev"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "https://esm.sh/preact@10.16.0"
   }
 }

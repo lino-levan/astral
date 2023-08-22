@@ -1,6 +1,6 @@
 ---
-title: 2 - Examples
-description: Small examples for Astral
+title: Guides
+description: Small guides for Astral
 index: 1
 ---
 

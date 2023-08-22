@@ -1,5 +1,5 @@
 ---
-title: 2.2 - Navigation
+title: Navigation
 description: A small example on how to do complex navigation in Astral
 index: 1
 ---

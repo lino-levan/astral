@@ -1,5 +1,5 @@
 ---
-title: 2.1 - Screenshots
+title: Screenshots
 description: A small example on how to do screenshots in Astral
 index: 0
 ---

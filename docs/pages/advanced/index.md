@@ -1,5 +1,5 @@
 ---
-title: 3 - Advanced
+title: Advanced
 description: Advanced topics for Astral
 index: 2
 ---

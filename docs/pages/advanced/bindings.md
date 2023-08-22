@@ -1,5 +1,5 @@
 ---
-title: 2.2 - Bindings
+title: Bindings
 description: How Astral generates bindings
 index: 1
 ---

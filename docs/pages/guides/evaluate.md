@@ -1,7 +1,7 @@
 ---
-title: 2.3 - Evaluate
+title: Evaluate
 description: A small example on how to do complex evaluation in Astral
-index: 1
+index: 2
 ---
 
 ## Running

@@ -82,6 +82,11 @@
     "https://deno.land/std@0.198.0/path/to_namespaced_path.ts": "4e643ab729bf49ccdc166ad48d2de262ff462938fcf2a44a4425588f4a0bd690",
     "https://deno.land/std@0.198.0/path/win32.ts": "8b3f80ef7a462511d5e8020ff490edcaa0a0d118f1b1e9da50e2916bdd73f9dd",
     "https://deno.land/std@0.198.0/testing/asserts.ts": "b4e4b1359393aeff09e853e27901a982c685cb630df30426ed75496961931946",
-    "https://deno.land/std@0.198.0/testing/snapshot.ts": "70263f752313814349bbab3707e07a11d6fb0577716ed51df5ec56d54350d8cb"
+    "https://deno.land/std@0.198.0/testing/snapshot.ts": "70263f752313814349bbab3707e07a11d6fb0577716ed51df5ec56d54350d8cb",
+    "https://deno.land/x/pyro@0.6.1/page.ts": "48fe33cf18df653633cf4bc28b93d2f70d19556354a09409d03ce7bc57cdf4ee",
+    "https://deno.land/x/pyro@0.6.1/src/lib/types.ts": "e7c34471ce0a06fde7d9dd3aef02b4f6a95b03e9eda20b75361f8799e9b3637e",
+    "https://esm.sh/preact@10.16.0/jsx-runtime": "9e67b64a5b48299c77d30bffc213735fdcf4b3b5d4ad8ff8d4136f246de5fa34",
+    "https://esm.sh/stable/preact@10.16.0/denonext/jsx-runtime.js": "64770c709df77c4b64b79f84a4abf6189fd0c3ea461121870eca0cf2bcca87b0",
+    "https://esm.sh/stable/preact@10.16.0/denonext/preact.mjs": "01dc8bdf124926c611c0711081b9c162cf2735cccad7c2bc9914766f633ddb1d"
   }
 }

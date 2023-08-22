@@ -1,5 +1,5 @@
 ---
-title: 3.1 - Binaries
+title: Binaries
 description: How Astral deals with binaries
 index: 0
 ---
