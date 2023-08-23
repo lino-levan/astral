@@ -195,6 +195,62 @@ export class ElementHandle {
   }
 
   /**
+   * Returns the `element.innerHTML`
+   */
+  async innerHTML(): Promise<string> {
+    return await retryDeadline(
+      (async () => {
+        const { object } = await this.#celestial.DOM.resolveNode({
+          nodeId: this.#id,
+        });
+
+        const result = await this.#celestial.Runtime.callFunctionOn({
+          functionDeclaration: "(element)=>element.innerHTML",
+          objectId: object.objectId,
+          arguments: [
+            {
+              objectId: object.objectId,
+            },
+          ],
+          awaitPromise: true,
+          returnByValue: true,
+        });
+
+        return result.result.value;
+      })(),
+      this.#page.timeout,
+    );
+  }
+
+  /**
+   * Returns the `element.innerText`
+   */
+  async innerText() {
+    return await retryDeadline(
+      (async () => {
+        const { object } = await this.#celestial.DOM.resolveNode({
+          nodeId: this.#id,
+        });
+
+        const result = await this.#celestial.Runtime.callFunctionOn({
+          functionDeclaration: "(element)=>element.innerText",
+          objectId: object.objectId,
+          arguments: [
+            {
+              objectId: object.objectId,
+            },
+          ],
+          awaitPromise: true,
+          returnByValue: true,
+        });
+
+        return result.result.value;
+      })(),
+      this.#page.timeout,
+    );
+  }
+
+  /**
    * This method scrolls element into view if needed, and then uses `Page.screenshot()` to take a screenshot of the element.
    */
   async screenshot(opts?: Omit<ScreenshotOptions, "clip">) {
