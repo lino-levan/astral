@@ -54,16 +54,28 @@ export class Page {
   #id: string;
   #celestial: Celestial;
   #browser: Browser;
+  #url: string | undefined;
 
   readonly timeout = 10000;
   readonly mouse: Mouse;
   readonly keyboard: Keyboard;
   readonly touchscreen: Touchscreen;
 
-  constructor(id: string, ws: WebSocket, browser: Browser) {
+  constructor(
+    id: string,
+    url: string | undefined,
+    ws: WebSocket,
+    browser: Browser,
+  ) {
     this.#id = id;
+    this.#url = url;
     this.#celestial = new Celestial(ws);
     this.#browser = browser;
+
+    this.#celestial.addEventListener("Page.frameNavigated", (e) => {
+      const { frame } = e.detail;
+      this.#url = frame.urlFragment ?? frame.url;
+    });
 
     this.mouse = new Mouse(this.#celestial);
     this.keyboard = new Keyboard(this.#celestial);
@@ -328,6 +340,13 @@ export class Page {
       this.timeout,
     );
     return convertToUint8Array(data);
+  }
+
+  /**
+   * The current URL of the page
+   */
+  get url() {
+    return this.#url;
   }
 
   /**
