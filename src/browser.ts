@@ -87,7 +87,7 @@ export class Browser {
     const websocket = new WebSocket(wsUrl);
     await websocketReady(websocket);
 
-    const page = new Page(targetId, websocket, this);
+    const page = new Page(targetId, url, websocket, this);
     this.pages.push(page);
 
     const celestial = page.unsafelyGetCelestialBindings();
