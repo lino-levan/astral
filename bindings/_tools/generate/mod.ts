@@ -142,7 +142,7 @@ function generateParameters(commandParams: CommandParameter[], domain: string) {
 
 let events = "";
 let eventMap = "const CelestialEvents = {\n";
-let eventMapType = "\ninterface CelestialEventMap {";
+let eventMapType = "\nexport interface CelestialEventMap {";
 
 let celestial = `
 export class Celestial extends EventTarget {
@@ -240,11 +240,11 @@ for (const domain of protocol.domains) {
   for (const event of domain.events || []) {
     if (event.parameters) {
       events += `
-      interface ${domain.domain}_${event.name} {
+      export interface ${domain.domain}_${event.name} {
         ${generateParameters(event.parameters, domain.domain)}
       }
 
-      class ${domain.domain}_${event.name}Event extends CustomEvent<${domain.domain}_${event.name}> {
+      export class ${domain.domain}_${event.name}Event extends CustomEvent<${domain.domain}_${event.name}> {
         constructor(detail: ${domain.domain}_${event.name}) {
           super("${domain.domain}.${event.name}", { detail })
         }

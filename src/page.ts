@@ -7,6 +7,7 @@ import { BASE_URL, convertToUint8Array, retryDeadline } from "./util.ts";
 import { Mouse } from "./mouse.ts";
 import { Keyboard } from "./keyboard.ts";
 import { Touchscreen } from "./touchscreen.ts";
+import { Dialog } from "./dialog.ts";
 
 export type DeleteCookieOptions = Omit<
   Parameters<Celestial["Network"]["deleteCookies"]>[0],
@@ -47,10 +48,20 @@ export interface EvaluateOptions<T> {
   args: Readonly<T>;
 }
 
+export interface PageEventMap {
+  "dialog": DialogEvent;
+}
+
+export class DialogEvent extends CustomEvent<Dialog> {
+  constructor(detail: Dialog) {
+    super("dialog", { detail });
+  }
+}
+
 /**
  * Page provides methods to interact with a single tab in the browser
  */
-export class Page {
+export class Page extends EventTarget {
   #id: string;
   #celestial: Celestial;
   #browser: Browser;
@@ -67,6 +78,8 @@ export class Page {
     ws: WebSocket,
     browser: Browser,
   ) {
+    super();
+
     this.#id = id;
     this.#url = url;
     this.#celestial = new Celestial(ws);
@@ -75,6 +88,12 @@ export class Page {
     this.#celestial.addEventListener("Page.frameNavigated", (e) => {
       const { frame } = e.detail;
       this.#url = frame.urlFragment ?? frame.url;
+    });
+
+    this.#celestial.addEventListener("Page.javascriptDialogOpening", (e) => {
+      this.dispatchEvent(
+        new DialogEvent(new Dialog(this.#celestial, e.detail)),
+      );
     });
 
     this.mouse = new Mouse(this.#celestial);
@@ -95,6 +114,16 @@ export class Page {
       this.timeout,
     );
     return new ElementHandle(doc.root.nodeId, this.#celestial, this);
+  }
+
+  // @ts-ignore see below
+  addEventListener<K extends keyof PageEventMap>(
+    type: K,
+    listener: (event: PageEventMap[K]) => void,
+    options?: boolean | AddEventListenerOptions,
+  ): void {
+    // @ts-ignore TODO(lino-levan): Investigate why this is wrong
+    super.addEventListener(type, listener, options);
   }
 
   /**
