@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.198.0/assert/assert_equals.ts";
+import { assertEquals } from "https://deno.land/std@0.201.0/assert/assert_equals.ts";
 
 import { launch } from "../mod.ts";
 
@@ -21,6 +21,32 @@ Deno.test("Accepting basic alert", async () => {
 
   // navigate to a page with an alert
   await page.goto("data:text/html,<script>alert('hi');</script>");
+
+  // Close browser
+  await browser.close();
+});
+
+Deno.test("Accepting basic alert with playwright-like syntax", async () => {
+  // Launch browser
+  const browser = await launch();
+
+  // Open the webpage
+  const page = await browser.newPage();
+
+  // listen for dialog events
+  const dialogPromise = page.waitForEvent("dialog");
+
+  // navigate to a page with an alert
+  // note: waitUntil: "none" is required because we're using a data url
+  await page.goto("data:text/html,<script>alert('hi');</script>", {
+    waitUntil: "none",
+  });
+
+  // handle dialog
+  const dialog = await dialogPromise;
+  assertEquals(dialog.message, "hi");
+  assertEquals(dialog.type, "alert");
+  await dialog.accept();
 
   // Close browser
   await browser.close();
@@ -71,6 +97,34 @@ Deno.test("Declining comfirm", async () => {
 
   // navigate to a page with an alert
   await page.goto("data:text/html,<script>confirm('Is this good?');</script>");
+
+  // Close browser
+  await browser.close();
+});
+
+Deno.test("Input choose file", async () => {
+  // Launch browser
+  const browser = await launch();
+
+  // Open the webpage
+  const page = await browser.newPage();
+
+  // navigate to a page with an alert
+  await page.goto('data:text/html,<input type="file"></input>', {
+    waitUntil: "none",
+  });
+
+  // click input and handle file chooser
+  const element = await page.$("input");
+
+  const [fileChooser] = await Promise.all([
+    page.waitForEvent("filechooser"),
+    element?.click(),
+  ]);
+
+  assertEquals(fileChooser.multiple, false);
+
+  await fileChooser.setFiles(["./tests/assets/file.txt"]);
 
   // Close browser
   await browser.close();

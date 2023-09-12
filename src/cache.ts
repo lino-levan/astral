@@ -1,5 +1,5 @@
-import { ensureDirSync } from "https://deno.land/std@0.198.0/fs/ensure_dir.ts";
-import { resolve } from "https://deno.land/std@0.198.0/path/mod.ts";
+import { ensureDirSync } from "https://deno.land/std@0.201.0/fs/ensure_dir.ts";
+import { resolve } from "https://deno.land/std@0.201.0/path/mod.ts";
 
 export const SUPPORTED_VERSIONS = {
   chrome: "118.0.5943.0",

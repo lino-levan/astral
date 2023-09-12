@@ -1,4 +1,4 @@
-import { deadline } from "https://deno.land/std@0.198.0/async/deadline.ts";
+import { deadline } from "https://deno.land/std@0.201.0/async/deadline.ts";
 
 import { Celestial, Network_Cookie } from "../bindings/celestial.ts";
 import { Browser } from "./browser.ts";
@@ -8,6 +8,7 @@ import { Mouse } from "./mouse.ts";
 import { Keyboard } from "./keyboard.ts";
 import { Touchscreen } from "./touchscreen.ts";
 import { Dialog } from "./dialog.ts";
+import { FileChooser } from "./fileChooser.ts";
 
 export type DeleteCookieOptions = Omit<
   Parameters<Celestial["Network"]["deleteCookies"]>[0],
@@ -30,7 +31,7 @@ export type ScreenshotOptions = Parameters<
 export type Cookie = Network_Cookie;
 
 export type WaitForOptions = {
-  waitUntil?: "load" | "networkidle0" | "networkidle2";
+  waitUntil?: "none" | "load" | "networkidle0" | "networkidle2";
 };
 
 export type WaitForNetworkIdleOptions = {
@@ -50,11 +51,18 @@ export interface EvaluateOptions<T> {
 
 export interface PageEventMap {
   "dialog": DialogEvent;
+  "filechooser": FileChooserEvent;
 }
 
 export class DialogEvent extends CustomEvent<Dialog> {
   constructor(detail: Dialog) {
     super("dialog", { detail });
+  }
+}
+
+export class FileChooserEvent extends CustomEvent<FileChooser> {
+  constructor(detail: FileChooser) {
+    super("filechooser", { detail });
   }
 }
 
@@ -93,6 +101,16 @@ export class Page extends EventTarget {
     this.#celestial.addEventListener("Page.javascriptDialogOpening", (e) => {
       this.dispatchEvent(
         new DialogEvent(new Dialog(this.#celestial, e.detail)),
+      );
+    });
+
+    this.#celestial.addEventListener("Page.fileChooserOpened", (e) => {
+      const { frameId, mode, backendNodeId } = e.detail;
+      if (!backendNodeId) return;
+      this.dispatchEvent(
+        new FileChooserEvent(
+          new FileChooser(this.#celestial, { frameId, mode, backendNodeId }),
+        ),
       );
     });
 
@@ -378,6 +396,19 @@ export class Page extends EventTarget {
     return this.#url;
   }
 
+  waitForEvent<T extends keyof PageEventMap>(
+    event: T,
+  ): Promise<PageEventMap[T]["detail"]> {
+    return new Promise((resolve) => {
+      this.addEventListener(
+        event,
+        (e) =>
+          resolve(e.detail as unknown as Promise<PageEventMap[T]["detail"]>),
+        { once: true },
+      );
+    });
+  }
+
   /**
    * Runs a function in the context of the page until it returns a truthy value.
    */
@@ -405,6 +436,10 @@ export class Page extends EventTarget {
    */
   async waitForNavigation(options?: WaitForOptions) {
     options = options ?? { waitUntil: "networkidle2" };
+
+    if (options.waitUntil === "none") {
+      return;
+    }
 
     if (options.waitUntil !== "load") {
       await this.waitForNavigation({ waitUntil: "load" });
