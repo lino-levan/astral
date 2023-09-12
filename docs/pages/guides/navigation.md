@@ -28,7 +28,7 @@ await button!.click();
 
 // Type in the search input
 const input = await page.$("#search-input");
-await input!.type("pyro", { delay: 100 });
+await input!.type("pyro", { delay: 1000 });
 
 // Wait for the search results to come back
 await page.waitForNetworkIdle({ idleConnections: 0, idleTime: 1000 });

@@ -1,4 +1,4 @@
-import { deadline } from "https://deno.land/std@0.198.0/async/deadline.ts";
+import { deadline } from "https://deno.land/std@0.201.0/async/deadline.ts";
 
 import { Celestial } from "../bindings/celestial.ts";
 import { KeyboardTypeOptions } from "./keyboard.ts";

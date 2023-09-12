@@ -11,36 +11,27 @@ export type DialogType = Page_DialogType;
  */
 export class Dialog {
   #celestial: Celestial;
-  #defaultValue: string;
-  #message: string;
-  #type: DialogType;
-
-  constructor(celestial: Celestial, config: Page_javascriptDialogOpening) {
-    this.#celestial = celestial;
-    this.#defaultValue = config.defaultPrompt ?? "";
-    this.#message = config.message;
-    this.#type = config.type;
-  }
 
   /**
    * The default value of the prompt, or an empty string if the dialog is not a prompt.
    */
-  get defaultValue() {
-    return this.#defaultValue;
-  }
+  readonly defaultValue: string;
 
   /**
    * The message displayed in the dialog.
    */
-  get message() {
-    return this.#message;
-  }
+  readonly message: string;
 
   /**
    * The type of the dialog.
    */
-  get type() {
-    return this.#type;
+  readonly type: DialogType;
+
+  constructor(celestial: Celestial, config: Page_javascriptDialogOpening) {
+    this.#celestial = celestial;
+    this.defaultValue = config.defaultPrompt ?? "";
+    this.message = config.message;
+    this.type = config.type;
   }
 
   /**
