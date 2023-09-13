@@ -2,13 +2,13 @@ import { deadline } from "https://deno.land/std@0.201.0/async/deadline.ts";
 
 import { Celestial, Network_Cookie } from "../bindings/celestial.ts";
 import { Browser } from "./browser.ts";
-import { ElementHandle } from "./elementHandle.ts";
+import { ElementHandle } from "./element_handle.ts";
 import { BASE_URL, convertToUint8Array, retryDeadline } from "./util.ts";
 import { Mouse } from "./mouse.ts";
 import { Keyboard } from "./keyboard.ts";
 import { Touchscreen } from "./touchscreen.ts";
 import { Dialog } from "./dialog.ts";
-import { FileChooser } from "./fileChooser.ts";
+import { FileChooser } from "./file_chooser.ts";
 
 export type DeleteCookieOptions = Omit<
   Parameters<Celestial["Network"]["deleteCookies"]>[0],
