@@ -51,31 +51,49 @@ function getCache(): Record<string, string> {
  * Clean cache
  */
 export async function cleanCache() {
-  if (await exists(BASE_PATH)) {
-    await Deno.remove(BASE_PATH, { recursive: true });
+  try {
+    if (await exists(BASE_PATH)) {
+      await Deno.remove(BASE_PATH, { recursive: true });
+    }
+  } catch (error) {
+    console.warn(`Failed to clean cache: ${error}`);
   }
 }
 
 async function isQuietInstall() {
-  const { state } = await Deno.permissions.query({
+  // Hide-progress in CI environment
+  const ci = await Deno.permissions.query({
+    name: "env",
+    variable: "CI",
+  });
+  if ((ci.state === "granted") && (`${Deno.env.get("CI") ?? ""}`.length)) {
+    return true;
+  }
+  // Hide-progress if asked by user
+  const quiet = await Deno.permissions.query({
     name: "env",
     variable: "ASTRAL_QUIET_INSTALL",
   });
-  if (state === "granted") {
-    return `${Deno.env.get("ASTRAL_QUIET_INSTALL")}` === "1";
+  if (quiet.state === "granted") {
+    const value = `${Deno.env.get("ASTRAL_QUIET_INSTALL") ?? ""}`;
+    return value.length ||
+      !/^(0|[Nn]o?|NO|[Oo]ff|OFF|[Ff]alse|FALSE)$/.test(value);
   }
 }
 
 async function decompressArchive(source: string, destination: string) {
+  const quiet = await isQuietInstall();
   const archive = await Deno.open(source);
   const zip = new ZipReader(archive);
   const entries = await zip.getEntries();
-  const bar = new ProgressBar({
-    title: `Inflating ${destination}`,
-    total: entries.length,
-    clear: true,
-    display: ":title :bar :percent",
-  });
+  const bar = !quiet
+    ? new ProgressBar({
+      title: `Inflating ${destination}`,
+      total: entries.length,
+      clear: true,
+      display: ":title :bar :percent",
+    })
+    : null;
   let progress = 0;
   for (const entry of entries) {
     if ((!entry.directory) && (entry.getData)) {
@@ -90,10 +108,10 @@ async function decompressArchive(source: string, destination: string) {
       await entry.getData(file, { checkSignature: true, useWebWorkers: false });
     }
     progress++;
-    bar.render(progress);
+    bar?.render(progress);
   }
   await zip.close();
-  if (!await isQuietInstall()) {
+  if (!quiet) {
     console.log(`Browser saved to ${destination}`);
   }
 }
@@ -108,6 +126,7 @@ export async function getBinary(
   const VERSION = SUPPORTED_VERSIONS[browser];
 
   const config = getCache();
+  const quiet = await isQuietInstall();
 
   // If the config doesn't have the revision, download it and return that
   if (!config[VERSION]) {
@@ -137,30 +156,35 @@ export async function getBinary(
         "Download failed, please check your internet connection and try again",
       );
     }
-    const reader = req.body.getReader();
-    const archive = await Deno.open(resolve(BASE_PATH, `raw_${VERSION}.zip`), {
-      write: true,
-      truncate: true,
-      create: true,
-    });
-    const bar = new ProgressBar({
-      title: `Downloading ${browser} ${VERSION}`,
-      total: Number(req.headers.get("Content-Length") ?? 0),
-      clear: true,
-      display: ":title :bar :percent",
-    });
-    let downloaded = 0;
-    do {
-      const { done, value } = await reader.read();
-      if (done) {
-        break;
-      }
-      await Deno.write(archive.rid, value);
-      downloaded += value.length;
-      bar.render(downloaded);
-    } while (true);
-    Deno.close(archive.rid);
-    if (!await isQuietInstall()) {
+    if (quiet) {
+      await Deno.writeFile(resolve(BASE_PATH, `raw_${VERSION}.zip`), req.body);
+    } else {
+      const reader = req.body.getReader();
+      const archive = await Deno.open(
+        resolve(BASE_PATH, `raw_${VERSION}.zip`),
+        {
+          write: true,
+          truncate: true,
+          create: true,
+        },
+      );
+      const bar = new ProgressBar({
+        title: `Downloading ${browser} ${VERSION}`,
+        total: Number(req.headers.get("Content-Length") ?? 0),
+        clear: true,
+        display: ":title :bar :percent",
+      });
+      let downloaded = 0;
+      do {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+        await Deno.write(archive.rid, value);
+        downloaded += value.length;
+        bar.render(downloaded);
+      } while (true);
+      Deno.close(archive.rid);
       console.log(`Download complete (${browser} version ${VERSION})`);
     }
     await decompressArchive(
