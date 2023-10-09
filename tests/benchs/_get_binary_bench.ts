@@ -1,5 +1,4 @@
-import { assertMatch } from "https://deno.land/std@0.201.0/assert/assert_match.ts";
-import { cleanCache, getBinary, launch } from "../../mod.ts";
+import { cleanCache, getBinary } from "../../mod.ts";
 import { assert } from "https://deno.land/std@0.201.0/assert/assert.ts";
 
 Deno.bench({
