@@ -233,6 +233,27 @@ export class Page extends EventTarget {
   }
 
   /**
+   * Set page content
+   */
+  async setContent(content: string): Promise<void> {
+    await this.evaluate(
+      (html) => {
+        const { document } = globalThis as unknown as {
+          document: {
+            open: () => void;
+            write: (html: string) => void;
+            close: () => void;
+          };
+        };
+        document.open();
+        document.write(html);
+        document.close();
+      },
+      { args: [content] },
+    );
+  }
+
+  /**
    * If no URLs are specified, this method returns cookies for the current page URL. If URLs are specified, only cookies for those URLs are returned.
    */
   async cookies(...urls: string[]): Promise<Cookie[]> {
