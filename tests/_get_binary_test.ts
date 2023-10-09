@@ -8,14 +8,19 @@ Deno.test("Test download", async () => {
   const path = await getBinary("chrome");
 
   // Ensure browser is executable
-  const command = new Deno.Command(path, {
-    args: [
-      "--version",
-    ],
-  });
-  const { success, stdout } = await command.output();
-  assert(success);
-  assertMatch(new TextDecoder().decode(stdout), /Google Chrome/i);
+  // Note: it seems that on Windows the --version flag does not exists and spawn a
+  //   browser instance instead. The next test ensure that everything is working
+  //   properly anyways
+  if (Deno.build.os !== "windows") {
+    const command = new Deno.Command(path, {
+      args: [
+        "--version",
+      ],
+    });
+    const { success, stdout } = await command.output();
+    assert(success);
+    assertMatch(new TextDecoder().decode(stdout), /Google Chrome/i);
+  }
 
   // Ensure browser is capable of loading pages
   const browser = await launch();
