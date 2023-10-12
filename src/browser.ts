@@ -77,7 +77,7 @@ export class Browser {
    * Closes the browser and all of its pages (if any were opened). The Browser object itself is considered to be disposed and cannot be used anymore.
    */
   async close() {
-    this.#celestial.close();
+    await this.#celestial.close();
     this.#process.kill();
     await this.#process.status;
   }
