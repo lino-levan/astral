@@ -3,7 +3,7 @@ import { deadline } from "https://deno.land/std@0.201.0/async/deadline.ts";
 import { Celestial, Network_Cookie } from "../bindings/celestial.ts";
 import { Browser } from "./browser.ts";
 import { ElementHandle } from "./element_handle.ts";
-import { BASE_URL, convertToUint8Array, retryDeadline } from "./util.ts";
+import { convertToUint8Array, retryDeadline } from "./util.ts";
 import { Mouse } from "./mouse.ts";
 import { Keyboard } from "./keyboard.ts";
 import { Touchscreen } from "./touchscreen.ts";
@@ -200,7 +200,8 @@ export class Page extends EventTarget {
    * Close this page in the browser
    */
   async close() {
-    const req = await fetch(`${BASE_URL}/json/close/${this.#id}`);
+    const wsUrl = new URL(this.#celestial.ws.url);
+    const req = await fetch(`http://${wsUrl.host}/json/close/${this.#id}`);
     const res = await req.text();
 
     if (res === "Target is closing") {

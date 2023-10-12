@@ -1,7 +1,7 @@
 import { deadline } from "https://deno.land/std@0.201.0/async/deadline.ts";
 import { retry } from "https://deno.land/std@0.201.0/async/retry.ts";
 
-export const BASE_URL = "http://localhost:9222";
+export const WEBSOCKET_ENDPOINT_REGEX = /ws:\/\/(.*:.*?)\//;
 
 /**
  * Utility method to wait until a websocket is ready

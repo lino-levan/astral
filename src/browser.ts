@@ -3,10 +3,13 @@ import { retry } from "https://deno.land/std@0.201.0/async/retry.ts";
 import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
 import { getBinary } from "./cache.ts";
 import { Page, WaitForOptions } from "./page.ts";
-import { BASE_URL, websocketReady } from "./util.ts";
+import { WEBSOCKET_ENDPOINT_REGEX, websocketReady } from "./util.ts";
 
-async function runCommand(command: Deno.Command) {
+async function runCommand(
+  command: Deno.Command,
+): Promise<{ process: Deno.ChildProcess; endpoint: string }> {
   const process = command.spawn();
+  let endpoint = null;
 
   // Wait until write to stdout containing the localhost address
   // This probably means that the process is read to accept communication
@@ -17,7 +20,8 @@ async function runCommand(command: Deno.Command) {
     const message = textDecoder.decode(chunk);
     stack.push(message);
 
-    if (message.includes("127.0.0.1:9222")) {
+    endpoint = message.trim().match(WEBSOCKET_ENDPOINT_REGEX)?.[1];
+    if (endpoint) {
       error = false;
       break;
     }
@@ -39,7 +43,9 @@ async function runCommand(command: Deno.Command) {
     throw new Error("Your binary refused to boot");
   }
 
-  return process;
+  if (!endpoint) throw new Error("Somehow did not get a websocket endpoint");
+
+  return { process, endpoint };
 }
 
 export interface BrowserOptions {
@@ -83,7 +89,8 @@ export class Browser {
     const { targetId } = await this.#celestial.Target.createTarget({
       url: "",
     });
-    const wsUrl = `${BASE_URL}/devtools/page/${targetId}`;
+    const browserWsUrl = new URL(this.#celestial.ws.url);
+    const wsUrl = `${browserWsUrl.origin}/devtools/page/${targetId}`;
     const websocket = new WebSocket(wsUrl);
     await websocketReady(websocket);
 
@@ -160,7 +167,7 @@ export async function launch(opts?: LaunchOptions) {
   // Launch child process
   const launch = new Deno.Command(path, {
     args: [
-      "--remote-debugging-port=9222",
+      "--remote-debugging-port=0",
       ...(
         headless ? [product === "chrome" ? "--headless=new" : "--headless"] : []
       ),
@@ -168,11 +175,11 @@ export async function launch(opts?: LaunchOptions) {
     ],
     stderr: "piped",
   });
-  const process = await runCommand(launch);
+  const { process, endpoint } = await runCommand(launch);
 
   // Fetch browser websocket
   const browserRes = await retry(async () => {
-    const browserReq = await fetch(`${BASE_URL}/json/version`);
+    const browserReq = await fetch(`http://${endpoint}/json/version`);
     return await browserReq.json();
   });
 
