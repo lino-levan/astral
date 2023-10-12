@@ -7,7 +7,7 @@ import { WEBSOCKET_ENDPOINT_REGEX, websocketReady } from "./util.ts";
 
 async function runCommand(
   command: Deno.Command,
-): { process: Deno.ChildProcess; endpoint: string } {
+): Promise<{ process: Deno.ChildProcess; endpoint: string }> {
   const process = command.spawn();
   let endpoint = null;
 
