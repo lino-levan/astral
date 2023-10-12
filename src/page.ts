@@ -212,7 +212,7 @@ export class Page extends EventTarget {
       return;
     }
 
-    this.#celestial.close();
+    await this.#celestial.close();
 
     throw new Error(`Page has already been closed or doesn't exist (${res})`);
   }
