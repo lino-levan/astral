@@ -33,7 +33,13 @@ async function runCommand(
       process.kill();
       await process.status;
 
-      Deno.removeSync(path);
+      try {
+        Deno.removeSync(path);
+      } catch (error) {
+        if (!(error instanceof Deno.errors.NotFound)) {
+          throw error;
+        }
+      }
       return runCommand(command);
     }
   }
