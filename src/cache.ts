@@ -134,7 +134,7 @@ export function getBinary(
   );
 }
 
-export async function _getBinary(
+async function _getBinary(
   browser: Parameters<typeof getBinary>[0],
   { cache = BASE_PATH, timeout }: NonNullable<Parameters<typeof getBinary>[1]>,
 ): Promise<string> {

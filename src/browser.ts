@@ -7,7 +7,7 @@ import { WEBSOCKET_ENDPOINT_REGEX, websocketReady } from "./util.ts";
 
 async function runCommand(
   command: Deno.Command,
-  { windowsErr21RetryAttempts = 60 } = {},
+  { retries = 60 } = {},
 ): Promise<{ process: Deno.ChildProcess; endpoint: string }> {
   const process = command.spawn();
   let endpoint = null;
@@ -50,13 +50,8 @@ async function runCommand(
     stack.push(`Process exited with code ${code}`);
     // Handle recoverable error code 21 on Windows
     // https://source.chromium.org/chromium/chromium/src/+/main:net/base/net_error_list.h;l=90-91
-    if (
-      (Deno.build.os === "windows") && (code === 21) &&
-      windowsErr21RetryAttempts > 0
-    ) {
-      return runCommand(command, {
-        windowsErr21RetryAttempts: windowsErr21RetryAttempts - 1,
-      });
+    if ((Deno.build.os === "windows") && (code === 21) && retries > 0) {
+      return runCommand(command, { retries: retries - 1 });
     }
     console.error(stack.join("\n"));
     throw new Error("Your binary refused to boot");

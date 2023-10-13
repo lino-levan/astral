@@ -1,4 +1,4 @@
-import { getBinary, launch } from "../mod.ts";
+import { cleanCache, getBinary, launch } from "../mod.ts";
 import { deadline } from "https://deno.land/std@0.203.0/async/deadline.ts";
 // Tests should be performed in directory different from others tests as cache is cleaned during this one
 Deno.env.set("ASTRAL_QUIET_INSTALL", "true");
@@ -8,6 +8,7 @@ const cache = await Deno.makeTempDir({
 
 Deno.test("Test concurrent getBinary calls", async () => {
   // Spawn concurrent getBinary calls
+  await cleanCache({ cache });
   const promises = [];
   for (let i = 0; i < 20; i++) {
     promises.push(getBinary("chrome", { cache }));
@@ -25,5 +26,6 @@ Deno.test("Test concurrent getBinary calls", async () => {
   await browser.close();
 });
 
-// Cleaning
-await Deno.remove(cache, { recursive: true });
+Deno.test("Clean cache after tests", async () => {
+  await cleanCache({ cache });
+});

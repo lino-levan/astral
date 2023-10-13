@@ -69,5 +69,6 @@ Deno.test("Test download after failure", { permissions }, async () => {
   assert(await getBinary("chrome", { cache: testCache }));
 });
 
-// Cleaning
-await Deno.remove(cache, { recursive: true });
+Deno.test("Clean cache after tests", async () => {
+  await cleanCache({ cache });
+});
