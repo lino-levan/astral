@@ -184,10 +184,6 @@ export async function launch(opts?: LaunchOptions) {
   const browserWSEndpoint = opts?.browserWSEndpoint;
   let path = opts?.path;
 
-  if (!path) {
-    path = await getBinary(product);
-  }
-
   const options: BrowserOptions = {
     headless,
     product,
@@ -198,6 +194,10 @@ export async function launch(opts?: LaunchOptions) {
     const ws = new WebSocket(browserWSEndpoint);
     await websocketReady(ws);
     return new Browser(ws, null, options);
+  }
+
+  if (!path) {
+    path = await getBinary(product);
   }
 
   // Launch child process
