@@ -70,10 +70,14 @@ export interface BrowserOptions {
 export class Browser {
   #options: BrowserOptions;
   #celestial: Celestial;
-  #process: Deno.ChildProcess;
+  #process: Deno.ChildProcess | null;
   readonly pages: Page[] = [];
 
-  constructor(ws: WebSocket, process: Deno.ChildProcess, opts: BrowserOptions) {
+  constructor(
+    ws: WebSocket,
+    process: Deno.ChildProcess | null,
+    opts: BrowserOptions,
+  ) {
     this.#celestial = new Celestial(ws);
     this.#process = process;
     this.#options = opts;
@@ -84,8 +88,14 @@ export class Browser {
    */
   async close() {
     await this.#celestial.close();
-    this.#process.kill();
-    await this.#process.status;
+    // Clean process if it exists
+    if (this.#process) {
+      this.#process.kill();
+      await this.#process.status;
+    } // If we use a remote connection, then close all pages websockets
+    else {
+      await Promise.allSettled(this.pages.map((page) => page.close()));
+    }
   }
 
   /**
@@ -96,16 +106,15 @@ export class Browser {
       url: "",
     });
     const browserWsUrl = new URL(this.#celestial.ws.url);
-    const wsUrl = `${browserWsUrl.origin}/devtools/page/${targetId}`;
+    const wsUrl =
+      `${browserWsUrl.origin}/devtools/page/${targetId}${browserWsUrl.search}`;
     const websocket = new WebSocket(wsUrl);
     await websocketReady(websocket);
-
     const page = new Page(targetId, url, websocket, this);
     this.pages.push(page);
 
     const celestial = page.unsafelyGetCelestialBindings();
     const { userAgent } = await celestial.Browser.getVersion();
-
     await Promise.all([
       celestial.Emulation.setUserAgentOverride({
         userAgent: userAgent.replaceAll("Headless", ""),
@@ -113,7 +122,6 @@ export class Browser {
       celestial.Page.enable(),
       celestial.Page.setInterceptFileChooserDialog({ enabled: true }),
     ]);
-
     if (url) {
       await page.goto(url, options);
     }
@@ -143,6 +151,13 @@ export class Browser {
   wsEndpoint() {
     return this.#celestial.ws.url;
   }
+
+  /**
+   * The browser's websocket ready state
+   */
+  wsReadyState() {
+    return this.#celestial.ws.readyState;
+  }
 }
 
 export interface LaunchOptions {
@@ -150,6 +165,7 @@ export interface LaunchOptions {
   path?: string;
   product?: "chrome" | "firefox";
   args?: string[];
+  browserWSEndpoint?: string;
 }
 
 /**
@@ -159,6 +175,7 @@ export async function launch(opts?: LaunchOptions) {
   const headless = opts?.headless ?? true;
   const product = opts?.product ?? "chrome";
   const args = opts?.args ?? [];
+  const browserWSEndpoint = opts?.browserWSEndpoint;
   let path = opts?.path;
 
   if (!path) {
@@ -169,6 +186,13 @@ export async function launch(opts?: LaunchOptions) {
     headless,
     product,
   };
+
+  // Connect to endpoint directly if one was specified
+  if (browserWSEndpoint) {
+    const ws = new WebSocket(browserWSEndpoint);
+    await websocketReady(ws);
+    return new Browser(ws, null, options);
+  }
 
   // Launch child process
   const launch = new Deno.Command(path, {
