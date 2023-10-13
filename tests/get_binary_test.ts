@@ -9,7 +9,7 @@ import { assertStringIncludes } from "https://deno.land/std@0.201.0/assert/asser
 Deno.env.set("ASTRAL_QUIET_INSTALL", "true");
 const cache = await Deno.makeTempDir({ prefix: "astral_test_get_binary" });
 const permissions = {
-  write: [cache],
+  write: [cache, `${Deno.env.get("HOME")}/.config/chromium/SingletonLock`],
   read: [cache],
   net: true,
   env: true,

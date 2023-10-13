@@ -126,17 +126,17 @@ async function decompressArchive(source: string, destination: string) {
  */
 export function getBinary(
   browser: "chrome" | "firefox",
-  { cache = BASE_PATH } = {},
+  { cache = BASE_PATH, timeout = 60000 } = {},
 ): Promise<string> {
   const product = `${browser}-${SUPPORTED_VERSIONS[browser]}`;
-  return _getBinary(browser, { cache }).finally(() =>
+  return _getBinary(browser, { cache, timeout }).finally(() =>
     LOCK_FILES[cache]?.[product]?.release()
   );
 }
 
 export async function _getBinary(
   browser: Parameters<typeof getBinary>[0],
-  { cache = BASE_PATH }: NonNullable<Parameters<typeof getBinary>[1]>,
+  { cache = BASE_PATH, timeout }: NonNullable<Parameters<typeof getBinary>[1]>,
 ): Promise<string> {
   // TODO(lino-levan): fix firefox downloading
   const VERSION = SUPPORTED_VERSIONS[browser];
@@ -146,7 +146,7 @@ export async function _getBinary(
 
   // If the config doesn't have the revision and there is a lock file, reload config after release
   if (!config[VERSION] && LOCK_FILES[cache]?.[product]?.exists()) {
-    await LOCK_FILES[cache]?.[product]?.waitRelease();
+    await LOCK_FILES[cache]?.[product]?.waitRelease({ timeout });
     Object.assign(config, getCachedConfig({ cache }));
   }
 
