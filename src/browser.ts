@@ -88,12 +88,10 @@ export class Browser {
    */
   async close() {
     await this.#celestial.close();
-    // Clean process if it exists
-    if (this.#process) {
-      this.#process.kill();
-      await this.#process.status;
-    } // If we use a remote connection, then close all pages websockets
-    else {
+    this.#process?.kill();
+    await this.#process?.status;
+    // If we use a remote connection, then close all pages websockets
+    if (!this.#process) {
       await Promise.allSettled(this.pages.map((page) => page.close()));
     }
   }
@@ -110,11 +108,13 @@ export class Browser {
       `${browserWsUrl.origin}/devtools/page/${targetId}${browserWsUrl.search}`;
     const websocket = new WebSocket(wsUrl);
     await websocketReady(websocket);
+
     const page = new Page(targetId, url, websocket, this);
     this.pages.push(page);
 
     const celestial = page.unsafelyGetCelestialBindings();
     const { userAgent } = await celestial.Browser.getVersion();
+
     await Promise.all([
       celestial.Emulation.setUserAgentOverride({
         userAgent: userAgent.replaceAll("Headless", ""),
@@ -122,6 +122,7 @@ export class Browser {
       celestial.Page.enable(),
       celestial.Page.setInterceptFileChooserDialog({ enabled: true }),
     ]);
+
     if (url) {
       await page.goto(url, options);
     }
