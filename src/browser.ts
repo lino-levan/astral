@@ -83,6 +83,11 @@ export class Browser {
     this.#options = opts;
   }
 
+  /** Returns true if browser is connected remotely instead of using a subprocess */
+  get isRemoteConnection() {
+    return !this.#process;
+  }
+
   /**
    * Closes the browser and all of its pages (if any were opened). The Browser object itself is considered to be disposed and cannot be used anymore.
    */
@@ -91,7 +96,7 @@ export class Browser {
     this.#process?.kill();
     await this.#process?.status;
     // If we use a remote connection, then close all pages websockets
-    if (!this.#process) {
+    if (this.isRemoteConnection) {
       await Promise.allSettled(this.pages.map((page) => page.close()));
     }
   }

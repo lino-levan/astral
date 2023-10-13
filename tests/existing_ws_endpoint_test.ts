@@ -1,6 +1,7 @@
 import { assertEquals } from "https://deno.land/std@0.201.0/assert/assert_equals.ts";
 import { launch } from "../mod.ts";
 import { assertThrows } from "https://deno.land/std@0.204.0/assert/assert_throws.ts";
+import { assert } from "https://deno.land/std@0.201.0/assert/assert.ts";
 
 Deno.test("Test existing ws endpoint", async () => {
   // Spawn one browser instance and spawn another one connecting to the first one
@@ -10,6 +11,8 @@ Deno.test("Test existing ws endpoint", async () => {
   // Test that second instance works without any process attached
   const page = await b.newPage("http://example.com");
   await page.waitForSelector("h1");
+  await page.close();
+  assert(!b.pages.includes(page));
 
   // Close first instance and ensure that b instance is inactive too
   await a.close();
