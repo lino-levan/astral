@@ -2,7 +2,7 @@
   "tasks": {
     // The task to automatically generate `./src/celestial.ts`
     "bind": "deno run -A ./bindings/_tools/generate/mod.ts && deno fmt",
-    "test": "deno test -A --trace-ops",
+    "test": "deno test -A --trace-ops --parallel",
     "bench": "deno bench -A",
     "www": "cd docs && pyro dev"
   },
