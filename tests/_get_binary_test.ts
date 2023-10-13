@@ -1,11 +1,26 @@
 import { assertMatch } from "https://deno.land/std@0.201.0/assert/assert_match.ts";
 import { cleanCache, getBinary, launch } from "../mod.ts";
 import { assert } from "https://deno.land/std@0.201.0/assert/assert.ts";
+import { assertRejects } from "https://deno.land/std@0.201.0/assert/assert_rejects.ts";
+import { resolve } from "https://deno.land/std@0.201.0/path/resolve.ts";
+import { assertStringIncludes } from "https://deno.land/std@0.201.0/assert/assert_string_includes.ts";
 
-Deno.test("Test download", async () => {
+// Tests should be performed in directory different from others tests as cache is cleaned during this one
+Deno.env.set("ASTRAL_QUIET_INSTALL", "true");
+const cache = await Deno.makeTempDir({ prefix: "astral_test_get_binary" });
+const permissions = {
+  write: [cache],
+  read: [cache],
+  net: true,
+  env: true,
+  run: true,
+};
+
+Deno.test("Test download", { permissions }, async () => {
   // Download browser
-  await cleanCache();
-  const path = await getBinary("chrome");
+  await cleanCache({ cache });
+  const path = await getBinary("chrome", { cache });
+  assertStringIncludes(path, cache);
 
   // Ensure browser is executable
   // Note: it seems that on Windows the --version flag does not exists and spawn a
@@ -23,8 +38,28 @@ Deno.test("Test download", async () => {
   }
 
   // Ensure browser is capable of loading pages
-  const browser = await launch();
+  const browser = await launch({ path });
   const page = await browser.newPage("http://example.com");
   await page.waitForSelector("h1");
   await browser.close();
 });
+
+Deno.test("Test download after failure", { permissions }, async () => {
+  await cleanCache({ cache });
+  const testCache = resolve(cache, "test_failure");
+
+  // Test download failure (create a file instead of directory as the cache to force a write error)
+  await Deno.mkdir(cache, { recursive: true });
+  await Deno.writeTextFile(testCache, "");
+  await assertRejects(
+    () => getBinary("chrome", { cache: testCache }),
+    "Not a directory",
+  );
+
+  // Retry download
+  await Deno.remove(testCache, { recursive: true });
+  assert(await getBinary("chrome", { cache: testCache }));
+});
+
+// Cleaning
+await Deno.remove(cache, { recursive: true });

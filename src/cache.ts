@@ -16,7 +16,7 @@ const HOME_PATH = Deno.build.os === "windows"
   ? Deno.env.get("USERPROFILE")!
   : Deno.env.get("HOME")!;
 const BASE_PATH = resolve(HOME_PATH, ".astral");
-const CONFIG_PATH = resolve(BASE_PATH, "cache.json");
+const CONFIG_FILE = "cache.json";
 
 interface KnownGoodVersions {
   timestamps: string;
@@ -39,9 +39,9 @@ async function knownGoodVersions(): Promise<KnownGoodVersions> {
   return await req.json();
 }
 
-function getCache(): Record<string, string> {
+function getCachedConfig({ cache = BASE_PATH }): Record<string, string> {
   try {
-    return JSON.parse(Deno.readTextFileSync(CONFIG_PATH));
+    return JSON.parse(Deno.readTextFileSync(resolve(cache, CONFIG_FILE)));
   } catch {
     return {};
   }
@@ -50,10 +50,10 @@ function getCache(): Record<string, string> {
 /**
  * Clean cache
  */
-export async function cleanCache() {
+export async function cleanCache({ cache = BASE_PATH } = {}) {
   try {
-    if (await exists(BASE_PATH)) {
-      await Deno.remove(BASE_PATH, { recursive: true });
+    if (await exists(cache)) {
+      await Deno.remove(cache, { recursive: true });
     }
   } catch (error) {
     console.warn(`Failed to clean cache: ${error}`);
@@ -76,9 +76,10 @@ async function isQuietInstall() {
   });
   if (quiet.state === "granted") {
     const value = `${Deno.env.get("ASTRAL_QUIET_INSTALL") ?? ""}`;
-    return value.length ||
+    return value.length &&
       !/^(0|[Nn]o?|NO|[Oo]ff|OFF|[Ff]alse|FALSE)$/.test(value);
   }
+  return false;
 }
 
 async function decompressArchive(source: string, destination: string) {
@@ -121,16 +122,17 @@ async function decompressArchive(source: string, destination: string) {
  */
 export async function getBinary(
   browser: "chrome" | "firefox",
+  { cache = BASE_PATH } = {},
 ): Promise<string> {
   // TODO(lino-levan): fix firefox downloading
   const VERSION = SUPPORTED_VERSIONS[browser];
 
-  const config = getCache();
-  const quiet = await isQuietInstall();
+  const config = getCachedConfig({ cache });
 
   // If the config doesn't have the revision, download it and return that
   if (!config[VERSION]) {
-    ensureDirSync(BASE_PATH);
+    const quiet = await isQuietInstall();
+    ensureDirSync(cache);
     const versions = await knownGoodVersions();
     const version = versions.versions.filter((val) =>
       val.version === VERSION
@@ -157,17 +159,14 @@ export async function getBinary(
       );
     }
     if (quiet) {
-      await Deno.writeFile(resolve(BASE_PATH, `raw_${VERSION}.zip`), req.body);
+      await Deno.writeFile(resolve(cache, `raw_${VERSION}.zip`), req.body);
     } else {
       const reader = req.body.getReader();
-      const archive = await Deno.open(
-        resolve(BASE_PATH, `raw_${VERSION}.zip`),
-        {
-          write: true,
-          truncate: true,
-          create: true,
-        },
-      );
+      const archive = await Deno.open(resolve(cache, `raw_${VERSION}.zip`), {
+        write: true,
+        truncate: true,
+        create: true,
+      });
       const bar = new ProgressBar({
         title: `Downloading ${browser} ${VERSION}`,
         total: Number(req.headers.get("Content-Length") ?? 0),
@@ -188,12 +187,12 @@ export async function getBinary(
       console.log(`Download complete (${browser} version ${VERSION})`);
     }
     await decompressArchive(
-      resolve(BASE_PATH, `raw_${VERSION}.zip`),
-      resolve(BASE_PATH, VERSION),
+      resolve(cache, `raw_${VERSION}.zip`),
+      resolve(cache, VERSION),
     );
 
-    config[VERSION] = resolve(BASE_PATH, VERSION);
-    Deno.writeTextFileSync(CONFIG_PATH, JSON.stringify(config));
+    config[VERSION] = resolve(cache, VERSION);
+    Deno.writeTextFileSync(resolve(cache, CONFIG_FILE), JSON.stringify(config));
   }
 
   // It now exists, return the path to the known good binary
