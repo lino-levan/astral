@@ -6,7 +6,7 @@ import { assert } from "https://deno.land/std@0.201.0/assert/assert.ts";
 Deno.test("Test existing ws endpoint", async () => {
   // Spawn one browser instance and spawn another one connecting to the first one
   const a = await launch();
-  const b = await launch({ browserWSEndpoint: a.wsEndpoint() });
+  const b = await launch({ wsEndpoint: a.wsEndpoint() });
 
   // Test that second instance works without any process attached
   const page = await b.newPage("http://example.com");
@@ -23,7 +23,7 @@ Deno.test("Test existing ws endpoint", async () => {
 Deno.test("Ensure pages are properly closed when closing existing endpoint", async () => {
   // Spawn one browser instance and spawn another one connecting to the first one
   const a = await launch();
-  const b = await launch({ browserWSEndpoint: a.wsEndpoint() });
+  const b = await launch({ wsEndpoint: a.wsEndpoint() });
 
   // Ensure closing existing endpoint properly clean resources
   await b.newPage("http://example.com");

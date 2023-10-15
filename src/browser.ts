@@ -171,7 +171,7 @@ export interface LaunchOptions {
   path?: string;
   product?: "chrome" | "firefox";
   args?: string[];
-  browserWSEndpoint?: string;
+  wsEndpoint?: string;
 }
 
 /**
@@ -181,7 +181,7 @@ export async function launch(opts?: LaunchOptions) {
   const headless = opts?.headless ?? true;
   const product = opts?.product ?? "chrome";
   const args = opts?.args ?? [];
-  const browserWSEndpoint = opts?.browserWSEndpoint;
+  const wsEndpoint = opts?.wsEndpoint;
   let path = opts?.path;
 
   const options: BrowserOptions = {
@@ -190,8 +190,8 @@ export async function launch(opts?: LaunchOptions) {
   };
 
   // Connect to endpoint directly if one was specified
-  if (browserWSEndpoint) {
-    const ws = new WebSocket(browserWSEndpoint);
+  if (wsEndpoint) {
+    const ws = new WebSocket(wsEndpoint);
     await websocketReady(ws);
     return new Browser(ws, null, options);
   }
