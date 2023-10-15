@@ -1,7 +1,7 @@
 import { cleanCache, getBinary, launch } from "../mod.ts";
 import { deadline } from "https://deno.land/std@0.203.0/async/deadline.ts";
 // Tests should be performed in directory different from others tests as cache is cleaned during this one
-Deno.env.set("ASTRAL_QUIET_INSTALL", "true");
+//Deno.env.set("ASTRAL_QUIET_INSTALL", "true");
 const cache = await Deno.makeTempDir({
   prefix: "astral_test_install_lock_file",
 });
