@@ -124,133 +124,129 @@ async function decompressArchive(source: string, destination: string) {
 /**
  * Get path for the binary for this OS. Downloads a browser if none is cached.
  */
-export function getBinary(
+export async function getBinary(
   browser: "chrome" | "firefox",
   { cache = BASE_PATH, timeout = 60000 } = {},
-): Promise<string> {
-  const product = `${browser}-${SUPPORTED_VERSIONS[browser]}`;
-  return _getBinary(browser, { cache, timeout }).finally(() =>
-    LOCK_FILES[cache]?.[product]?.release()
-  );
-}
-
-async function _getBinary(
-  browser: Parameters<typeof getBinary>[0],
-  { cache = BASE_PATH, timeout }: NonNullable<Parameters<typeof getBinary>[1]>,
 ): Promise<string> {
   // TODO(lino-levan): fix firefox downloading
   const VERSION = SUPPORTED_VERSIONS[browser];
   const product = `${browser}-${SUPPORTED_VERSIONS[browser]}`;
+  try {
+    const config = getCachedConfig({ cache });
 
-  const config = getCachedConfig({ cache });
-
-  // If the config doesn't have the revision and there is a lock file, reload config after release
-  if (!config[VERSION] && LOCK_FILES[cache]?.[product]?.exists()) {
-    await LOCK_FILES[cache]?.[product]?.waitRelease({ timeout });
-    Object.assign(config, getCachedConfig({ cache }));
-  }
-
-  // If the config doesn't have the revision, download it and return that
-  if (!config[VERSION]) {
-    const quiet = await isQuietInstall();
-    ensureDirSync(cache);
-    const lock = new Lock({ cache });
-    LOCK_FILES[cache] ??= {};
-    LOCK_FILES[cache][product] = lock;
-    if (!lock.create()) {
-      return _getBinary(browser, { cache });
+    // If the config doesn't have the revision and there is a lock file, reload config after release
+    if (!config[VERSION] && LOCK_FILES[cache]?.[product]?.exists()) {
+      await LOCK_FILES[cache]?.[product]?.waitRelease({ timeout });
+      Object.assign(config, getCachedConfig({ cache }));
     }
-    const versions = await knownGoodVersions();
-    const version = versions.versions.filter((val) =>
-      val.version === VERSION
-    )[0];
-    const download = version.downloads.chrome.filter((val) => {
-      if (Deno.build.os === "darwin" && Deno.build.arch === "aarch64") {
-        return val.platform === "mac-arm64";
-      } else if (Deno.build.os === "darwin" && Deno.build.arch === "x86_64") {
-        return val.platform === "mac-x64";
-      } else if (Deno.build.os === "windows") {
-        return val.platform === "win64";
-      } else if (Deno.build.os === "linux") {
-        return val.platform === "linux64";
+
+    // If the config doesn't have the revision, download it and return that
+    if (!config[VERSION]) {
+      const quiet = await isQuietInstall();
+      ensureDirSync(cache);
+      const lock = new Lock({ cache });
+      LOCK_FILES[cache] ??= {};
+      LOCK_FILES[cache][product] = lock;
+      if (!lock.create()) {
+        return getBinary(browser, { cache, timeout });
       }
-      throw new Error(
-        "Unsupported platform, provide a path to a chromium or firefox binary instead",
-      );
-    })[0];
-
-    const req = await fetch(download.url);
-    if (!req.body) {
-      throw new Error(
-        "Download failed, please check your internet connection and try again",
-      );
-    }
-    if (quiet) {
-      await Deno.writeFile(resolve(cache, `raw_${VERSION}.zip`), req.body);
-    } else {
-      const reader = req.body.getReader();
-      const archive = await Deno.open(resolve(cache, `raw_${VERSION}.zip`), {
-        write: true,
-        truncate: true,
-        create: true,
-      });
-      const bar = new ProgressBar({
-        title: `Downloading ${browser} ${VERSION}`,
-        total: Number(req.headers.get("Content-Length") ?? 0),
-        clear: true,
-        display: ":title :bar :percent",
-      });
-      let downloaded = 0;
-      do {
-        const { done, value } = await reader.read();
-        if (done) {
-          break;
+      const versions = await knownGoodVersions();
+      const version = versions.versions.filter((val) =>
+        val.version === VERSION
+      )[0];
+      const download = version.downloads.chrome.filter((val) => {
+        if (Deno.build.os === "darwin" && Deno.build.arch === "aarch64") {
+          return val.platform === "mac-arm64";
+        } else if (Deno.build.os === "darwin" && Deno.build.arch === "x86_64") {
+          return val.platform === "mac-x64";
+        } else if (Deno.build.os === "windows") {
+          return val.platform === "win64";
+        } else if (Deno.build.os === "linux") {
+          return val.platform === "linux64";
         }
-        await Deno.write(archive.rid, value);
-        downloaded += value.length;
-        bar.render(downloaded);
-      } while (true);
-      Deno.close(archive.rid);
-      console.log(`Download complete (${browser} version ${VERSION})`);
+        throw new Error(
+          "Unsupported platform, provide a path to a chromium or firefox binary instead",
+        );
+      })[0];
+
+      const req = await fetch(download.url);
+      if (!req.body) {
+        throw new Error(
+          "Download failed, please check your internet connection and try again",
+        );
+      }
+      if (quiet) {
+        await Deno.writeFile(resolve(cache, `raw_${VERSION}.zip`), req.body);
+      } else {
+        const reader = req.body.getReader();
+        const archive = await Deno.open(resolve(cache, `raw_${VERSION}.zip`), {
+          write: true,
+          truncate: true,
+          create: true,
+        });
+        const bar = new ProgressBar({
+          title: `Downloading ${browser} ${VERSION}`,
+          total: Number(req.headers.get("Content-Length") ?? 0),
+          clear: true,
+          display: ":title :bar :percent",
+        });
+        let downloaded = 0;
+        do {
+          const { done, value } = await reader.read();
+          if (done) {
+            break;
+          }
+          await Deno.write(archive.rid, value);
+          downloaded += value.length;
+          bar.render(downloaded);
+        } while (true);
+        Deno.close(archive.rid);
+        console.log(`Download complete (${browser} version ${VERSION})`);
+      }
+      await decompressArchive(
+        resolve(cache, `raw_${VERSION}.zip`),
+        resolve(cache, VERSION),
+      );
+
+      config[VERSION] = resolve(cache, VERSION);
+      Deno.writeTextFileSync(
+        resolve(cache, CONFIG_FILE),
+        JSON.stringify(config),
+      );
     }
-    await decompressArchive(
-      resolve(cache, `raw_${VERSION}.zip`),
-      resolve(cache, VERSION),
-    );
 
-    config[VERSION] = resolve(cache, VERSION);
-    Deno.writeTextFileSync(resolve(cache, CONFIG_FILE), JSON.stringify(config));
+    // It now exists, return the path to the known good binary
+    const folder = config[VERSION];
+
+    if (Deno.build.os === "darwin" && Deno.build.arch === "aarch64") {
+      return resolve(
+        folder,
+        "chrome-mac-arm64",
+        "Google Chrome for Testing.app",
+        "Contents",
+        "MacOS",
+        "Google Chrome for Testing",
+      );
+    } else if (Deno.build.os === "darwin" && Deno.build.arch === "x86_64") {
+      return resolve(
+        folder,
+        "chrome-mac-x64",
+        "Google Chrome for Testing.app",
+        "Contents",
+        "MacOS",
+        "Google Chrome for Testing",
+      );
+    } else if (Deno.build.os === "windows") {
+      return resolve(folder, "chrome-win64", "chrome.exe");
+    } else if (Deno.build.os === "linux") {
+      return resolve(folder, "chrome-linux64", "chrome");
+    }
+    throw new Error(
+      "Unsupported platform, provide a path to a chromium or firefox binary instead",
+    );
+  } finally {
+    LOCK_FILES[cache]?.[product]?.release();
   }
-
-  // It now exists, return the path to the known good binary
-  const folder = config[VERSION];
-
-  if (Deno.build.os === "darwin" && Deno.build.arch === "aarch64") {
-    return resolve(
-      folder,
-      "chrome-mac-arm64",
-      "Google Chrome for Testing.app",
-      "Contents",
-      "MacOS",
-      "Google Chrome for Testing",
-    );
-  } else if (Deno.build.os === "darwin" && Deno.build.arch === "x86_64") {
-    return resolve(
-      folder,
-      "chrome-mac-x64",
-      "Google Chrome for Testing.app",
-      "Contents",
-      "MacOS",
-      "Google Chrome for Testing",
-    );
-  } else if (Deno.build.os === "windows") {
-    return resolve(folder, "chrome-win64", "chrome.exe");
-  } else if (Deno.build.os === "linux") {
-    return resolve(folder, "chrome-linux64", "chrome");
-  }
-  throw new Error(
-    "Unsupported platform, provide a path to a chromium or firefox binary instead",
-  );
 }
 
 /**
