@@ -9,7 +9,15 @@ import { assertStringIncludes } from "https://deno.land/std@0.201.0/assert/asser
 Deno.env.set("ASTRAL_QUIET_INSTALL", "true");
 const cache = await Deno.makeTempDir({ prefix: "astral_test_get_binary" });
 const permissions = {
-  write: [cache],
+  write: [
+    cache,
+    // Chromium lock on Linux
+    `${Deno.env.get("HOME")}/.config/chromium/SingletonLock`,
+    // Chromium lock on MacOS
+    `${
+      Deno.env.get("HOME")
+    }/Library/Application Support/Chromium/SingletonLock`,
+  ],
   read: [cache],
   net: true,
   env: true,
@@ -61,5 +69,6 @@ Deno.test("Test download after failure", { permissions }, async () => {
   assert(await getBinary("chrome", { cache: testCache }));
 });
 
-// Cleaning
-await Deno.remove(cache, { recursive: true });
+Deno.test("Clean cache after tests", async () => {
+  await cleanCache({ cache });
+});
