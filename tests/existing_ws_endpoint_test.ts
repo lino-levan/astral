@@ -1,4 +1,3 @@
-import { assertEquals } from "https://deno.land/std@0.201.0/assert/assert_equals.ts";
 import { launch } from "../mod.ts";
 import { assertThrows } from "https://deno.land/std@0.204.0/assert/assert_throws.ts";
 import { assert } from "https://deno.land/std@0.201.0/assert/assert.ts";
@@ -16,8 +15,8 @@ Deno.test("Test existing ws endpoint", async () => {
 
   // Close first instance and ensure that b instance is inactive too
   await a.close();
-  assertEquals(a.wsReadyState(), WebSocket.CLOSED);
-  assertEquals(b.wsReadyState(), WebSocket.CLOSED);
+  assert(a.closed);
+  assert(b.closed);
 });
 
 Deno.test("Ensure pages are properly closed when closing existing endpoint", async () => {
@@ -31,6 +30,6 @@ Deno.test("Ensure pages are properly closed when closing existing endpoint", asy
   await b.close();
   assertThrows(() => b.pages[0].close(), "Page has already been closed");
   assertThrows(() => b.pages[1].close(), "Page has already been closed");
-  assertEquals(b.wsReadyState(), WebSocket.CLOSED);
+  assert(b.closed);
   await a.close();
 });

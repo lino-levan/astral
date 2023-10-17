@@ -159,10 +159,10 @@ export class Browser {
   }
 
   /**
-   * The browser's websocket ready state
+   * Returns true if the browser and its websocket have benn closed
    */
-  wsReadyState() {
-    return this.#celestial.ws.readyState;
+  get closed() {
+    return this.#celestial.ws.readyState === WebSocket.CLOSED;
   }
 }
 
