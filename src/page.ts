@@ -200,11 +200,19 @@ export class Page extends EventTarget {
    * Close this page in the browser
    */
   async close() {
-    const wsUrl = new URL(this.#celestial.ws.url);
-    const req = await fetch(`http://${wsUrl.host}/json/close/${this.#id}`);
-    const res = await req.text();
+    let success: boolean;
+    let res = "";
+    if (this.#browser.isRemoteConnection) {
+      await this.#celestial.close();
+      success = this.#browser.pages.includes(this);
+    } else {
+      const wsUrl = new URL(this.#celestial.ws.url);
+      const req = await fetch(`http://${wsUrl.host}/json/close/${this.#id}`);
+      res = await req.text();
+      success = res === "Target is closing";
+    }
 
-    if (res === "Target is closing") {
+    if (success) {
       const index = this.#browser.pages.indexOf(this);
       if (index > -1) {
         this.#browser.pages.splice(index, 1);

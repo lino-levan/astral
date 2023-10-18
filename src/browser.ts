@@ -78,13 +78,22 @@ export interface BrowserOptions {
 export class Browser {
   #options: BrowserOptions;
   #celestial: Celestial;
-  #process: Deno.ChildProcess;
+  #process: Deno.ChildProcess | null;
   readonly pages: Page[] = [];
 
-  constructor(ws: WebSocket, process: Deno.ChildProcess, opts: BrowserOptions) {
+  constructor(
+    ws: WebSocket,
+    process: Deno.ChildProcess | null,
+    opts: BrowserOptions,
+  ) {
     this.#celestial = new Celestial(ws);
     this.#process = process;
     this.#options = opts;
+  }
+
+  /** Returns true if browser is connected remotely instead of using a subprocess */
+  get isRemoteConnection() {
+    return !this.#process;
   }
 
   /**
@@ -92,8 +101,12 @@ export class Browser {
    */
   async close() {
     await this.#celestial.close();
-    this.#process.kill();
-    await this.#process.status;
+    this.#process?.kill();
+    await this.#process?.status;
+    // If we use a remote connection, then close all pages websockets
+    if (this.isRemoteConnection) {
+      await Promise.allSettled(this.pages.map((page) => page.close()));
+    }
   }
 
   /**
@@ -104,7 +117,8 @@ export class Browser {
       url: "",
     });
     const browserWsUrl = new URL(this.#celestial.ws.url);
-    const wsUrl = `${browserWsUrl.origin}/devtools/page/${targetId}`;
+    const wsUrl =
+      `${browserWsUrl.origin}/devtools/page/${targetId}${browserWsUrl.search}`;
     const websocket = new WebSocket(wsUrl);
     await websocketReady(websocket);
 
@@ -151,6 +165,13 @@ export class Browser {
   wsEndpoint() {
     return this.#celestial.ws.url;
   }
+
+  /**
+   * Returns true if the browser and its websocket have benn closed
+   */
+  get closed() {
+    return this.#celestial.ws.readyState === WebSocket.CLOSED;
+  }
 }
 
 export interface LaunchOptions {
@@ -158,6 +179,7 @@ export interface LaunchOptions {
   path?: string;
   product?: "chrome" | "firefox";
   args?: string[];
+  wsEndpoint?: string;
 }
 
 /**
@@ -167,16 +189,24 @@ export async function launch(opts?: LaunchOptions) {
   const headless = opts?.headless ?? true;
   const product = opts?.product ?? "chrome";
   const args = opts?.args ?? [];
+  const wsEndpoint = opts?.wsEndpoint;
   let path = opts?.path;
-
-  if (!path) {
-    path = await getBinary(product);
-  }
 
   const options: BrowserOptions = {
     headless,
     product,
   };
+
+  // Connect to endpoint directly if one was specified
+  if (wsEndpoint) {
+    const ws = new WebSocket(wsEndpoint);
+    await websocketReady(ws);
+    return new Browser(ws, null, options);
+  }
+
+  if (!path) {
+    path = await getBinary(product);
+  }
 
   // Launch child process
   const launch = new Deno.Command(path, {
