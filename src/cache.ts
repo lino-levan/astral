@@ -13,10 +13,6 @@ export const SUPPORTED_VERSIONS = {
   firefox: "116.0",
 } as const;
 
-const HOME_PATH = Deno.build.os === "windows"
-  ? Deno.env.get("USERPROFILE")!
-  : Deno.env.get("HOME")!;
-const BASE_PATH = resolve(HOME_PATH, ".astral");
 const CONFIG_FILE = "cache.json";
 
 const LOCK_FILES = {} as { [cache: string]: { [product: string]: Lock } };
@@ -42,7 +38,16 @@ async function knownGoodVersions(): Promise<KnownGoodVersions> {
   return await req.json();
 }
 
-function getCachedConfig({ cache = BASE_PATH }): Record<string, string> {
+function getDefaultCachePath() {
+  const HOME_PATH = Deno.build.os === "windows"
+    ? Deno.env.get("USERPROFILE")!
+    : Deno.env.get("HOME")!;
+  return resolve(HOME_PATH, ".astral");
+}
+
+function getCachedConfig(
+  { cache = getDefaultCachePath() } = {},
+): Record<string, string> {
   try {
     return JSON.parse(Deno.readTextFileSync(resolve(cache, CONFIG_FILE)));
   } catch {
@@ -53,7 +58,7 @@ function getCachedConfig({ cache = BASE_PATH }): Record<string, string> {
 /**
  * Clean cache
  */
-export async function cleanCache({ cache = BASE_PATH } = {}) {
+export async function cleanCache({ cache = getDefaultCachePath() } = {}) {
   try {
     if (await exists(cache)) {
       delete LOCK_FILES[cache];
@@ -126,7 +131,7 @@ async function decompressArchive(source: string, destination: string) {
  */
 export async function getBinary(
   browser: "chrome" | "firefox",
-  { cache = BASE_PATH, timeout = 60000 } = {},
+  { cache = getDefaultCachePath(), timeout = 60000 } = {},
 ): Promise<string> {
   // TODO(lino-levan): fix firefox downloading
   const VERSION = SUPPORTED_VERSIONS[browser];
@@ -257,7 +262,7 @@ export async function getBinary(
 class Lock {
   readonly path;
 
-  constructor({ cache = BASE_PATH } = {}) {
+  constructor({ cache = getDefaultCachePath() } = {}) {
     this.path = resolve(cache, ".lock");
   }
 

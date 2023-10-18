@@ -20,7 +20,6 @@ const permissions = {
   ],
   read: [cache],
   net: true,
-  env: true,
   run: true,
 };
 
