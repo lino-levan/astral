@@ -180,6 +180,7 @@ export interface LaunchOptions {
   product?: "chrome" | "firefox";
   args?: string[];
   wsEndpoint?: string;
+  cache?: string;
 }
 
 /**
@@ -190,6 +191,7 @@ export async function launch(opts?: LaunchOptions) {
   const product = opts?.product ?? "chrome";
   const args = opts?.args ?? [];
   const wsEndpoint = opts?.wsEndpoint;
+  const cache = opts?.cache;
   let path = opts?.path;
 
   const options: BrowserOptions = {
@@ -205,7 +207,7 @@ export async function launch(opts?: LaunchOptions) {
   }
 
   if (!path) {
-    path = await getBinary(product);
+    path = await getBinary(product, { cache });
   }
 
   // Launch child process
