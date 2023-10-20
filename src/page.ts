@@ -1,6 +1,10 @@
 import { deadline } from "https://deno.land/std@0.201.0/async/deadline.ts";
 
-import { Celestial, Network_Cookie } from "../bindings/celestial.ts";
+import {
+  Celestial,
+  Network_Cookie,
+  Network_ResourceType,
+} from "../bindings/celestial.ts";
 import { Browser } from "./browser.ts";
 import { ElementHandle } from "./element_handle.ts";
 import { convertToUint8Array, retryDeadline } from "./util.ts";
@@ -37,6 +41,11 @@ export type WaitForOptions = {
 export type WaitForNetworkIdleOptions = {
   idleTime?: number;
   idleConnections?: number;
+};
+
+export type SandboxOptions = {
+  sandbox?: boolean | Network_ResourceType[];
+  sandboxPrompt?: boolean;
 };
 
 type AnyArray = readonly unknown[];
@@ -85,6 +94,7 @@ export class Page extends EventTarget {
     url: string | undefined,
     ws: WebSocket,
     browser: Browser,
+    options?: SandboxOptions,
   ) {
     super();
 
@@ -113,6 +123,39 @@ export class Page extends EventTarget {
         ),
       );
     });
+
+    if (options?.sandbox) {
+      const { sandbox, sandboxPrompt } = options;
+      this.#celestial.Fetch.enable({});
+      this.#celestial.addEventListener("Fetch.requestPaused", async (e) => {
+        const { request, requestId, resourceType } = e.detail;
+        if (
+          (sandbox === true) ||
+          (Array.isArray(sandbox) &&
+            sandbox.includes(resourceType))
+        ) {
+          const url = new URL(request.url);
+          let { state } = await Deno.permissions.query({
+            name: "net",
+            host: url.host,
+          });
+          if ((state === "prompt") && sandboxPrompt) {
+            const requested = await Deno.permissions.request({
+              name: "net",
+              host: url.host,
+            });
+            state = requested.state;
+          }
+          if (state !== "granted") {
+            return this.#celestial.Fetch.failRequest({
+              requestId,
+              errorReason: "AccessDenied",
+            });
+          }
+        }
+        return this.#celestial.Fetch.continueRequest({ requestId });
+      });
+    }
 
     this.mouse = new Mouse(this.#celestial);
     this.keyboard = new Keyboard(this.#celestial);
