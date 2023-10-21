@@ -94,7 +94,7 @@ export class Page extends EventTarget {
     url: string | undefined,
     ws: WebSocket,
     browser: Browser,
-    options?: SandboxOptions,
+    options: SandboxOptions,
   ) {
     super();
 
