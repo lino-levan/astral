@@ -1,7 +1,7 @@
 import { deadline } from "https://deno.land/std@0.201.0/async/deadline.ts";
 
+import { Celestial } from "../bindings/celestial.ts";
 import type {
-  Celestial,
   Network_Cookie,
   Network_ResourceType,
 } from "../bindings/celestial.ts";
@@ -126,7 +126,6 @@ export class Page extends EventTarget {
 
     if (options?.sandbox) {
       const { sandbox, sandboxPrompt } = options;
-      this.#celestial.Fetch.enable({});
       this.#celestial.addEventListener("Fetch.requestPaused", async (e) => {
         const { request, requestId, resourceType } = e.detail;
         if (

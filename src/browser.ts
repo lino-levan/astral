@@ -138,6 +138,7 @@ export class Browser {
       }),
       celestial.Page.enable(),
       celestial.Page.setInterceptFileChooserDialog({ enabled: true }),
+      sandbox ? celestial.Fetch.enable({}) : null,
     ]);
 
     if (url) {
