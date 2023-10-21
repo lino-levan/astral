@@ -1,6 +1,6 @@
 import { deadline } from "https://deno.land/std@0.201.0/async/deadline.ts";
 
-import {
+import type {
   Celestial,
   Network_Cookie,
   Network_ResourceType,
