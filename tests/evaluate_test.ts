@@ -1,9 +1,9 @@
+/// <reference lib="dom" />
+
 import { assertEquals } from "https://deno.land/std@0.201.0/assert/assert_equals.ts";
 import { assertSnapshot } from "https://deno.land/std@0.201.0/testing/snapshot.ts";
 
 import { launch } from "../mod.ts";
-
-/// <reference lib="dom" />
 
 Deno.test("Testing evaluate", async (t) => {
   // Launch browser

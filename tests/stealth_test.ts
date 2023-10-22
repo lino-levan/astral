@@ -1,8 +1,8 @@
+/// <reference lib="dom" />
+
 import { assert } from "https://deno.land/std@0.201.0/assert/assert.ts";
 
 import { launch } from "../mod.ts";
-
-/// <reference lib="dom" />
 
 Deno.test("Testing stealth", async () => {
   // Launch browser
