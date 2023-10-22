@@ -263,6 +263,17 @@ export class Page extends EventTarget {
   }
 
   /**
+   * `page.setViewportSize()` will resize the page. A lot of websites don't expect phones to change size, so you should set the viewport size before navigating to the page.
+   */
+  async setViewportSize(size: { width: number; height: number }) {
+    await this.#celestial.Emulation.setDeviceMetricsOverride({
+      ...size,
+      deviceScaleFactor: 0,
+      mobile: false,
+    });
+  }
+
+  /**
    * If no URLs are specified, this method returns cookies for the current page URL. If URLs are specified, only cookies for those URLs are returned.
    */
   async cookies(...urls: string[]): Promise<Cookie[]> {
