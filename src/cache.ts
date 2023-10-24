@@ -38,7 +38,7 @@ async function knownGoodVersions(): Promise<KnownGoodVersions> {
   return await req.json();
 }
 
-function getDefaultCachePath() {
+export function getDefaultCachePath() {
   const HOME_PATH = Deno.build.os === "windows"
     ? Deno.env.get("USERPROFILE")!
     : Deno.env.get("HOME")!;

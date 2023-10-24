@@ -2,7 +2,7 @@ import { retry } from "https://deno.land/std@0.201.0/async/retry.ts";
 
 import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
 import { getBinary } from "./cache.ts";
-import { Page, WaitForOptions } from "./page.ts";
+import { Page, SandboxOptions, WaitForOptions } from "./page.ts";
 import { WEBSOCKET_ENDPOINT_REGEX, websocketReady } from "./util.ts";
 
 async function runCommand(
@@ -112,7 +112,7 @@ export class Browser {
   /**
    * Promise which resolves to a new `Page` object.
    */
-  async newPage(url?: string, options?: WaitForOptions) {
+  async newPage(url?: string, options?: WaitForOptions & SandboxOptions) {
     const { targetId } = await this.#celestial.Target.createTarget({
       url: "",
     });
@@ -122,7 +122,8 @@ export class Browser {
     const websocket = new WebSocket(wsUrl);
     await websocketReady(websocket);
 
-    const page = new Page(targetId, url, websocket, this);
+    const { waitUntil, sandbox } = options ?? {};
+    const page = new Page(targetId, url, websocket, this, { sandbox });
     this.pages.push(page);
 
     const celestial = page.unsafelyGetCelestialBindings();
@@ -134,10 +135,11 @@ export class Browser {
       }),
       celestial.Page.enable(),
       celestial.Page.setInterceptFileChooserDialog({ enabled: true }),
+      sandbox ? celestial.Fetch.enable({}) : null,
     ]);
 
     if (url) {
-      await page.goto(url, options);
+      await page.goto(url, { waitUntil });
     }
 
     return page;
