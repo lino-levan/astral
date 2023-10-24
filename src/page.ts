@@ -2,8 +2,8 @@ import { deadline } from "https://deno.land/std@0.201.0/async/deadline.ts";
 
 import { Celestial } from "../bindings/celestial.ts";
 import type {
+  Fetch_requestPausedEvent,
   Network_Cookie,
-  Network_ResourceType,
 } from "../bindings/celestial.ts";
 import { Browser } from "./browser.ts";
 import { ElementHandle } from "./element_handle.ts";
@@ -44,8 +44,7 @@ export type WaitForNetworkIdleOptions = {
 };
 
 export type SandboxOptions = {
-  sandbox?: boolean | Network_ResourceType[];
-  sandboxPrompt?: boolean;
+  sandbox?: boolean;
 };
 
 type AnyArray = readonly unknown[];
@@ -125,32 +124,13 @@ export class Page extends EventTarget {
     });
 
     if (options?.sandbox) {
-      const { sandbox, sandboxPrompt } = options;
       this.#celestial.addEventListener("Fetch.requestPaused", async (e) => {
-        const { request, requestId, resourceType } = e.detail;
-        if (
-          (sandbox === true) ||
-          (Array.isArray(sandbox) &&
-            sandbox.includes(resourceType))
-        ) {
-          const url = new URL(request.url);
-          let { state } = await Deno.permissions.query({
-            name: "net",
-            host: url.host,
+        const { requestId } = e.detail;
+        if (!await this.#validateRequest(e.detail)) {
+          return this.#celestial.Fetch.failRequest({
+            requestId,
+            errorReason: "AccessDenied",
           });
-          if ((state === "prompt") && sandboxPrompt) {
-            const requested = await Deno.permissions.request({
-              name: "net",
-              host: url.host,
-            });
-            state = requested.state;
-          }
-          if (state !== "granted") {
-            return this.#celestial.Fetch.failRequest({
-              requestId,
-              errorReason: "AccessDenied",
-            });
-          }
         }
         return this.#celestial.Fetch.continueRequest({ requestId });
       });
@@ -159,6 +139,20 @@ export class Page extends EventTarget {
     this.mouse = new Mouse(this.#celestial);
     this.keyboard = new Keyboard(this.#celestial);
     this.touchscreen = new Touchscreen(this.#celestial);
+  }
+
+  //TODO(@lowlighter): change "query" by "request" https://github.com/denoland/deno/issues/14668
+  async #validateRequest({ request }: Fetch_requestPausedEvent["detail"]) {
+    const { protocol, host, pathname: path } = new URL(request.url);
+    if (host) {
+      const { state } = await Deno.permissions.query({ name: "net", host });
+      return (state === "granted");
+    }
+    if (protocol === "file:") {
+      const { state } = await Deno.permissions.query({ name: "read", path });
+      return (state === "granted");
+    }
+    return true;
   }
 
   async #getRoot() {

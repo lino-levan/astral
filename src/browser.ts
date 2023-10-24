@@ -122,11 +122,8 @@ export class Browser {
     const websocket = new WebSocket(wsUrl);
     await websocketReady(websocket);
 
-    const { waitUntil, sandbox, sandboxPrompt } = options ?? {};
-    const page = new Page(targetId, url, websocket, this, {
-      sandbox,
-      sandboxPrompt,
-    });
+    const { waitUntil, sandbox } = options ?? {};
+    const page = new Page(targetId, url, websocket, this, { sandbox });
     this.pages.push(page);
 
     const celestial = page.unsafelyGetCelestialBindings();
