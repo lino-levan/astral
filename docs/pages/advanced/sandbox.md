@@ -14,23 +14,29 @@ validate network requests (using `--allow-net` permissions) and file requests
 ```ts
 // Import Astral
 import { launch } from "https://deno.land/x/astral/mod.ts";
+import { fromFileUrl } from "https://deno.land/std/path/from_file_url.ts";
 
 // Launch browser
 const browser = await launch({});
 
 // Open the page if permission granted, or throws Deno.errors.PermissionDenied
-const { state } = await Deno.permissions.query({
-  name: "net",
-  path: "example.com",
-});
-await browser.newPage("https://example.com", { sandbox: true });
+{
+  const { state } = await Deno.permissions.query({
+    name: "net",
+    path: "example.com",
+  });
+  await browser.newPage("https://example.com", { sandbox: true });
+}
+
+// Open the page if permission granted, or throws Deno.errors.PermissionDenied
+{
+  const { state } = await Deno.permissions.query({
+    name: "read",
+    path: fromFileUrl(import.meta.url),
+  });
+  await browser.newPage(fromFileUrl(import.meta.url), { sandbox: true });
+}
 
 // Close browser
 await browser.close();
 ```
-
-Deno.test("Sandbox reject denied read permissions", { permissions: {
-...permissions, net: ["127.0.0.1"] }, }, async () => { const browser = await
-launch();
-
-assertStrictEquals(await page.evaluate(status), 0); await browser.close(); });
