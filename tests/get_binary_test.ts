@@ -18,6 +18,7 @@ const permissions = {
       Deno.env.get("HOME")
     }/Library/Application Support/Chromium/SingletonLock`,
   ],
+  env: ["CI", "ASTRAL_QUIET_INSTALL"],
   read: [cache],
   net: true,
   run: true,

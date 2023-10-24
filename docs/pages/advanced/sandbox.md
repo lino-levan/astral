@@ -17,7 +17,7 @@ import { launch } from "https://deno.land/x/astral/mod.ts";
 import { fromFileUrl } from "https://deno.land/std/path/from_file_url.ts";
 
 // Launch browser
-const browser = await launch({});
+const browser = await launch();
 
 // Open the page if permission granted, or throws Deno.errors.PermissionDenied
 {
