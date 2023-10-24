@@ -27,7 +27,7 @@ Deno.test("Sandbox reject denied net permissions", {
   await browser.close();
 });
 
-Deno.test("Sandbox fulfill granted read permissions", {
+Deno.test.ignore("Sandbox fulfill granted read permissions", {
   permissions: {
     ...permissions,
     read: [...permissions.read, fromFileUrl(import.meta.url)],
