@@ -1,6 +1,6 @@
 ---
-title: Connect to existing browser
-description: How to connect an existing browser process with astral
+title: Sandbox permissions
+description: How to use Deno permissions to sandbox pages
 index: 4
 ---
 
