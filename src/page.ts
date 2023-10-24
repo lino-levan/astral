@@ -13,6 +13,7 @@ import { Keyboard } from "./keyboard.ts";
 import { Touchscreen } from "./touchscreen.ts";
 import { Dialog } from "./dialog.ts";
 import { FileChooser } from "./file_chooser.ts";
+import { fromFileUrl } from "https://deno.land/std@0.201.0/path/from_file_url.ts";
 
 export type DeleteCookieOptions = Omit<
   Parameters<Celestial["Network"]["deleteCookies"]>[0],
@@ -143,12 +144,13 @@ export class Page extends EventTarget {
 
   //TODO(@lowlighter): change "query" by "request" https://github.com/denoland/deno/issues/14668
   async #validateRequest({ request }: Fetch_requestPausedEvent["detail"]) {
-    const { protocol, host, pathname: path } = new URL(request.url);
+    const { protocol, host, href } = new URL(request.url);
     if (host) {
       const { state } = await Deno.permissions.query({ name: "net", host });
       return (state === "granted");
     }
     if (protocol === "file:") {
+      const path = fromFileUrl(href);
       const { state } = await Deno.permissions.query({ name: "read", path });
       return (state === "granted");
     }
