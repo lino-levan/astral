@@ -2,7 +2,7 @@ import { assertEquals } from "https://deno.land/std@0.201.0/assert/assert_equals
 
 import { launch } from "../mod.ts";
 
-Deno.test("Testing events", async (t) => {
+Deno.test("Testing events", async () => {
   // Launch browser
   const browser = await launch();
 
