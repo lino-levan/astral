@@ -134,6 +134,7 @@ export class Browser {
         userAgent: userAgent.replaceAll("Headless", ""),
       }),
       celestial.Page.enable(),
+      celestial.Runtime.enable(),
       celestial.Page.setInterceptFileChooserDialog({ enabled: true }),
       sandbox ? celestial.Fetch.enable({}) : null,
     ]);
