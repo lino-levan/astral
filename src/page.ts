@@ -4,6 +4,7 @@ import { Celestial } from "../bindings/celestial.ts";
 import type {
   Fetch_requestPausedEvent,
   Network_Cookie,
+  Runtime_consoleAPICalled,
 } from "../bindings/celestial.ts";
 import { Browser } from "./browser.ts";
 import { ElementHandle } from "./element_handle.ts";
@@ -59,8 +60,21 @@ export interface EvaluateOptions<T> {
 }
 
 export interface PageEventMap {
+  "console": ConsoleEvent;
   "dialog": DialogEvent;
   "filechooser": FileChooserEvent;
+  "pageerror": PageErrorEvent;
+}
+
+export interface ConsoleEventDetails {
+  type: Runtime_consoleAPICalled["type"];
+  text: string;
+}
+
+export class ConsoleEvent extends CustomEvent<ConsoleEventDetails> {
+  constructor(detail: ConsoleEventDetails) {
+    super("console", { detail });
+  }
 }
 
 export class DialogEvent extends CustomEvent<Dialog> {
@@ -72,6 +86,12 @@ export class DialogEvent extends CustomEvent<Dialog> {
 export class FileChooserEvent extends CustomEvent<FileChooser> {
   constructor(detail: FileChooser) {
     super("filechooser", { detail });
+  }
+}
+
+export class PageErrorEvent extends CustomEvent<Error> {
+  constructor(detail: Error) {
+    super("pageerror", { detail });
   }
 }
 
@@ -120,6 +140,43 @@ export class Page extends EventTarget {
       this.dispatchEvent(
         new FileChooserEvent(
           new FileChooser(this.#celestial, { frameId, mode, backendNodeId }),
+        ),
+      );
+    });
+
+    this.#celestial.addEventListener("Runtime.consoleAPICalled", (e) => {
+      const { type, args } = e.detail;
+      let text = "";
+
+      for (const arg of args) {
+        if (text !== "") {
+          text += " ";
+        }
+        // TODO(lino-levan): Extract this out into a function
+        if (arg.type === "bigint") {
+          text += arg.unserializableValue;
+          continue;
+        } else if (arg.type === "undefined") {
+          text += "undefined";
+          continue;
+        } else if (arg.type === "object") {
+          if (arg.subtype === "null") {
+            text += "null";
+            continue;
+          }
+        }
+        text += arg.value;
+      }
+
+      this.dispatchEvent(new ConsoleEvent({ type, text }));
+    });
+
+    this.#celestial.addEventListener("Runtime.exceptionThrown", (e) => {
+      const { exceptionDetails } = e.detail;
+      // TODO(lino-levan): Do a bettery job at error serialization
+      this.dispatchEvent(
+        new PageErrorEvent(
+          new Error(exceptionDetails.exception?.description ?? "Unknown error"),
         ),
       );
     });
