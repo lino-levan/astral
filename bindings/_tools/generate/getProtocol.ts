@@ -1,4 +1,4 @@
-import { existsSync } from "https://deno.land/std@0.201.0/fs/exists.ts";
+import { existsSync } from "https://deno.land/std@0.205.0/fs/exists.ts";
 import { getBinary } from "../../../src/cache.ts";
 
 export interface JSDocable {

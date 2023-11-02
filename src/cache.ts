@@ -1,8 +1,8 @@
-import { ensureDirSync } from "https://deno.land/std@0.201.0/fs/ensure_dir.ts";
-import { resolve } from "https://deno.land/std@0.201.0/path/mod.ts";
-import { ensureDir } from "https://deno.land/std@0.201.0/fs/ensure_dir.ts";
-import { dirname } from "https://deno.land/std@0.201.0/path/dirname.ts";
-import { join } from "https://deno.land/std@0.201.0/path/join.ts";
+import { ensureDirSync } from "https://deno.land/std@0.205.0/fs/ensure_dir.ts";
+import { resolve } from "https://deno.land/std@0.205.0/path/mod.ts";
+import { ensureDir } from "https://deno.land/std@0.205.0/fs/ensure_dir.ts";
+import { dirname } from "https://deno.land/std@0.205.0/path/dirname.ts";
+import { join } from "https://deno.land/std@0.205.0/path/join.ts";
 import { ZipReader } from "https://deno.land/x/zipjs@v2.7.29/index.js";
 import ProgressBar from "https://deno.land/x/progress@v1.3.9/mod.ts";
 import { exists, existsSync } from "https://deno.land/std@0.203.0/fs/exists.ts";

@@ -1,5 +1,5 @@
-import { deadline } from "https://deno.land/std@0.201.0/async/deadline.ts";
-import { retry } from "https://deno.land/std@0.201.0/async/retry.ts";
+import { deadline } from "https://deno.land/std@0.205.0/async/deadline.ts";
+import { retry } from "https://deno.land/std@0.205.0/async/retry.ts";
 
 export const WEBSOCKET_ENDPOINT_REGEX = /ws:\/\/(.*:.*?)\//;
 

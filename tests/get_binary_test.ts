@@ -1,9 +1,9 @@
-import { assertMatch } from "https://deno.land/std@0.201.0/assert/assert_match.ts";
+import { assertMatch } from "https://deno.land/std@0.205.0/assert/assert_match.ts";
 import { cleanCache, getBinary, launch } from "../mod.ts";
-import { assert } from "https://deno.land/std@0.201.0/assert/assert.ts";
-import { assertRejects } from "https://deno.land/std@0.201.0/assert/assert_rejects.ts";
-import { resolve } from "https://deno.land/std@0.201.0/path/resolve.ts";
-import { assertStringIncludes } from "https://deno.land/std@0.201.0/assert/assert_string_includes.ts";
+import { assert } from "https://deno.land/std@0.205.0/assert/assert.ts";
+import { assertRejects } from "https://deno.land/std@0.205.0/assert/assert_rejects.ts";
+import { resolve } from "https://deno.land/std@0.205.0/path/resolve.ts";
+import { assertStringIncludes } from "https://deno.land/std@0.205.0/assert/assert_string_includes.ts";
 
 // Tests should be performed in directory different from others tests as cache is cleaned during this one
 Deno.env.set("ASTRAL_QUIET_INSTALL", "true");

@@ -1,4 +1,4 @@
-import { assertSnapshot } from "https://deno.land/std@0.201.0/testing/snapshot.ts";
+import { assertSnapshot } from "https://deno.land/std@0.205.0/testing/snapshot.ts";
 
 import { launch } from "../mod.ts";
 

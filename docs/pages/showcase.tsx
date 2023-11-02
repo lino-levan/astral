@@ -1,7 +1,7 @@
-import { ensureDirSync } from "https://deno.land/std@0.201.0/fs/ensure_dir.ts";
+import { ensureDirSync } from "https://deno.land/std@0.205.0/fs/ensure_dir.ts";
 import { launch } from "../../mod.ts";
 import { type PageProps } from "https://deno.land/x/pyro@0.6.1/page.ts";
-import { ensureFileSync } from "https://deno.land/std@0.201.0/fs/ensure_file.ts";
+import { ensureFileSync } from "https://deno.land/std@0.205.0/fs/ensure_file.ts";
 
 export const config = {
   title: "Showcase",
@@ -19,6 +19,11 @@ const projects: Project[] = [
     title: "Manuscript Marauder",
     description: "Download manuscripts using a proxy",
     source: "https://github.com/rnbguy/manuscript-marauder",
+  },
+  {
+    title: "Personal-scale Web scraping for fun and profit",
+    description: "A great blog post which details web scraping techniques.",
+    source: "https://bhmt.dev/blog/scraping",
   },
 ];
 

@@ -1,5 +1,5 @@
 import { cleanCache, getBinary } from "../../mod.ts";
-import { assert } from "https://deno.land/std@0.201.0/assert/assert.ts";
+import { assert } from "https://deno.land/std@0.205.0/assert/assert.ts";
 
 Deno.bench({
   name: "Download progress",

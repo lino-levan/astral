@@ -1,4 +1,4 @@
-import { retry } from "https://deno.land/std@0.201.0/async/retry.ts";
+import { retry } from "https://deno.land/std@0.205.0/async/retry.ts";
 
 import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
 import { getBinary } from "./cache.ts";
