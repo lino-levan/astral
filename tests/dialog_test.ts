@@ -37,7 +37,7 @@ Deno.test("Accepting basic alert with playwright-like syntax", async () => {
   const dialogPromise = page.waitForEvent("dialog");
 
   // navigate to a page with an alert
-  await page.setContent("<script>alert('hi');</script>");
+  page.setContent("<script>alert('hi');</script>");
 
   // handle dialog
   const dialog = await dialogPromise;
