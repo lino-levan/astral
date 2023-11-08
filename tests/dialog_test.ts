@@ -20,7 +20,7 @@ Deno.test("Accepting basic alert", async () => {
   });
 
   // navigate to a page with an alert
-  await page.goto("data:text/html,<script>alert('hi');</script>");
+  await page.setContent("<script>alert('hi');</script>");
 
   // Close browser
   await browser.close();
@@ -37,10 +37,7 @@ Deno.test("Accepting basic alert with playwright-like syntax", async () => {
   const dialogPromise = page.waitForEvent("dialog");
 
   // navigate to a page with an alert
-  // note: waitUntil: "none" is required because we're using a data url
-  await page.goto("data:text/html,<script>alert('hi');</script>", {
-    waitUntil: "none",
-  });
+  await page.setContent("<script>alert('hi');</script>");
 
   // handle dialog
   const dialog = await dialogPromise;
@@ -70,8 +67,8 @@ Deno.test("Accepting prompt", async () => {
   });
 
   // navigate to a page with an alert
-  await page.goto(
-    "data:text/html,<script>prompt('Please type your username');</script>",
+  await page.setContent(
+    "<script>prompt('Please type your username');</script>",
   );
 
   // Close browser
@@ -96,7 +93,7 @@ Deno.test("Declining comfirm", async () => {
   });
 
   // navigate to a page with an alert
-  await page.goto("data:text/html,<script>confirm('Is this good?');</script>");
+  await page.setContent("<script>confirm('Is this good?');</script>");
 
   // Close browser
   await browser.close();
@@ -110,9 +107,7 @@ Deno.test("Input choose file", async () => {
   const page = await browser.newPage();
 
   // navigate to a page with an alert
-  await page.goto('data:text/html,<input type="file"></input>', {
-    waitUntil: "none",
-  });
+  await page.setContent('<input type="file"></input>');
 
   // click input and handle file chooser
   const element = await page.$("input");
