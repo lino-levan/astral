@@ -1,5 +1,5 @@
 import { launch } from "../mod.ts";
-import { assertThrows } from "https://deno.land/std@0.204.0/assert/assert_throws.ts";
+import { assertThrows } from "https://deno.land/std@0.205.0/assert/assert_throws.ts";
 import { assert } from "https://deno.land/std@0.205.0/assert/assert.ts";
 
 Deno.test("Test existing ws endpoint", async () => {
