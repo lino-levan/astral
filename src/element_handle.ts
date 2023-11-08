@@ -82,7 +82,7 @@ export class ElementHandle {
       this.#page.timeout,
     );
 
-    if (!result) {
+    if (result.nodeId === 0) {
       return null;
     }
 
