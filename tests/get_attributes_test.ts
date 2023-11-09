@@ -5,7 +5,7 @@ import { assertExists } from "https://deno.land/std@0.205.0/assert/assert_exists
 
 import { launch } from "../mod.ts";
 
-Deno.test("Testing attributes", async (t) => {
+Deno.test("Testing attributes", async () => {
   const browser = await launch();
   const content = `
   <!DOCTYPE html>
