@@ -313,4 +313,60 @@ export class ElementHandle {
       this.#page.timeout,
     );
   }
+
+  /**
+   * Retrieve the attributes of an element.
+   * Returns the key-value object
+   */
+  async getAttributes(): Promise<Record<string, string>> {
+    return await retryDeadline(
+      (async () => {
+        const { attributes } = await this.#celestial.DOM.getAttributes({
+          nodeId: this.#id,
+        });
+
+        const map: Record<string, string> = {};
+
+        for (let i = 0; i < attributes.length; i += 2) {
+          const key = attributes[i];
+          const value = attributes[i + 1];
+          map[key] = value;
+        }
+
+        return map;
+      })(),
+      this.#page.timeout,
+    );
+  }
+
+  /**
+   * Returns the `element.getAttribute`
+   */
+  async getAttribute(name: string): Promise<string | "" | null> {
+    return await retryDeadline(
+      (async () => {
+        const { object } = await this.#celestial.DOM.resolveNode({
+          nodeId: this.#id,
+        });
+
+        const result = await this.#celestial.Runtime.callFunctionOn({
+          functionDeclaration: "(element,name)=>element.getAttribute(name)",
+          objectId: object.objectId,
+          arguments: [
+            {
+              objectId: object.objectId,
+            },
+            {
+              value: name,
+            },
+          ],
+          awaitPromise: true,
+          returnByValue: true,
+        });
+
+        return result.result.value;
+      })(),
+      this.#page.timeout,
+    );
+  }
 }
