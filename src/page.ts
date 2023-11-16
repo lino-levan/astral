@@ -373,16 +373,30 @@ export class Page extends EventTarget {
    */
   async cookies(...urls: string[]): Promise<Cookie[]> {
     const result = await retryDeadline(
-      this.#celestial.Network.getCookies({ urls }),
+      this.#celestial.Network.getCookies({
+        urls: urls.length ? urls : undefined,
+      }),
       this.timeout,
     );
     return result.cookies;
   }
 
   /**
+   * Sets the specified cookies.
+   */
+  async setCookies(cookies: Cookie[]): Promise<void> {
+    await retryDeadline(
+      this.#celestial.Network.setCookies({
+        cookies,
+      }),
+      this.timeout,
+    );
+  }
+
+  /**
    * Deletes browser cookies with matching name and url or domain/path pair.
    */
-  async deleteCookies(cookieDescription: DeleteCookieOptions) {
+  async deleteCookies(cookieDescription: DeleteCookieOptions): Promise<void> {
     await retryDeadline(
       this.#celestial.Network.deleteCookies(cookieDescription),
       this.timeout,
