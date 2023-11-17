@@ -406,9 +406,12 @@ export class ElementHandle {
     func: ElementEvaluateFunction<E, R, T> | string,
     evaluateOptions?: ElementEvaluateOptions<R>,
   ): Promise<T> {
-    const { object } = await this.#celestial.DOM.resolveNode({
-      nodeId: this.#id,
-    });
+    const { object } = await retryDeadline(
+      this.#celestial.DOM.resolveNode({
+        nodeId: this.#id,
+      }),
+      this.#page.timeout,
+    );
 
     const args: Runtime_CallArgument[] = [{
       objectId: object.objectId,
@@ -428,14 +431,17 @@ export class ElementHandle {
       }
     }
 
-    const { result, exceptionDetails } = await this.#celestial.Runtime
-      .callFunctionOn({
-        functionDeclaration: func.toString(),
-        objectId: object.objectId,
-        arguments: args,
-        awaitPromise: true,
-        returnByValue: true,
-      });
+    const { result, exceptionDetails } = await retryDeadline(
+      this.#celestial.Runtime
+        .callFunctionOn({
+          functionDeclaration: func.toString(),
+          objectId: object.objectId,
+          arguments: args,
+          awaitPromise: true,
+          returnByValue: true,
+        }),
+      this.#page.timeout,
+    );
 
     if (exceptionDetails) {
       throw exceptionDetails;

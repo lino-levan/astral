@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 
 import { assertEquals } from "https://deno.land/std@0.205.0/assert/assert_equals.ts";
+import { assertRejects } from "https://deno.land/std@0.205.0/assert/assert_rejects.ts";
 
 import { launch } from "../mod.ts";
 
@@ -101,6 +102,16 @@ Deno.test("Testing element evaluate", async () => {
   );
 
   assertEquals(input_arguments, [true, true, true, true, true, true, true]);
+
+  await assertRejects(
+    async () => {
+      await element.evaluate(
+        () => {
+          throw new Error("test");
+        },
+      );
+    },
+  );
 
   // Close browser
   await browser.close();
