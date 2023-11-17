@@ -1,4 +1,5 @@
 import { retry } from "https://deno.land/std@0.205.0/async/retry.ts";
+import { deadline } from "https://deno.land/std@0.205.0/async/deadline.ts";
 
 import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
 import { getBinary } from "./cache.ts";
@@ -101,11 +102,23 @@ export class Browser {
    */
   async close() {
     await this.#celestial.close();
-    this.#process?.kill();
-    await this.#process?.status;
+
+    // First we get the process, if this is null then this is a remote connection
+    const process = this.#process;
+
     // If we use a remote connection, then close all pages websockets
-    if (this.isRemoteConnection) {
+    if (!process) {
       await Promise.allSettled(this.pages.map((page) => page.close()));
+    } else {
+      try {
+        // ask nicely first
+        process.kill();
+        await deadline(process.status, 10 * 1000);
+      } catch {
+        // then force
+        process.kill("SIGKILL");
+        await process.status;
+      }
     }
   }
 
@@ -213,11 +226,14 @@ export async function launch(opts?: LaunchOptions) {
     path = await getBinary(product, { cache });
   }
 
+  const tempDir = Deno.makeTempDirSync();
+  console.log(tempDir);
+
   // Launch child process
   const launch = new Deno.Command(path, {
     args: [
       "--remote-debugging-port=0",
-      `--user-data-dir=${Deno.makeTempDirSync()}`,
+      `--user-data-dir=${tempDir}`,
       ...(
         headless ? [product === "chrome" ? "--headless=new" : "--headless"] : []
       ),
