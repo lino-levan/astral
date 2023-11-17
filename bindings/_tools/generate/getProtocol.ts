@@ -113,9 +113,11 @@ export async function getProtocol(): Promise<Protocol> {
     return JSON.parse(Deno.readTextFileSync("types.json"));
   } else {
     // Configuration
+    console.log("1. Getting binary path");
     const path = await getBinary("chrome");
 
     // Launch child process
+    console.log("2. Launching process");
     const launch = new Deno.Command(path, {
       args: [
         "-remote-debugging-port=9222",
@@ -129,15 +131,17 @@ export async function getProtocol(): Promise<Protocol> {
       .pipeThrough(new TextDecoderStream())
       .getReader();
 
+    console.log("3. Waiting until binary is ready");
     let message: string | undefined;
     do {
       message = (await reader.read()).value;
     } while (message && !message.includes("127.0.0.1:9222"));
 
+    console.log("4. Requesting the protocol spec");
     // Get protocol information and close process
     const protocolReq = await fetch("http://localhost:9222/json/protocol");
     const res = await protocolReq.json();
-    process.kill();
+    process.kill("SIGKILL");
     return res;
   }
 }
