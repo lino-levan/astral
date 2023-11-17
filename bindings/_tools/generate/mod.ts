@@ -188,10 +188,13 @@ export class Celestial extends EventTarget {
     this.#wsClosed = new Promise((resolve, reject) =>
       deferred = { resolve, reject }
     );
-    const closed = () =>
-      this.ws.readyState === WebSocket.CLOSED
-        ? deferred.resolve()
-        : setTimeout(closed, 100);
+    const closed = () => {
+      if(this.ws.readyState === WebSocket.CLOSED) {
+        deferred.resolve();
+        return;
+      }
+      setTimeout(closed, 100);
+    }
     this.ws.onclose = closed;
   }
 
