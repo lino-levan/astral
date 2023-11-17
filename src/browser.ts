@@ -111,8 +111,12 @@ export class Browser {
       await Promise.allSettled(this.pages.map((page) => page.close()));
     } else {
       try {
-        // ask nicely first
-        process.kill();
+        // ask nicely first, on mac os, you cannot kill the browser by asking nicely
+        if (Deno.build.os === "darwin") {
+          process.kill("SIGKILL");
+        } else {
+          process.kill();
+        }
         await deadline(process.status, 10 * 1000);
       } catch {
         // then force
@@ -227,13 +231,13 @@ export async function launch(opts?: LaunchOptions) {
   }
 
   const tempDir = Deno.makeTempDirSync();
-  console.log(tempDir);
 
   // Launch child process
   const launch = new Deno.Command(path, {
     args: [
       "--remote-debugging-port=0",
       `--user-data-dir=${tempDir}`,
+      "--no-startup-window",
       ...(
         headless ? [product === "chrome" ? "--headless=new" : "--headless"] : []
       ),
