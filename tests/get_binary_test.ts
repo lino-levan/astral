@@ -5,6 +5,9 @@ import { assertRejects } from "https://deno.land/std@0.205.0/assert/assert_rejec
 import { resolve } from "https://deno.land/std@0.205.0/path/resolve.ts";
 import { assertStringIncludes } from "https://deno.land/std@0.205.0/assert/assert_string_includes.ts";
 
+const tempDir = Deno.env.get("TMPDIR") || Deno.env.get("TMP") ||
+  Deno.env.get("TEMP") || "/tmp";
+
 // Tests should be performed in directory different from others tests as cache is cleaned during this one
 Deno.env.set("ASTRAL_QUIET_INSTALL", "true");
 const cache = await Deno.makeTempDir({ prefix: "astral_test_get_binary" });
@@ -17,6 +20,8 @@ const permissions = {
     `${
       Deno.env.get("HOME")
     }/Library/Application Support/Chromium/SingletonLock`,
+    // OS temporary directory, used by chromium profile
+    tempDir,
   ],
   env: ["CI", "ASTRAL_QUIET_INSTALL"],
   read: [cache],
