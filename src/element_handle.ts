@@ -2,7 +2,7 @@
 
 import { deadline } from "https://deno.land/std@0.205.0/async/deadline.ts";
 
-import { Celestial, Runtime_CallArgument } from "../bindings/celestial.ts";
+import { Celestial, type Runtime_CallArgument } from "../bindings/celestial.ts";
 import { KeyboardTypeOptions } from "./keyboard.ts";
 import { Page, ScreenshotOptions } from "./page.ts";
 import { retryDeadline } from "./util.ts";
