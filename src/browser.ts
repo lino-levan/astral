@@ -217,6 +217,7 @@ export async function launch(opts?: LaunchOptions) {
   const launch = new Deno.Command(path, {
     args: [
       "--remote-debugging-port=0",
+      `--user-data-dir=${Deno.makeTempDirSync()}`,
       ...(
         headless ? [product === "chrome" ? "--headless=new" : "--headless"] : []
       ),
