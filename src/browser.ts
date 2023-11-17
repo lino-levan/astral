@@ -101,6 +101,7 @@ export class Browser {
    * Closes the browser and all of its pages (if any were opened). The Browser object itself is considered to be disposed and cannot be used anymore.
    */
   async close() {
+    await this.#celestial.Browser.close();
     await this.#celestial.close();
 
     // First we get the process, if this is null then this is a remote connection
@@ -111,12 +112,8 @@ export class Browser {
       await Promise.allSettled(this.pages.map((page) => page.close()));
     } else {
       try {
-        // ask nicely first, on mac os, you cannot kill the browser by asking nicely
-        if (Deno.build.os === "darwin") {
-          process.kill("SIGKILL");
-        } else {
-          process.kill();
-        }
+        // ask nicely first
+        process.kill();
         await deadline(process.status, 10 * 1000);
       } catch {
         // then force
