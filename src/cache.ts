@@ -10,7 +10,7 @@ import { retry } from "https://deno.land/std@0.205.0/async/retry.ts";
 import cacheDir from "https://deno.land/x/dir@1.5.2/cache_dir/mod.ts";
 
 export const SUPPORTED_VERSIONS = {
-  chrome: "118.0.5943.0",
+  chrome: "121.0.6130.0",
   firefox: "116.0",
 } as const;
 
@@ -42,7 +42,7 @@ async function knownGoodVersions(): Promise<KnownGoodVersions> {
 export function getDefaultCachePath() {
   const path = cacheDir();
   if (!path) throw new Error("couldn't determine default cache directory");
-  return path;
+  return join(path, "astral");
 }
 
 function getCachedConfig(
