@@ -1,5 +1,3 @@
-/// <reference lib="dom" />
-
 import { deadline } from "https://deno.land/std@0.205.0/async/deadline.ts";
 
 import { Celestial, type Runtime_CallArgument } from "../bindings/celestial.ts";
@@ -56,7 +54,7 @@ function getTopLeft(points: Point[]) {
 type AnyArray = readonly unknown[];
 
 export type ElementEvaluateFunction<
-  E extends Element,
+  E extends unknown,
   R extends AnyArray,
   T,
 > = (element: E, ...args: R) => T;
@@ -402,7 +400,7 @@ export class ElementHandle {
    * )
    * ```
    */
-  async evaluate<E extends Element, R extends AnyArray, T = unknown>(
+  async evaluate<E extends unknown, R extends AnyArray, T = unknown>(
     func: ElementEvaluateFunction<E, R, T> | string,
     evaluateOptions?: ElementEvaluateOptions<R>,
   ): Promise<T> {
