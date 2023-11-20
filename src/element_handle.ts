@@ -1,6 +1,6 @@
 import { deadline } from "https://deno.land/std@0.205.0/async/deadline.ts";
 
-import { Celestial } from "../bindings/celestial.ts";
+import { Celestial, type Runtime_CallArgument } from "../bindings/celestial.ts";
 import { KeyboardTypeOptions } from "./keyboard.ts";
 import { Page, ScreenshotOptions } from "./page.ts";
 import { retryDeadline } from "./util.ts";
@@ -49,6 +49,18 @@ function getTopLeft(points: Point[]) {
   }
 
   return result;
+}
+
+type AnyArray = readonly unknown[];
+
+export type ElementEvaluateFunction<
+  E extends unknown,
+  R extends AnyArray,
+  T,
+> = (element: E, ...args: R) => T;
+
+export interface ElementEvaluateOptions<T> {
+  args: Readonly<T>;
 }
 
 /**
@@ -368,5 +380,85 @@ export class ElementHandle {
       })(),
       this.#page.timeout,
     );
+  }
+
+  /**
+   * Executes the given function or string whose first argument is a DOM element and returns the result of the execution.
+   *
+   * @example
+   * ```ts
+   * /// <reference lib="dom" />
+   * const value: string = await element.evaluate((element: HTMLInputElement) => element.value)
+   * ```
+   *
+   * @example
+   * ```
+   * /// <reference lib="dom" />
+   * await element.evaluate(
+   *  (el: HTMLInputElement, key: string, value: string) => el.setAttribute(key, value),
+   *  { args: ["href", "astral"] }
+   * )
+   * ```
+   */
+  async evaluate<E extends unknown, R extends AnyArray, T = unknown>(
+    func: ElementEvaluateFunction<E, R, T> | string,
+    evaluateOptions?: ElementEvaluateOptions<R>,
+  ): Promise<T> {
+    const { object } = await retryDeadline(
+      this.#celestial.DOM.resolveNode({
+        nodeId: this.#id,
+      }),
+      this.#page.timeout,
+    );
+
+    const args: Runtime_CallArgument[] = [{
+      objectId: object.objectId,
+    }];
+
+    if (evaluateOptions?.args) {
+      for (const argument of evaluateOptions.args) {
+        if (Number.isNaN(argument)) {
+          args.push({
+            unserializableValue: "NaN",
+          });
+        } else {
+          args.push({
+            value: argument,
+          });
+        }
+      }
+    }
+
+    const { result, exceptionDetails } = await retryDeadline(
+      this.#celestial.Runtime
+        .callFunctionOn({
+          functionDeclaration: func.toString(),
+          objectId: object.objectId,
+          arguments: args,
+          awaitPromise: true,
+          returnByValue: true,
+        }),
+      this.#page.timeout,
+    );
+
+    if (exceptionDetails) {
+      throw exceptionDetails;
+    }
+
+    if (result.type === "bigint") {
+      return BigInt(result.unserializableValue!.slice(0, -1)) as T;
+    } else if (result.type === "undefined") {
+      return undefined as T;
+    } else if (result.type === "object") {
+      if (result.subtype === "null") {
+        return null as T;
+      }
+    } else if (result.type === "number") {
+      if (result.unserializableValue === "NaN") {
+        return NaN as T;
+      }
+    }
+
+    return result.value;
   }
 }
