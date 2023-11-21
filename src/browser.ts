@@ -66,6 +66,47 @@ async function runCommand(
 export interface BrowserOptions {
   headless: boolean;
   product: "chrome" | "firefox";
+  userDataDir: string | null;
+  persistent: boolean;
+  gracefulShutdown: boolean;
+}
+
+const windows_signals = [
+  "SIGINT",
+  "SIGBREAK",
+] as const;
+
+const unix_signals = [
+  "SIGINT",
+  "SIGTERM",
+  "SIGUSR2",
+  "SIGPIPE",
+  "SIGHUP",
+] as const;
+
+const signals = Deno.build.os === "windows" ? windows_signals : unix_signals;
+
+const browsers: Browser[] = [];
+
+async function onExit() {
+  for (const signal of signals) {
+    Deno.removeSignalListener(signal, onExit);
+  }
+
+  for (const browser of browsers) {
+    if (browser.closed) continue;
+    try {
+      await browser.close();
+    } catch (error) {
+      console.error("Error closing browser", error);
+    }
+  }
+
+  Deno.exit(0);
+}
+
+for (const signal of signals) {
+  Deno.addSignalListener(signal, onExit);
 }
 
 /**
@@ -90,6 +131,12 @@ export class Browser {
     this.#celestial = new Celestial(ws);
     this.#process = process;
     this.#options = opts;
+
+    if (
+      this.#options.gracefulShutdown === true
+    ) {
+      browsers.push(this);
+    }
   }
 
   /** Returns true if browser is connected remotely instead of using a subprocess */
@@ -120,6 +167,30 @@ export class Browser {
         process.kill("SIGKILL");
         await process.status;
       }
+
+      try {
+        await this.#cleanup();
+      } catch (error) {
+        console.error("Cleanup failed", error);
+      }
+    }
+  }
+
+  /**
+   * Removes the user data directory if it exists and the `persistent` option is set to `false`.
+   */
+  async #cleanup() {
+    if (
+      this.#process !== null &&
+      this.#options.persistent === false &&
+      this.#options.userDataDir !== null
+    ) {
+      const userDataDir = this.#options.userDataDir;
+      await retry(async () => {
+        await Deno.remove(userDataDir, {
+          recursive: true,
+        });
+      });
     }
   }
 
@@ -198,6 +269,27 @@ export interface LaunchOptions {
   args?: string[];
   wsEndpoint?: string;
   cache?: string;
+
+  /**
+   * If set to `true`, the `userDataDir` folder will remain, otherwise it will be deleted.
+   * @default false
+   */
+  persistent?: boolean;
+
+  /**
+   * It specifies the path to the browser user data directory.\
+   * If the path is not specified, a temporary directory is created in the system's temporary folder.
+   *
+   * This directory is used to store user-specific data such as cookies, local storage, and other browser-related data.
+   * @default undefined
+   */
+  userDataDir?: string;
+
+  /**
+   * If the value is set to `false`, the browser will not be closed along with the process when the process terminates.
+   * @default true
+   */
+  gracefulShutdown?: boolean;
 }
 
 /**
@@ -214,6 +306,9 @@ export async function launch(opts?: LaunchOptions) {
   const options: BrowserOptions = {
     headless,
     product,
+    userDataDir: null,
+    persistent: opts?.persistent ?? false,
+    gracefulShutdown: opts?.gracefulShutdown ?? true,
   };
 
   // Connect to endpoint directly if one was specified
@@ -227,13 +322,14 @@ export async function launch(opts?: LaunchOptions) {
     path = await getBinary(product, { cache });
   }
 
-  const tempDir = Deno.makeTempDirSync();
+  options.userDataDir = opts?.userDataDir ??
+    Deno.makeTempDirSync({ prefix: "astral_" });
 
   // Launch child process
   const launch = new Deno.Command(path, {
     args: [
       "--remote-debugging-port=0",
-      `--user-data-dir=${tempDir}`,
+      `--user-data-dir=${options.userDataDir}`,
       "--no-startup-window",
       ...(
         headless ? [product === "chrome" ? "--headless=new" : "--headless"] : []
