@@ -137,7 +137,6 @@ export class Browser {
   async #cleanup() {
     if (
       this.#process !== null &&
-      this.#options.persistent === false &&
       this.#options.userDataDir !== null
     ) {
       const userDataDir = this.#options.userDataDir;
