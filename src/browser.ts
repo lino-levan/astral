@@ -5,6 +5,7 @@ import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
 import { getBinary } from "./cache.ts";
 import { Page, SandboxOptions, WaitForOptions } from "./page.ts";
 import { WEBSOCKET_ENDPOINT_REGEX, websocketReady } from "./util.ts";
+import { onShutdown } from "./graceful_shutdown.ts";
 
 async function runCommand(
   command: Deno.Command,
@@ -68,46 +69,28 @@ export interface BrowserOptions {
   product: "chrome" | "firefox";
   userDataDir: string | null;
   persistent: boolean;
-  gracefulShutdown: boolean;
 }
 
-const windows_signals = [
-  "SIGINT",
-  "SIGBREAK",
-] as const;
+export const browsers: Set<Browser> = new Set();
 
-const unix_signals = [
-  "SIGINT",
-  "SIGTERM",
-  "SIGUSR2",
-  "SIGPIPE",
-  "SIGHUP",
-] as const;
-
-const signals = Deno.build.os === "windows" ? windows_signals : unix_signals;
-
-const browsers: Browser[] = [];
-
-async function onExit() {
-  for (const signal of signals) {
-    Deno.removeSignalListener(signal, onExit);
-  }
-
+export async function closeAllBrowsers() {
   for (const browser of browsers) {
-    if (browser.closed) continue;
+    if (browser.closed) {
+      browsers.delete(browser);
+      continue;
+    }
     try {
       await browser.close();
     } catch (error) {
       console.error("Error closing browser", error);
     }
   }
-
-  Deno.exit(0);
 }
 
-for (const signal of signals) {
-  Deno.addSignalListener(signal, onExit);
-}
+// Add graceful shutdown handler
+onShutdown(
+  closeAllBrowsers,
+);
 
 /**
  * The browser class is instantiated when you run the `launch` method.
@@ -132,11 +115,7 @@ export class Browser {
     this.#process = process;
     this.#options = opts;
 
-    if (
-      this.#options.gracefulShutdown === true
-    ) {
-      browsers.push(this);
-    }
+    browsers.add(this);
   }
 
   /** Returns true if browser is connected remotely instead of using a subprocess */
@@ -174,6 +153,8 @@ export class Browser {
         console.error("Cleanup failed", error);
       }
     }
+
+    browsers.delete(this);
   }
 
   /**
@@ -269,13 +250,6 @@ export interface LaunchOptions {
   args?: string[];
   wsEndpoint?: string;
   cache?: string;
-
-  /**
-   * If set to `true`, the `userDataDir` folder will remain, otherwise it will be deleted.
-   * @default false
-   */
-  persistent?: boolean;
-
   /**
    * It specifies the path to the browser user data directory.\
    * If the path is not specified, a temporary directory is created in the system's temporary folder.
@@ -284,12 +258,6 @@ export interface LaunchOptions {
    * @default undefined
    */
   userDataDir?: string;
-
-  /**
-   * If the value is set to `false`, the browser will not be closed along with the process when the process terminates.
-   * @default true
-   */
-  gracefulShutdown?: boolean;
 }
 
 /**
@@ -307,8 +275,7 @@ export async function launch(opts?: LaunchOptions) {
     headless,
     product,
     userDataDir: null,
-    persistent: opts?.persistent ?? false,
-    gracefulShutdown: opts?.gracefulShutdown ?? true,
+    persistent: false,
   };
 
   // Connect to endpoint directly if one was specified
@@ -322,8 +289,12 @@ export async function launch(opts?: LaunchOptions) {
     path = await getBinary(product, { cache });
   }
 
-  options.userDataDir = opts?.userDataDir ??
-    Deno.makeTempDirSync({ prefix: "astral_" });
+  if (opts?.userDataDir) {
+    options.persistent = true;
+    options.userDataDir = opts.userDataDir;
+  }
+
+  options.userDataDir ??= Deno.makeTempDirSync({ prefix: "astral_" });
 
   // Launch child process
   const launch = new Deno.Command(path, {

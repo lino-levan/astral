@@ -8,3 +8,4 @@ export * from "./src/mouse.ts";
 export * from "./src/page.ts";
 export * from "./src/touchscreen.ts";
 export * from "./src/util.ts";
+export * from "./src/graceful_shutdown.ts";
