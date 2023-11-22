@@ -5,7 +5,6 @@ import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
 import { getBinary } from "./cache.ts";
 import { Page, SandboxOptions, WaitForOptions } from "./page.ts";
 import { WEBSOCKET_ENDPOINT_REGEX, websocketReady } from "./util.ts";
-import { onShutdown } from "./graceful_shutdown.ts";
 
 async function runCommand(
   command: Deno.Command,
@@ -71,27 +70,6 @@ export interface BrowserOptions {
   persistent: boolean;
 }
 
-export const browsers: Set<Browser> = new Set();
-
-export async function closeAllBrowsers() {
-  for (const browser of browsers) {
-    if (browser.closed) {
-      browsers.delete(browser);
-      continue;
-    }
-    try {
-      await browser.close();
-    } catch (error) {
-      console.error("Error closing browser", error);
-    }
-  }
-}
-
-// Add graceful shutdown handler
-onShutdown(
-  closeAllBrowsers,
-);
-
 /**
  * The browser class is instantiated when you run the `launch` method.
  *
@@ -114,8 +92,6 @@ export class Browser {
     this.#celestial = new Celestial(ws);
     this.#process = process;
     this.#options = opts;
-
-    browsers.add(this);
   }
 
   /** Returns true if browser is connected remotely instead of using a subprocess */
@@ -153,8 +129,6 @@ export class Browser {
         console.error("Cleanup failed", error);
       }
     }
-
-    browsers.delete(this);
   }
 
   /**
