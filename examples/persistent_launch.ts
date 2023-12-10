@@ -1,12 +1,10 @@
 // Import Astral
 import { launch } from "../mod.ts";
 
-import { resolve } from "https://deno.land/std@0.205.0/path/resolve.ts";
-
 // Launch the browser
 const browser = await launch({
   // Setting the directory where the browser will store user-specific data, such as cookies, local storage, and other browsing data.
-  userDataDir: resolve("./my-browser-data"),
+  userDataDir: "./my-browser-data",
 });
 
 // Open a new page

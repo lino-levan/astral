@@ -1,10 +1,15 @@
 import { retry } from "https://deno.land/std@0.205.0/async/retry.ts";
 import { deadline } from "https://deno.land/std@0.205.0/async/deadline.ts";
+import { resolve } from "https://deno.land/std@0.205.0/path/resolve.ts";
+import { isAbsolute } from "https://deno.land/std@0.205.0/path/is_absolute.ts";
 
 import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
 import { getBinary } from "./cache.ts";
 import { Page, SandboxOptions, WaitForOptions } from "./page.ts";
 import { WEBSOCKET_ENDPOINT_REGEX, websocketReady } from "./util.ts";
+
+const tempDir = Deno.env.get("TMPDIR") || Deno.env.get("TMP") ||
+  Deno.env.get("TEMP") || "/tmp";
 
 async function runCommand(
   command: Deno.Command,
@@ -67,7 +72,6 @@ export interface BrowserOptions {
   headless: boolean;
   product: "chrome" | "firefox";
   userDataDir: string | null;
-  persistent: boolean;
 }
 
 /**
@@ -132,12 +136,13 @@ export class Browser {
   }
 
   /**
-   * Removes the user data directory if it exists and the `persistent` option is set to `false`.
+   * Removes a temporary directory of user data.
    */
   async #cleanup() {
     if (
       this.#process !== null &&
-      this.#options.userDataDir !== null
+      this.#options.userDataDir !== null &&
+      this.#options.userDataDir.startsWith(tempDir)
     ) {
       const userDataDir = this.#options.userDataDir;
       await retry(async () => {
@@ -248,7 +253,6 @@ export async function launch(opts?: LaunchOptions) {
     headless,
     product,
     userDataDir: null,
-    persistent: false,
   };
 
   // Connect to endpoint directly if one was specified
@@ -263,11 +267,15 @@ export async function launch(opts?: LaunchOptions) {
   }
 
   if (opts?.userDataDir) {
-    options.persistent = true;
-    options.userDataDir = opts.userDataDir;
+    options.userDataDir = isAbsolute(opts.userDataDir)
+      ? opts.userDataDir
+      : resolve(opts.userDataDir);
   }
 
-  options.userDataDir ??= Deno.makeTempDirSync({ prefix: "astral_" });
+  options.userDataDir ??= Deno.makeTempDirSync({
+    prefix: "astral_",
+    dir: tempDir,
+  });
 
   // Launch child process
   const launch = new Deno.Command(path, {
