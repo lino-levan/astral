@@ -1,10 +1,15 @@
 import { retry } from "https://deno.land/std@0.205.0/async/retry.ts";
 import { deadline } from "https://deno.land/std@0.205.0/async/deadline.ts";
+import { resolve } from "https://deno.land/std@0.205.0/path/resolve.ts";
+import { isAbsolute } from "https://deno.land/std@0.205.0/path/is_absolute.ts";
 
 import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
 import { getBinary } from "./cache.ts";
 import { Page, SandboxOptions, WaitForOptions } from "./page.ts";
 import { WEBSOCKET_ENDPOINT_REGEX, websocketReady } from "./util.ts";
+
+const tempDir = Deno.env.get("TMPDIR") || Deno.env.get("TMP") ||
+  Deno.env.get("TEMP") || "/tmp";
 
 async function runCommand(
   command: Deno.Command,
@@ -66,6 +71,7 @@ async function runCommand(
 export interface BrowserOptions {
   headless: boolean;
   product: "chrome" | "firefox";
+  userDataDir: string | null;
 }
 
 /**
@@ -120,6 +126,30 @@ export class Browser {
         process.kill("SIGKILL");
         await process.status;
       }
+
+      try {
+        await this.#cleanup();
+      } catch (error) {
+        console.error("Cleanup failed", error);
+      }
+    }
+  }
+
+  /**
+   * Removes a temporary directory of user data.
+   */
+  async #cleanup() {
+    if (
+      this.#process !== null &&
+      this.#options.userDataDir !== null &&
+      this.#options.userDataDir.startsWith(tempDir)
+    ) {
+      const userDataDir = this.#options.userDataDir;
+      await retry(async () => {
+        await Deno.remove(userDataDir, {
+          recursive: true,
+        });
+      });
     }
   }
 
@@ -198,6 +228,14 @@ export interface LaunchOptions {
   args?: string[];
   wsEndpoint?: string;
   cache?: string;
+  /**
+   * It specifies the path to the browser user data directory.\
+   * If the path is not specified, a temporary directory is created in the system's temporary folder.
+   *
+   * This directory is used to store user-specific data such as cookies, local storage, and other browser-related data.
+   * @default undefined
+   */
+  userDataDir?: string;
 }
 
 /**
@@ -214,6 +252,7 @@ export async function launch(opts?: LaunchOptions) {
   const options: BrowserOptions = {
     headless,
     product,
+    userDataDir: null,
   };
 
   // Connect to endpoint directly if one was specified
@@ -227,13 +266,22 @@ export async function launch(opts?: LaunchOptions) {
     path = await getBinary(product, { cache });
   }
 
-  const tempDir = Deno.makeTempDirSync();
+  if (opts?.userDataDir) {
+    options.userDataDir = isAbsolute(opts.userDataDir)
+      ? opts.userDataDir
+      : resolve(opts.userDataDir);
+  }
+
+  options.userDataDir ??= Deno.makeTempDirSync({
+    prefix: "astral_",
+    dir: tempDir,
+  });
 
   // Launch child process
   const launch = new Deno.Command(path, {
     args: [
       "--remote-debugging-port=0",
-      `--user-data-dir=${tempDir}`,
+      `--user-data-dir=${options.userDataDir}`,
       "--no-startup-window",
       ...(
         headless ? [product === "chrome" ? "--headless=new" : "--headless"] : []
