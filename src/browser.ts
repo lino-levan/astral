@@ -51,7 +51,7 @@ async function runCommand(
     stack.push(`Process exited with code ${code}`);
     // Handle recoverable error code 21 on Windows
     // https://source.chromium.org/chromium/chromium/src/+/main:net/base/net_error_list.h;l=90-91
-    if ((Deno.build.os === "windows") && (code === 21) && retries > 0) {
+    if (Deno.build.os === "windows" && code === 21 && retries > 0) {
       return runCommand(command, { retries: retries - 1 });
     }
     console.error(stack.join("\n"));
@@ -234,10 +234,10 @@ export async function launch(opts?: LaunchOptions) {
     args: [
       "--remote-debugging-port=0",
       `--user-data-dir=${tempDir}`,
-      "--no-startup-window",
-      ...(
-        headless ? [product === "chrome" ? "--headless=new" : "--headless"] : []
-      ),
+      // "--no-startup-window",
+      ...(headless
+        ? [product === "chrome" ? "--headless=new" : "--headless"]
+        : []),
       ...args,
     ],
     stderr: "piped",
@@ -251,9 +251,7 @@ export async function launch(opts?: LaunchOptions) {
   });
 
   if (browserRes["Protocol-Version"] !== PROTOCOL_VERSION) {
-    throw new Error(
-      "Differing protocol versions between binary and bindings.",
-    );
+    throw new Error("Differing protocol versions between binary and bindings.");
   }
 
   // Set up browser websocket
