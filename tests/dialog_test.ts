@@ -26,27 +26,32 @@ Deno.test("Accepting basic alert", async () => {
   await browser.close();
 });
 
-Deno.test("Accepting basic alert with playwright-like syntax", async () => {
-  // Launch browser
-  const browser = await launch();
+Deno.test({
+  name: "Accepting basic alert with playwright-like syntax",
+  async fn() {
+    // Launch browser
+    const browser = await launch();
 
-  // Open the webpage
-  const page = await browser.newPage();
+    // Open the webpage
+    const page = await browser.newPage();
 
-  // listen for dialog events
-  const dialogPromise = page.waitForEvent("dialog");
+    // listen for dialog events
+    const dialogPromise = page.waitForEvent("dialog");
 
-  // navigate to a page with an alert
-  page.setContent("<script>alert('hi');</script>");
+    // navigate to a page with an alert
+    page.setContent("<script>alert('hi');</script>");
 
-  // handle dialog
-  const dialog = await dialogPromise;
-  assertEquals(dialog.message, "hi");
-  assertEquals(dialog.type, "alert");
-  await dialog.accept();
+    // handle dialog
+    const dialog = await dialogPromise;
+    assertEquals(dialog.message, "hi");
+    assertEquals(dialog.type, "alert");
+    await dialog.accept();
 
-  // Close browser
-  await browser.close();
+    // Close browser
+    await browser.close();
+  },
+  // TODO(lino-levan): Remove this once this Deno bug is fixed
+  sanitizeOps: false,
 });
 
 Deno.test("Accepting prompt", async () => {
