@@ -51,6 +51,7 @@ Deno.test({
     await browser.close();
   },
   // TODO(lino-levan): Remove this once this Deno bug is fixed
+  sanitizeResources: false,
   sanitizeOps: false,
 });
 
