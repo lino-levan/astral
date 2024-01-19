@@ -233,10 +233,17 @@ export async function launch(opts?: LaunchOptions) {
   const launch = new Deno.Command(path, {
     args: [
       "--remote-debugging-port=0",
+      "--no-first-run",
+      "--password-store=basic",
+      "--use-mock-keychain",
       `--user-data-dir=${tempDir}`,
       // "--no-startup-window",
       ...(headless
-        ? [product === "chrome" ? "--headless=new" : "--headless"]
+        ? [
+          product === "chrome"
+            ? "--headless=new --hide-scrollbars"
+            : "--headless",
+        ]
         : []),
       ...args,
     ],
