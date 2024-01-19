@@ -240,9 +240,8 @@ export async function launch(opts?: LaunchOptions) {
       // "--no-startup-window",
       ...(headless
         ? [
-          product === "chrome"
-            ? "--headless=new --hide-scrollbars"
-            : "--headless",
+          product === "chrome" ? "--headless=new" : "--headless",
+          "--hide-scrollbars",
         ]
         : []),
       ...args,
