@@ -94,7 +94,7 @@ export class ElementHandle {
       this.#page.timeout,
     );
 
-    if (result?.nodeId) {
+    if (!result?.nodeId) {
       return null;
     }
 
