@@ -85,7 +85,7 @@ export class ElementHandle {
    * const elementWithClass = await element.$(".class");
    * ```
    */
-  async $(selector: string) {
+  async $(selector: string): Promise<ElementHandle | null> {
     const result = await retryDeadline(
       this.#celestial.DOM.querySelector({
         nodeId: this.#id,
@@ -109,7 +109,7 @@ export class ElementHandle {
    * const elementsWithClass = await element.$$(".class");
    * ```
    */
-  async $$(selector: string) {
+  async $$(selector: string): Promise<ElementHandle[]> {
     const result = await retryDeadline(
       this.#celestial.DOM.querySelectorAll({
         nodeId: this.#id,
@@ -237,7 +237,7 @@ export class ElementHandle {
   /**
    * Returns the `element.innerText`
    */
-  async innerText() {
+  async innerText(): Promise<string> {
     return await retryDeadline(
       (async () => {
         const { object } = await this.#celestial.DOM.resolveNode({
@@ -265,7 +265,7 @@ export class ElementHandle {
   /**
    * This method scrolls element into view if needed, and then uses `Page.screenshot()` to take a screenshot of the element.
    */
-  async screenshot(opts?: Omit<ScreenshotOptions, "clip">) {
+  async screenshot(opts?: Omit<ScreenshotOptions, "clip">): Promise<Uint8Array> {
     await this.scrollIntoView();
     const box = await this.boundingBox();
 
@@ -305,7 +305,7 @@ export class ElementHandle {
   /**
    * Wait for an element matching the given selector to appear in the current element.
    */
-  async waitForSelector(selector: string, options?: WaitForSelectorOptions) {
+  async waitForSelector(selector: string, options?: WaitForSelectorOptions): Promise<ElementHandle> {
     // TODO(lino-levan): Make this easier to read, it's a little scuffed
     try {
       return await deadline<ElementHandle>(

@@ -93,7 +93,7 @@ export class Browser {
   }
 
   /** Returns true if browser is connected remotely instead of using a subprocess */
-  get isRemoteConnection() {
+  get isRemoteConnection(): boolean {
     return !this.#process;
   }
 
@@ -126,7 +126,7 @@ export class Browser {
   /**
    * Promise which resolves to a new `Page` object.
    */
-  async newPage(url?: string, options?: WaitForOptions & SandboxOptions) {
+  async newPage(url?: string, options?: WaitForOptions & SandboxOptions): Promise<Page> {
     const { targetId } = await this.#celestial.Target.createTarget({
       url: "",
     });
@@ -163,7 +163,7 @@ export class Browser {
   /**
    * The browser's original user agent.
    */
-  async userAgent() {
+  async userAgent(): Promise<string> {
     const { userAgent } = await this.#celestial.Browser.getVersion();
     return userAgent;
   }
@@ -171,7 +171,7 @@ export class Browser {
   /**
    * A string representing the browser name and version.
    */
-  async version() {
+  async version(): Promise<string> {
     const { product, revision } = await this.#celestial.Browser.getVersion();
     return `${product}/${revision}`;
   }
@@ -179,14 +179,14 @@ export class Browser {
   /**
    * The browser's websocket endpoint
    */
-  wsEndpoint() {
+  wsEndpoint(): string {
     return this.#celestial.ws.url;
   }
 
   /**
    * Returns true if the browser and its websocket have benn closed
    */
-  get closed() {
+  get closed(): boolean {
     return this.#celestial.ws.readyState === WebSocket.CLOSED;
   }
 }
@@ -203,7 +203,7 @@ export interface LaunchOptions {
 /**
  * Launches a browser instance with given arguments and options when specified.
  */
-export async function launch(opts?: LaunchOptions) {
+export async function launch(opts?: LaunchOptions): Promise<Browser> {
   const headless = opts?.headless ?? true;
   const product = opts?.product ?? "chrome";
   const args = opts?.args ?? [];

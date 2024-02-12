@@ -17,7 +17,7 @@ export async function websocketReady(ws: WebSocket) {
 /**
  * Utility method to convert a base64 encoded string into a byte array
  */
-export function convertToUint8Array(data: string) {
+export function convertToUint8Array(data: string): Uint8Array {
   const byteString = atob(data);
   return new Uint8Array([...byteString].map((ch) => ch.charCodeAt(0)));
 }

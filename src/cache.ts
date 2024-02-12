@@ -39,7 +39,7 @@ async function knownGoodVersions(): Promise<KnownGoodVersions> {
   return await req.json();
 }
 
-export function getDefaultCachePath() {
+export function getDefaultCachePath(): string {
   const path = cacheDir();
   if (!path) throw new Error("couldn't determine default cache directory");
   return join(path, "astral");

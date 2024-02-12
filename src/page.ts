@@ -246,7 +246,7 @@ export class Page extends EventTarget {
   /**
    * Returns raw celestial bindings for the page. Super unsafe unless you know what you're doing.
    */
-  unsafelyGetCelestialBindings() {
+  unsafelyGetCelestialBindings(): Celestial {
     return this.#celestial;
   }
 
@@ -258,7 +258,7 @@ export class Page extends EventTarget {
    * const elementWithClass = await page.$(".class");
    * ```
    */
-  async $(selector: string) {
+  async $(selector: string): Promise<ElementHandle | null> {
     const root = await this.#getRoot();
     return root.$(selector);
   }
@@ -271,7 +271,7 @@ export class Page extends EventTarget {
    * const elementsWithClass = await page.$$(".class");
    * ```
    */
-  async $$(selector: string) {
+  async $$(selector: string): Promise<ElementHandle[]> {
     const root = await this.#getRoot();
     return retryDeadline(root.$$(selector), this.timeout);
   }
@@ -291,7 +291,7 @@ export class Page extends EventTarget {
   /**
    * Get the browser the page belongs to.
    */
-  browser() {
+  browser(): Browser {
     return this.#browser;
   }
 
@@ -431,7 +431,7 @@ export class Page extends EventTarget {
   async evaluate<T, R extends AnyArray>(
     func: EvaluateFunction<T, R>,
     evaluateOptions?: EvaluateOptions<R>,
-  ) {
+  ): Promise<unknown> {
     if (typeof func === "function") {
       const args = evaluateOptions?.args ?? [];
       func = `(${func.toString()})(${
@@ -534,7 +534,7 @@ export class Page extends EventTarget {
    * Deno.writeFileSync("screenshot.png", screenshot)
    * ```
    */
-  async screenshot(opts?: ScreenshotOptions) {
+  async screenshot(opts?: ScreenshotOptions): Promise<Uint8Array> {
     opts = opts ?? {};
     const { data } = await retryDeadline(
       this.#celestial.Page.captureScreenshot(opts),
@@ -546,7 +546,7 @@ export class Page extends EventTarget {
   /**
    * The current URL of the page
    */
-  get url() {
+  get url(): string {
     return this.#url;
   }
 
@@ -588,7 +588,7 @@ export class Page extends EventTarget {
   /**
    * Waits for the page to navigate to a new URL or to reload. It is useful when you run code that will indirectly cause the page to navigate.
    */
-  async waitForNavigation(options?: WaitForOptions) {
+  async waitForNavigation(options?: WaitForOptions): Promise<void> {
     options = options ?? { waitUntil: "networkidle2" };
 
     if (options.waitUntil === "none") {
@@ -629,7 +629,7 @@ export class Page extends EventTarget {
   /**
    * Create a promise which resolves when network is idle
    */
-  waitForNetworkIdle(options?: WaitForNetworkIdleOptions) {
+  waitForNetworkIdle(options?: WaitForNetworkIdleOptions): Promise<void> {
     const idleTime = options?.idleTime ?? 500;
     const idleConnections = options?.idleConnections ?? 0;
 
@@ -695,7 +695,7 @@ export class Page extends EventTarget {
    * await page.waitForSelector(".class");
    * ```
    */
-  async waitForSelector(selector: string, options?: WaitForSelectorOptions) {
+  async waitForSelector(selector: string, options?: WaitForSelectorOptions): Promise<ElementHandle> {
     const root = await this.#getRoot();
     return root.waitForSelector(selector, options);
   }
