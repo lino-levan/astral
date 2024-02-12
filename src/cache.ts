@@ -201,11 +201,11 @@ export async function getBinary(
           if (done) {
             break;
           }
-          await Deno.write(archive.rid, value);
+          await archive.write(value);
           downloaded += value.length;
           bar.render(downloaded);
         } while (true);
-        Deno.close(archive.rid);
+        archive.close();
         console.log(`Download complete (${browser} version ${VERSION})`);
       }
       await decompressArchive(
