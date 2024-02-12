@@ -316,11 +316,15 @@ export class ElementHandle {
               selector,
             });
 
-            if (!result.nodeId) {
+            if (!result?.nodeId) {
               continue;
             }
 
-            return new ElementHandle(result.nodeId, this.#celestial, this.#page);
+            return new ElementHandle(
+              result.nodeId,
+              this.#celestial,
+              this.#page,
+            );
           }
         })(),
         options?.timeout || this.#page.timeout,

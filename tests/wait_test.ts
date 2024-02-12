@@ -18,23 +18,22 @@ Deno.test("Wait for selector", async () => {
   await browser.close();
 });
 
-Deno.test('Fail wait for selector', async () => {
+Deno.test("Fail wait for selector", async () => {
   // Launch browser
   const browser = await launch();
 
   // Open the webpage
-  const page = await browser.newPage('http://deno.land');
+  const page = await browser.newPage("http://deno.land");
 
   await assertRejects(
     () => {
-      return page.waitForSelector('.font-bold1', { timeout: 1000 });
+      return page.waitForSelector(".font-bold1", { timeout: 1000 });
     },
     Error,
     "Unable to get element from selector",
   );
 
   await browser.close();
-
 });
 
 Deno.test("Wait for function", async (t) => {
