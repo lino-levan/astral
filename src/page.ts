@@ -546,7 +546,7 @@ export class Page extends EventTarget {
   /**
    * The current URL of the page
    */
-  get url(): string {
+  get url(): string | undefined {
     return this.#url;
   }
 
