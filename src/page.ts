@@ -40,6 +40,10 @@ export type WaitForOptions = {
   waitUntil?: "none" | "load" | "networkidle0" | "networkidle2";
 };
 
+export interface WaitForSelectorOptions {
+  timeout?: number;
+}
+
 export type WaitForNetworkIdleOptions = {
   idleTime?: number;
   idleConnections?: number;
@@ -684,16 +688,16 @@ export class Page extends EventTarget {
   }
 
   /**
-   * Wait for the `selector` to appear in page. If at the moment of calling the method the `selector` already exists, the method will return immediately. If the `selector` doesn't appear after the timeout milliseconds of waiting, the function will throw.
+   * Wait for the `selector` to appear in page. If at the moment of calling the method the `selector` already exists, the method will return immediately. If the `selector` doesn't appear after the timeout milliseconds (10000 by default) of waiting, the function will throw.
    *
    * @example
    * ```ts
    * await page.waitForSelector(".class");
    * ```
    */
-  async waitForSelector(selector: string) {
+  async waitForSelector(selector: string, options?: WaitForSelectorOptions) {
     const root = await this.#getRoot();
-    return root.waitForSelector(selector);
+    return root.waitForSelector(selector, options);
   }
 
   /**

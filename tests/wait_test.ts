@@ -1,4 +1,5 @@
 import { assertSnapshot } from "https://deno.land/std@0.205.0/testing/snapshot.ts";
+import { assertRejects } from "https://deno.land/std@0.215.0/assert/mod.ts";
 
 import { launch } from "../mod.ts";
 
@@ -14,6 +15,24 @@ Deno.test("Wait for selector", async () => {
   console.log(selected);
 
   // Close browser
+  await browser.close();
+});
+
+Deno.test("Fail wait for selector", async () => {
+  // Launch browser
+  const browser = await launch();
+
+  // Open the webpage
+  const page = await browser.newPage("http://deno.land");
+
+  await assertRejects(
+    () => {
+      return page.waitForSelector(".font-bold1", { timeout: 1000 });
+    },
+    Error,
+    "Unable to get element from selector",
+  );
+
   await browser.close();
 });
 

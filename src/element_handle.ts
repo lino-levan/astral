@@ -2,7 +2,7 @@ import { deadline } from "https://deno.land/std@0.205.0/async/deadline.ts";
 
 import { Celestial, type Runtime_CallArgument } from "../bindings/celestial.ts";
 import { KeyboardTypeOptions } from "./keyboard.ts";
-import { Page, ScreenshotOptions } from "./page.ts";
+import { Page, ScreenshotOptions, WaitForSelectorOptions } from "./page.ts";
 import { retryDeadline } from "./util.ts";
 
 export interface Offset {
@@ -305,25 +305,33 @@ export class ElementHandle {
   /**
    * Wait for an element matching the given selector to appear in the current element.
    */
-  async waitForSelector(selector: string) {
+  async waitForSelector(selector: string, options?: WaitForSelectorOptions) {
     // TODO(lino-levan): Make this easier to read, it's a little scuffed
-    return await deadline<ElementHandle>(
-      (async () => {
-        while (true) {
-          const result = await this.#celestial.DOM.querySelector({
-            nodeId: this.#id,
-            selector,
-          });
+    try {
+      return await deadline<ElementHandle>(
+        (async () => {
+          while (true) {
+            const result = await this.#celestial.DOM.querySelector({
+              nodeId: this.#id,
+              selector,
+            });
 
-          if (!result) {
-            continue;
+            if (!result?.nodeId) {
+              continue;
+            }
+
+            return new ElementHandle(
+              result.nodeId,
+              this.#celestial,
+              this.#page,
+            );
           }
-
-          return new ElementHandle(result.nodeId, this.#celestial, this.#page);
-        }
-      })(),
-      this.#page.timeout,
-    );
+        })(),
+        options?.timeout || this.#page.timeout,
+      );
+    } catch {
+      throw new Error("Unable to get element from selector");
+    }
   }
 
   /**
