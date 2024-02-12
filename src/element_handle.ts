@@ -265,7 +265,9 @@ export class ElementHandle {
   /**
    * This method scrolls element into view if needed, and then uses `Page.screenshot()` to take a screenshot of the element.
    */
-  async screenshot(opts?: Omit<ScreenshotOptions, "clip">): Promise<Uint8Array> {
+  async screenshot(
+    opts?: Omit<ScreenshotOptions, "clip">,
+  ): Promise<Uint8Array> {
     await this.scrollIntoView();
     const box = await this.boundingBox();
 
@@ -305,7 +307,10 @@ export class ElementHandle {
   /**
    * Wait for an element matching the given selector to appear in the current element.
    */
-  async waitForSelector(selector: string, options?: WaitForSelectorOptions): Promise<ElementHandle> {
+  async waitForSelector(
+    selector: string,
+    options?: WaitForSelectorOptions,
+  ): Promise<ElementHandle> {
     // TODO(lino-levan): Make this easier to read, it's a little scuffed
     try {
       return await deadline<ElementHandle>(

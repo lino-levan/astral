@@ -695,7 +695,10 @@ export class Page extends EventTarget {
    * await page.waitForSelector(".class");
    * ```
    */
-  async waitForSelector(selector: string, options?: WaitForSelectorOptions): Promise<ElementHandle> {
+  async waitForSelector(
+    selector: string,
+    options?: WaitForSelectorOptions,
+  ): Promise<ElementHandle> {
     const root = await this.#getRoot();
     return root.waitForSelector(selector, options);
   }

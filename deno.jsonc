@@ -13,6 +13,5 @@
     "jsx": "react-jsx",
     "jsxImportSource": "https://esm.sh/preact@10.16.0"
   },
-  "lock": false,
-  "importMap": "./vendor/import_map.json"
+  "lock": false
 }

@@ -126,7 +126,10 @@ export class Browser {
   /**
    * Promise which resolves to a new `Page` object.
    */
-  async newPage(url?: string, options?: WaitForOptions & SandboxOptions): Promise<Page> {
+  async newPage(
+    url?: string,
+    options?: WaitForOptions & SandboxOptions,
+  ): Promise<Page> {
     const { targetId } = await this.#celestial.Target.createTarget({
       url: "",
     });
