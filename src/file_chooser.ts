@@ -1,4 +1,4 @@
-import { resolve } from "https://deno.land/std@0.205.0/path/resolve.ts";
+import { resolve } from "https://deno.land/std@0.215.0/path/resolve.ts";
 
 import type {
   Celestial,

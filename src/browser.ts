@@ -1,5 +1,5 @@
-import { retry } from "https://deno.land/std@0.205.0/async/retry.ts";
-import { deadline } from "https://deno.land/std@0.205.0/async/deadline.ts";
+import { retry } from "https://deno.land/std@0.215.0/async/retry.ts";
+import { deadline } from "https://deno.land/std@0.215.0/async/deadline.ts";
 
 import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
 import { getBinary } from "./cache.ts";

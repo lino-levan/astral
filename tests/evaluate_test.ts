@@ -1,7 +1,7 @@
 /// <reference lib="dom" />
 
-import { assertEquals } from "https://deno.land/std@0.205.0/assert/assert_equals.ts";
-import { assertSnapshot } from "https://deno.land/std@0.205.0/testing/snapshot.ts";
+import { assertEquals } from "https://deno.land/std@0.215.0/assert/assert_equals.ts";
+import { assertSnapshot } from "https://deno.land/std@0.215.0/testing/snapshot.ts";
 
 import { launch } from "../mod.ts";
 

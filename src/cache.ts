@@ -1,12 +1,12 @@
-import { ensureDirSync } from "https://deno.land/std@0.205.0/fs/ensure_dir.ts";
-import { resolve } from "https://deno.land/std@0.205.0/path/mod.ts";
-import { ensureDir } from "https://deno.land/std@0.205.0/fs/ensure_dir.ts";
-import { dirname } from "https://deno.land/std@0.205.0/path/dirname.ts";
-import { join } from "https://deno.land/std@0.205.0/path/join.ts";
+import { ensureDirSync } from "https://deno.land/std@0.215.0/fs/ensure_dir.ts";
+import { resolve } from "https://deno.land/std@0.215.0/path/mod.ts";
+import { ensureDir } from "https://deno.land/std@0.215.0/fs/ensure_dir.ts";
+import { dirname } from "https://deno.land/std@0.215.0/path/dirname.ts";
+import { join } from "https://deno.land/std@0.215.0/path/join.ts";
 import { ZipReader } from "https://deno.land/x/zipjs@v2.7.29/index.js";
 import ProgressBar from "https://deno.land/x/progress@v1.3.9/mod.ts";
-import { exists, existsSync } from "https://deno.land/std@0.205.0/fs/exists.ts";
-import { retry } from "https://deno.land/std@0.205.0/async/retry.ts";
+import { exists, existsSync } from "https://deno.land/std@0.215.0/fs/exists.ts";
+import { retry } from "https://deno.land/std@0.215.0/async/retry.ts";
 import cacheDir from "https://deno.land/x/dir@1.5.2/cache_dir/mod.ts";
 
 export const SUPPORTED_VERSIONS = {

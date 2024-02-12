@@ -1,5 +1,5 @@
 import { cleanCache, getBinary, launch } from "../mod.ts";
-import { deadline } from "https://deno.land/std@0.205.0/async/deadline.ts";
+import { deadline } from "https://deno.land/std@0.215.0/async/deadline.ts";
 // Tests should be performed in directory different from others tests as cache is cleaned during this one
 //Deno.env.set("ASTRAL_QUIET_INSTALL", "true");
 const cache = await Deno.makeTempDir({

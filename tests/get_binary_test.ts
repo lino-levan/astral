@@ -1,9 +1,9 @@
-import { assertMatch } from "https://deno.land/std@0.205.0/assert/assert_match.ts";
+import { assertMatch } from "https://deno.land/std@0.215.0/assert/assert_match.ts";
 import { cleanCache, getBinary, launch } from "../mod.ts";
-import { assert } from "https://deno.land/std@0.205.0/assert/assert.ts";
-import { assertRejects } from "https://deno.land/std@0.205.0/assert/assert_rejects.ts";
-import { resolve } from "https://deno.land/std@0.205.0/path/resolve.ts";
-import { assertStringIncludes } from "https://deno.land/std@0.205.0/assert/assert_string_includes.ts";
+import { assert } from "https://deno.land/std@0.215.0/assert/assert.ts";
+import { assertRejects } from "https://deno.land/std@0.215.0/assert/assert_rejects.ts";
+import { resolve } from "https://deno.land/std@0.215.0/path/resolve.ts";
+import { assertStringIncludes } from "https://deno.land/std@0.215.0/assert/assert_string_includes.ts";
 
 const tempDir = Deno.env.get("TMPDIR") || Deno.env.get("TMP") ||
   Deno.env.get("TEMP") || "/tmp";
