@@ -152,6 +152,7 @@ export class Browser {
       }),
       celestial.Page.enable(),
       celestial.Runtime.enable(),
+      celestial.Network.enable({}),
       celestial.Page.setInterceptFileChooserDialog({ enabled: true }),
       sandbox ? celestial.Fetch.enable({}) : null,
     ]);

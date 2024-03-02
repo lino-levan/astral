@@ -602,14 +602,7 @@ export class Page extends EventTarget {
     return retryDeadline(
       new Promise<void>((resolve) => {
         if (options?.waitUntil === "load") {
-          const callback = () => {
-            resolve();
-            this.#celestial.removeEventListener(
-              "Page_loadEventFired",
-              callback,
-            );
-          };
-          this.#celestial.addEventListener("Page.loadEventFired", callback);
+          this.#celestial.addEventListener("Page.loadEventFired", ()=>resolve(), { once: true });
         } else if (options?.waitUntil === "networkidle0") {
           this.waitForNetworkIdle({ idleTime: 500 }).then(() => {
             resolve();
