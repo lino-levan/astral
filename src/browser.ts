@@ -198,6 +198,7 @@ export interface LaunchOptions {
   args?: string[];
   wsEndpoint?: string;
   cache?: string;
+  userDataDir?: string;
 }
 
 /**
@@ -210,6 +211,7 @@ export async function launch(opts?: LaunchOptions) {
   const wsEndpoint = opts?.wsEndpoint;
   const cache = opts?.cache;
   let path = opts?.path;
+  let userDataDir = opts?.userDataDir;
 
   const options: BrowserOptions = {
     headless,
@@ -227,7 +229,13 @@ export async function launch(opts?: LaunchOptions) {
     path = await getBinary(product, { cache });
   }
 
-  const tempDir = Deno.makeTempDirSync();
+  if (!userDataDir) {
+    const readPermission = await Deno.permissions.query({ name: "write" });
+
+    if (readPermission.state === "granted") {
+      userDataDir = Deno.makeTempDirSync();
+    }
+  }
 
   // Launch child process
   const launch = new Deno.Command(path, {
@@ -236,7 +244,7 @@ export async function launch(opts?: LaunchOptions) {
       "--no-first-run",
       "--password-store=basic",
       "--use-mock-keychain",
-      `--user-data-dir=${tempDir}`,
+      ...(userDataDir ? [`--user-data-dir=${userDataDir}`] : []),
       // "--no-startup-window",
       ...(headless
         ? [
