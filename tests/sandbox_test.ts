@@ -64,3 +64,16 @@ Deno.test("Sandbox cannot be escaped with redirects or scripts", {
   );
   await browser.close();
 });
+
+Deno.test("Sandbox fulfill denied write permissions", {
+  permissions: {
+    ...permissions,
+    write: false,
+    net: ["127.0.0.1", "example.com"],
+  },
+}, async () => {
+  const browser = await launch();
+  const page = await browser.newPage("http://example.com", { sandbox: true });
+  assertStrictEquals(await page.evaluate(status), 200);
+  await browser.close();
+});
