@@ -16,7 +16,7 @@ All of our docs are written in markdown and rendered using
 
 ```ts
 // Import Astral
-import { launch } from "https://deno.land/x/astral/mod.ts";
+import { launch } from "jsr:@astral/astral";
 
 // Launch the browser
 const browser = await launch();

@@ -1,13 +1,11 @@
-import { ensureDirSync } from "https://deno.land/std@0.215.0/fs/ensure_dir.ts";
-import { resolve } from "https://deno.land/std@0.215.0/path/mod.ts";
-import { ensureDir } from "https://deno.land/std@0.215.0/fs/ensure_dir.ts";
-import { dirname } from "https://deno.land/std@0.215.0/path/dirname.ts";
-import { join } from "https://deno.land/std@0.215.0/path/join.ts";
-import { ZipReader } from "https://deno.land/x/zipjs@v2.7.29/index.js";
-import ProgressBar from "https://deno.land/x/progress@v1.3.9/mod.ts";
-import { exists, existsSync } from "https://deno.land/std@0.215.0/fs/exists.ts";
-import { retry } from "https://deno.land/std@0.215.0/async/retry.ts";
-import cacheDir from "https://deno.land/x/dir@1.5.2/cache_dir/mod.ts";
+import { ensureDir, ensureDirSync } from "@std/fs/ensure-dir";
+import { exists, existsSync } from "@std/fs/exists";
+import { resolve } from "@std/path/resolve";
+import { dirname } from "@std/path/dirname";
+import { retry } from "@std/async/retry";
+import { join } from "@std/path/join";
+import { ZipReader } from "@zip-js/zip-js";
+import ProgressBar from "@deno-library/progress";
 
 export const SUPPORTED_VERSIONS = {
   chrome: "121.0.6130.0",
@@ -39,6 +37,42 @@ async function knownGoodVersions(): Promise<KnownGoodVersions> {
   return await req.json();
 }
 
+/** Stolen from https://github.com/justjavac/deno_dirs/blob/main/cache_dir/mod.ts
+ *
+ * Returns the path to the user's cache directory.
+ *
+ * The returned value depends on the operating system and is either a string,
+ * containing a value from the following table, or `null`.
+ *
+ * |Platform | Value                               | Example                          |
+ * | ------- | ----------------------------------- | -------------------------------- |
+ * | Linux   | `$XDG_CACHE_HOME` or `$HOME`/.cache | /home/justjavac/.cache           |
+ * | macOS   | `$HOME`/Library/Caches              | /Users/justjavac/Library/Caches  |
+ * | Windows | `$LOCALAPPDATA`                    | C:\Users\justjavac\AppData\Local |
+ */
+function cacheDir(): string | null {
+  switch (Deno.build.os) {
+    case "linux": {
+      const xdg = Deno.env.get("XDG_CACHE_HOME");
+      if (xdg) return xdg;
+
+      const home = Deno.env.get("HOME");
+      if (home) return `${home}/.cache`;
+      break;
+    }
+
+    case "darwin": {
+      const home = Deno.env.get("HOME");
+      if (home) return `${home}/Library/Caches`;
+      break;
+    }
+
+    case "windows":
+      return Deno.env.get("LOCALAPPDATA") ?? null;
+  }
+
+  return null;
+}
 export function getDefaultCachePath(): string {
   const path = cacheDir();
   if (!path) throw new Error("couldn't determine default cache directory");

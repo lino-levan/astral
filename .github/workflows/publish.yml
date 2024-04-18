@@ -18,8 +18,5 @@ jobs:
       - name: Install Deno
         uses: denoland/setup-deno@v1
 
-      - name: Vendor packages
-        run: deno vendor **/*.ts
-
       - name: Publish package
         run: deno publish

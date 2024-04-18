@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.215.0/assert/assert_equals.ts";
+import { assertEquals } from "@std/assert/assert-equals";
 
 import { launch } from "../mod.ts";
 

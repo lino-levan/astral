@@ -1,6 +1,6 @@
 import { launch } from "../mod.ts";
-import { assertThrows } from "https://deno.land/std@0.215.0/assert/assert_throws.ts";
-import { assert } from "https://deno.land/std@0.215.0/assert/assert.ts";
+import { assertThrows } from "@std/assert/assert-throws";
+import { assert } from "@std/assert/assert";
 
 Deno.test("Test existing ws endpoint", async () => {
   // Spawn one browser instance and spawn another one connecting to the first one

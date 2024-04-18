@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
 
-import { assert } from "https://deno.land/std@0.215.0/assert/assert.ts";
+import { assert } from "@std/assert/assert";
 
 import { launch } from "../mod.ts";
 

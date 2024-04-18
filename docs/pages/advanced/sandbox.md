@@ -13,8 +13,8 @@ validate network requests (using `--allow-net` permissions) and file requests
 
 ```ts
 // Import Astral
-import { launch } from "https://deno.land/x/astral/mod.ts";
-import { fromFileUrl } from "https://deno.land/std/path/from_file_url.ts";
+import { launch } from "jsr:@astral/astral";
+import { fromFileUrl } from "@std/path/from-file-url";
 
 // Launch browser
 const browser = await launch();

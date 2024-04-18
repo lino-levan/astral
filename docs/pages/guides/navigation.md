@@ -14,7 +14,7 @@ deno run -A https://deno.land/x/astral/examples/navigation.ts
 
 ```ts
 // Import Astral
-import { launch } from "https://deno.land/x/astral/mod.ts";
+import { launch } from "jsr:@astral/astral";
 
 // Launch browser in headfull mode
 const browser = await launch({ headless: false });

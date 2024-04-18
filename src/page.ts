@@ -1,4 +1,5 @@
-import { deadline } from "https://deno.land/std@0.215.0/async/deadline.ts";
+import { deadline } from "@std/async/deadline";
+import { fromFileUrl } from "@std/path/from-file-url";
 
 import { Celestial } from "../bindings/celestial.ts";
 import type {
@@ -14,7 +15,6 @@ import { Keyboard } from "./keyboard.ts";
 import { Touchscreen } from "./touchscreen.ts";
 import { Dialog } from "./dialog.ts";
 import { FileChooser } from "./file_chooser.ts";
-import { fromFileUrl } from "https://deno.land/std@0.215.0/path/from_file_url.ts";
 
 export type DeleteCookieOptions = Omit<
   Parameters<Celestial["Network"]["deleteCookies"]>[0],

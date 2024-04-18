@@ -1,4 +1,3 @@
-import { ensureDirSync } from "https://deno.land/std@0.215.0/fs/ensure_dir.ts";
 import { launch } from "../../mod.ts";
 import { type PageProps } from "https://deno.land/x/pyro@0.6.1/page.ts";
 import { ensureFileSync } from "https://deno.land/std@0.215.0/fs/ensure_file.ts";

@@ -13,7 +13,7 @@ connect to its endpoint rather than spawning a new process.
 
 ```ts
 // Import Astral
-import { launch } from "https://deno.land/x/astral/mod.ts";
+import { launch } from "jsr:@astral/astral";
 
 // Connect to remote endpoint
 const browser = await launch({

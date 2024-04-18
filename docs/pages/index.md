@@ -28,7 +28,7 @@ Before we go into the depths of the API, let's see a quick demo first:
 
 ```ts
 // Import Astral
-import { launch } from "https://deno.land/x/astral/mod.ts";
+import { launch } from "jsr:@astral/astral";
 
 // Launch the browser
 const browser = await launch();

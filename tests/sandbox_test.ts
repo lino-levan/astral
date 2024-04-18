@@ -1,7 +1,7 @@
 import { getDefaultCachePath, launch } from "../mod.ts";
-import { assertStrictEquals } from "https://deno.land/std@0.215.0/assert/assert_strict_equals.ts";
-import { assert } from "https://deno.land/std@0.215.0/assert/assert.ts";
-import { fromFileUrl } from "https://deno.land/std@0.215.0/path/from_file_url.ts";
+import { assertStrictEquals } from "@std/assert/assert-strict-equals";
+import { fromFileUrl } from "@std/path/from-file-url";
+import { assert } from "@std/assert/assert";
 
 const cache = getDefaultCachePath();
 
