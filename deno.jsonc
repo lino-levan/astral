@@ -27,6 +27,7 @@
     "include": [
       "LICENSE",
       "README.md",
+      "deno.jsonc",
       "mod.ts",
       "src/**/*.ts",
       "bindings/celestial.ts"
