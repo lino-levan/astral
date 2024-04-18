@@ -153,7 +153,7 @@ let eventMapType = "\nexport interface CelestialEventMap {";
 let celestial = `
 export class Celestial extends EventTarget {
   ws: WebSocket;
-  #wsClosed: Promise<void>;
+  #wsClosed: Promise<unknown>;
   #id = 0;
   #handlers: Map<number, (value: unknown) => void> = new Map();
 
@@ -184,21 +184,15 @@ export class Celestial extends EventTarget {
       }
     };
 
-    // TODO: replace with Promise.withResolvers (c.f. https://github.com/tc39/proposal-promise-with-resolvers)
-    let deferred: {
-      resolve: (v: void | PromiseLike<void>) => void;
-      reject: (r?: unknown) => void;
-    };
-    this.#wsClosed = new Promise((resolve, reject) =>
-      deferred = { resolve, reject }
-    );
+    const { promise, resolve } = Promise.withResolvers();
+    this.#wsClosed = promise;
     const closed = () => {
-      if(this.ws.readyState === WebSocket.CLOSED) {
-        deferred.resolve();
+      if (this.ws.readyState === WebSocket.CLOSED) {
+        resolve(true);
         return;
       }
       setTimeout(closed, 100);
-    }
+    };
     this.ws.onclose = closed;
   }
 
