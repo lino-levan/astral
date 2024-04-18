@@ -3,7 +3,7 @@ import { deadline } from "@std/async/deadline";
 
 import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
 import { getBinary } from "./cache.ts";
-import { Page, SandboxOptions, WaitForOptions } from "./page.ts";
+import { Page, type SandboxOptions, type WaitForOptions } from "./page.ts";
 import { WEBSOCKET_ENDPOINT_REGEX, websocketReady } from "./util.ts";
 
 async function runCommand(

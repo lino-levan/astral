@@ -1,8 +1,12 @@
 import { deadline } from "@std/async/deadline";
 
-import { Celestial, type Runtime_CallArgument } from "../bindings/celestial.ts";
-import { KeyboardTypeOptions } from "./keyboard.ts";
-import { Page, ScreenshotOptions, WaitForSelectorOptions } from "./page.ts";
+import type { Celestial, Runtime_CallArgument } from "../bindings/celestial.ts";
+import type { KeyboardTypeOptions } from "./keyboard.ts";
+import type {
+  Page,
+  ScreenshotOptions,
+  WaitForSelectorOptions,
+} from "./page.ts";
 import { retryDeadline } from "./util.ts";
 
 export interface Offset {

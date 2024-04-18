@@ -1,4 +1,4 @@
-import { Celestial, Input_MouseButton } from "../bindings/celestial.ts";
+import type { Celestial, Input_MouseButton } from "../bindings/celestial.ts";
 
 export interface MouseClickOptions {
   count?: number;

@@ -1,4 +1,4 @@
-import { Celestial } from "../bindings/celestial.ts";
+import type { Celestial } from "../bindings/celestial.ts";
 
 // https://pptr.dev/api/puppeteer.keyinput
 export type KeyInput =

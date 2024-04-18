@@ -1,4 +1,4 @@
-import { JSDocable } from "./getProtocol.ts";
+import type { JSDocable } from "./getProtocol.ts";
 
 export function addJSDoc(obj: JSDocable) {
   let result = "";

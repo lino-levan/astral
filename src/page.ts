@@ -7,7 +7,7 @@ import type {
   Network_Cookie,
   Runtime_consoleAPICalled,
 } from "../bindings/celestial.ts";
-import { Browser } from "./browser.ts";
+import type { Browser } from "./browser.ts";
 import { ElementHandle } from "./element_handle.ts";
 import { convertToUint8Array, retryDeadline } from "./util.ts";
 import { Mouse } from "./mouse.ts";

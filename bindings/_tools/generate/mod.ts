@@ -1,5 +1,9 @@
 import { addJSDoc } from "./addJSDoc.ts";
-import { CommandParameter, Domain, getProtocol } from "./getProtocol.ts";
+import {
+  type CommandParameter,
+  type Domain,
+  getProtocol,
+} from "./getProtocol.ts";
 
 // 1. Get current protocol version
 console.log("Getting the protocol spec...");

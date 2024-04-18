@@ -1,4 +1,4 @@
-import { Celestial } from "../bindings/celestial.ts";
+import type { Celestial } from "../bindings/celestial.ts";
 
 /**
  * The Touchscreen class exposes touchscreen events.
