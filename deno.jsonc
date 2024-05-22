@@ -30,6 +30,7 @@
       "deno.jsonc",
       "mod.ts",
       "src/**/*.ts",
+      "docs/static/icon.png",
       "bindings/celestial.ts"
     ]
   }
