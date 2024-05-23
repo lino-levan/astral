@@ -488,11 +488,11 @@ export class Page extends EventTarget {
   async goto(url: string, options?: GoToOptions) {
     options = options ?? {};
     await Promise.all([
+      this.waitForNavigation(options),
       retryDeadline(
         this.#celestial.Page.navigate({ url, ...options }),
         this.timeout,
       ),
-      this.waitForNavigation(options),
     ]);
   }
 
@@ -524,8 +524,8 @@ export class Page extends EventTarget {
    */
   async reload(options?: WaitForOptions) {
     await Promise.all([
-      retryDeadline(this.#celestial.Page.reload({}), this.timeout),
       this.waitForNavigation(options),
+      retryDeadline(this.#celestial.Page.reload({}), this.timeout),
     ]);
   }
 

@@ -36,8 +36,8 @@ await page.waitForNetworkIdle({ idleConnections: 0, idleTime: 1000 });
 // Click the 'pyro' link
 const xLink = await page.$("a.justify-between:nth-child(1)");
 await Promise.all([
-  xLink!.click(),
   page.waitForNavigation(),
+  xLink!.click(),
 ]);
 
 // Click the link to 'pyro.deno.dev'
@@ -45,8 +45,8 @@ const dLink = await page.$(
   ".markdown-body > p:nth-child(8) > a:nth-child(1)",
 );
 await Promise.all([
-  dLink!.click(),
   page.waitForNavigation(),
+  dLink!.click(),
 ]);
 
 // Close browser

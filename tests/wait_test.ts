@@ -8,10 +8,10 @@ Deno.test("Wait for selector", async () => {
   const browser = await launch();
 
   // Open the webpage
-  const page = await browser.newPage("http://deno.land");
+  const page = await browser.newPage("https://example.com");
 
   // Wait for selector
-  const selected = await page.waitForSelector(".font-bold");
+  const selected = await page.waitForSelector("h1");
   console.log(selected);
 
   // Close browser
@@ -23,7 +23,7 @@ Deno.test("Fail wait for selector", async () => {
   const browser = await launch();
 
   // Open the webpage
-  const page = await browser.newPage("http://deno.land");
+  const page = await browser.newPage("https://example.com");
 
   await assertRejects(
     () => {
