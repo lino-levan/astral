@@ -92,6 +92,10 @@ export class Browser {
     this.#options = opts;
   }
 
+  [Symbol.asyncDispose](): Promise<void> {
+    return this.close();
+  }
+
   /** Returns true if browser is connected remotely instead of using a subprocess */
   get isRemoteConnection(): boolean {
     return !this.#process;
