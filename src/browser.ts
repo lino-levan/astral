@@ -5,6 +5,7 @@ import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
 import { getBinary } from "./cache.ts";
 import { Page, type SandboxOptions, type WaitForOptions } from "./page.ts";
 import { WEBSOCKET_ENDPOINT_REGEX, websocketReady } from "./util.ts";
+import { attachWs, DEBUG } from "./debug.ts";
 
 async function runCommand(
   command: Deno.Command,
@@ -224,6 +225,11 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
   if (wsEndpoint) {
     const ws = new WebSocket(wsEndpoint);
     await websocketReady(ws);
+
+    if (DEBUG) {
+      attachWs(ws);
+    }
+
     return new Browser(ws, null, options);
   }
 
@@ -234,22 +240,28 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
   const tempDir = Deno.makeTempDirSync();
 
   // Launch child process
+  const binArgs = [
+    "--remote-debugging-port=0",
+    "--no-first-run",
+    "--password-store=basic",
+    "--use-mock-keychain",
+    `--user-data-dir=${tempDir}`,
+    // "--no-startup-window",
+    ...(headless
+      ? [
+        product === "chrome" ? "--headless=new" : "--headless",
+        "--hide-scrollbars",
+      ]
+      : []),
+    ...args,
+  ];
+
+  if (DEBUG) {
+    console.log(`Launching: ${path} ${binArgs.join(" ")}`);
+  }
+
   const launch = new Deno.Command(path, {
-    args: [
-      "--remote-debugging-port=0",
-      "--no-first-run",
-      "--password-store=basic",
-      "--use-mock-keychain",
-      `--user-data-dir=${tempDir}`,
-      // "--no-startup-window",
-      ...(headless
-        ? [
-          product === "chrome" ? "--headless=new" : "--headless",
-          "--hide-scrollbars",
-        ]
-        : []),
-      ...args,
-    ],
+    args: binArgs,
     stderr: "piped",
   });
   const { process, endpoint } = await runCommand(launch);
@@ -266,6 +278,10 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
 
   // Set up browser websocket
   const ws = new WebSocket(browserRes.webSocketDebuggerUrl);
+
+  if (DEBUG) {
+    attachWs(ws);
+  }
 
   // Make sure that websocket is open before continuing
   await websocketReady(ws);
