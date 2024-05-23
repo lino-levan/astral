@@ -440,7 +440,7 @@ export class Page extends EventTarget {
   async evaluate<T, R extends AnyArray>(
     func: EvaluateFunction<T, R>,
     evaluateOptions?: EvaluateOptions<R>,
-  ): Promise<unknown> {
+  ): Promise<T> {
     if (typeof func === "function") {
       const args = evaluateOptions?.args ?? [];
       func = `(${func.toString()})(${
@@ -461,11 +461,14 @@ export class Page extends EventTarget {
     }
 
     if (result.type === "bigint") {
+      // @ts-ignore Only returns this value if T does
       return BigInt(result.unserializableValue!.slice(0, -1));
     } else if (result.type === "undefined") {
+      // @ts-ignore Only returns this value if T does
       return undefined;
     } else if (result.type === "object") {
       if (result.subtype === "null") {
+        // @ts-ignore Only returns this value if T does
         return null;
       }
     }
