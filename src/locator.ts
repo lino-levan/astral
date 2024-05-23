@@ -3,7 +3,7 @@ import { deadline } from "@std/async/deadline";
 import type { Page } from "./page.ts";
 import type { ElementHandle } from "./element_handle.ts";
 
-export class Locator<T extends Element> {
+export class Locator<T> {
   #page: Page;
   #selector: string;
   #timeout: number;

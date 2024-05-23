@@ -281,7 +281,7 @@ export class Page extends EventTarget {
     return retryDeadline(root.$$(selector), this.timeout);
   }
 
-  locator<T extends Element = HTMLElement>(selector: string): Locator<T> {
+  locator<T>(selector: string): Locator<T> {
     return new Locator(this, selector, this.timeout);
   }
 
