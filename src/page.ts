@@ -476,16 +476,39 @@ export class Page extends EventTarget {
   /**
    * This method navigate to the previous page in history.
    */
-  // async goBack(options?: GoToOptions) {
-  //   await this.waitForNavigation(options)
-  // }
+  async goBack(options?: WaitForOptions) {
+    await this.#go(-1, options);
+  }
 
   /**
    * This method navigate to the next page in history.
    */
-  // async goForward(options?: GoToOptions) {
-  //   await this.waitForNavigation(options)
-  // }
+  async goForward(options?: WaitForOptions) {
+    await this.#go(1, options);
+  }
+
+  async #go(
+    delta: number,
+    options: WaitForOptions | undefined,
+  ): Promise<void> {
+    const history = await retryDeadline(
+      this.#celestial.Page.getNavigationHistory(),
+      this.timeout,
+    );
+    const entry = history.entries[history.currentIndex + delta];
+    if (!entry) {
+      throw new Error(
+        "Tried to navigate to history entry that does not exist.",
+      );
+    }
+    const result = await Promise.all([
+      this.waitForNavigation(options),
+      this.#celestial.Page.navigateToHistoryEntry({
+        entryId: entry.id,
+      }),
+    ]);
+    return result[0];
+  }
 
   /**
    * Navigate to the URL
