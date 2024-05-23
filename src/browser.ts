@@ -5,7 +5,7 @@ import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
 import { getBinary } from "./cache.ts";
 import { Page, type SandboxOptions, type WaitForOptions } from "./page.ts";
 import { WEBSOCKET_ENDPOINT_REGEX, websocketReady } from "./util.ts";
-import { attachWs, DEBUG } from "./debug.ts";
+import { DEBUG } from "./debug.ts";
 
 async function runCommand(
   command: Deno.Command,
@@ -226,10 +226,6 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
     const ws = new WebSocket(wsEndpoint);
     await websocketReady(ws);
 
-    if (DEBUG) {
-      attachWs(ws);
-    }
-
     return new Browser(ws, null, options);
   }
 
@@ -278,10 +274,6 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
 
   // Set up browser websocket
   const ws = new WebSocket(browserRes.webSocketDebuggerUrl);
-
-  if (DEBUG) {
-    attachWs(ws);
-  }
 
   // Make sure that websocket is open before continuing
   await websocketReady(ws);
