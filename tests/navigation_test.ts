@@ -1,5 +1,4 @@
 import { assertRejects } from "@std/assert/assert-rejects";
-import { assertEquals } from "@std/assert/assert-equals";
 import { launch } from "../mod.ts";
 
 Deno.test("Page - back and forth navigation works", async () => {
