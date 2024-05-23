@@ -203,6 +203,10 @@ export class Page extends EventTarget {
     this.touchscreen = new Touchscreen(this.#celestial);
   }
 
+  [Symbol.asyncDispose](): Promise<void> {
+    return this.close();
+  }
+
   //TODO(@lowlighter): change "query" by "request" https://github.com/denoland/deno/issues/14668
   async #validateRequest({ request }: Fetch_requestPausedEvent["detail"]) {
     const { protocol, host, href } = new URL(request.url);
