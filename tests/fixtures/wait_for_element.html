@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wait for Element</title>
+  </head>
+  <body>
+    <div id="target"></div>
+    <script type="module">
+      setTimeout(() => {
+        const el = document.createElement("h1");
+        el.textContent = "inserted";
+        document.querySelector("#target").appendChild(el);
+      }, 500);
+    </script>
+  </body>
+</html>
