@@ -225,7 +225,6 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
   if (wsEndpoint) {
     const ws = new WebSocket(wsEndpoint);
     await websocketReady(ws);
-
     return new Browser(ws, null, options);
   }
 
