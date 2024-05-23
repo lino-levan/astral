@@ -15,6 +15,7 @@ import { Keyboard } from "./keyboard.ts";
 import { Touchscreen } from "./touchscreen.ts";
 import { Dialog } from "./dialog.ts";
 import { FileChooser } from "./file_chooser.ts";
+import { Locator } from "./locator.ts";
 
 export type DeleteCookieOptions = Omit<
   Parameters<Celestial["Network"]["deleteCookies"]>[0],
@@ -274,6 +275,10 @@ export class Page extends EventTarget {
   async $$(selector: string): Promise<ElementHandle[]> {
     const root = await this.#getRoot();
     return retryDeadline(root.$$(selector), this.timeout);
+  }
+
+  locator<T extends Element = HTMLElement>(selector: string): Locator<T> {
+    return new Locator(this, selector, this.timeout);
   }
 
   /**

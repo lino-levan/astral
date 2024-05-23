@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Counter</title>
+  </head>
+  <body>
+    <div class="counter">
+      <output>0</output>
+      <button type="button">increment</button>
+    </div>
+    <script type="module">
+      const btn = document.querySelector("button");
+      const output = document.querySelector("output");
+      btn.addEventListener("click", () => {
+        const num = Number(output.textContent);
+        output.textContent = num + 1;
+      });
+    </script>
+  </body>
+</html>
