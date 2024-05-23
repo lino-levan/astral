@@ -107,7 +107,7 @@ export class Page extends EventTarget {
   #id: string;
   #celestial: Celestial;
   #browser: Browser;
-  #url: string | undefined;
+  #url: string;
 
   readonly timeout = 10000;
   readonly mouse: Mouse;
@@ -124,7 +124,7 @@ export class Page extends EventTarget {
     super();
 
     this.#id = id;
-    this.#url = url;
+    this.#url = url ?? "about:blank";
     this.#celestial = new Celestial(ws);
     this.#browser = browser;
 
@@ -178,7 +178,7 @@ export class Page extends EventTarget {
 
     this.#celestial.addEventListener("Runtime.exceptionThrown", (e) => {
       const { exceptionDetails } = e.detail;
-      // TODO(lino-levan): Do a bettery job at error serialization
+      // TODO(lino-levan): Do a better job at error serialization
       this.dispatchEvent(
         new PageErrorEvent(
           new Error(exceptionDetails.exception?.description ?? "Unknown error"),
@@ -578,7 +578,7 @@ export class Page extends EventTarget {
   /**
    * The current URL of the page
    */
-  get url(): string | undefined {
+  get url(): string {
     return this.#url;
   }
 
