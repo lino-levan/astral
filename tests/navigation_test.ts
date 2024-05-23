@@ -2,7 +2,7 @@ import { assertRejects } from "@std/assert/assert-rejects";
 import { launch } from "../mod.ts";
 
 Deno.test("Page - back and forth navigation works", async () => {
-  const browser = await launch({ headless: false });
+  const browser = await launch();
   const page = await browser.newPage();
   await page.goto("https://example.com");
   await page.locator("a").click();
