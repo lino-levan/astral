@@ -81,7 +81,7 @@ Deno.test("Locator - evaluate()", async () => {
   const page = await browser.newPage(server.address);
   await page.waitForNetworkIdle();
 
-  const text = await page.locator("#target").evaluate((el) => el.textContent);
+  const text = await page.locator<HTMLElement>("#target").evaluate((el) => el.textContent);
   assertEquals(text, "hello");
 
   await page.close();
