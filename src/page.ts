@@ -634,15 +634,15 @@ export class Page extends EventTarget {
       new Promise<void>((resolve) => {
         const timeoutDone = () => {
           this.#celestial.removeEventListener(
-            "Network_requestWillBeSent",
+            "Network.requestWillBeSent",
             requestStarted,
           );
           this.#celestial.removeEventListener(
-            "Network_loadingFailed",
+            "Network.loadingFailed",
             requestFinished,
           );
           this.#celestial.removeEventListener(
-            "Network_loadingFinished",
+            "Network.loadingFinished",
             requestFinished,
           );
           resolve();
