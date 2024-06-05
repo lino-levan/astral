@@ -103,6 +103,13 @@ export class Browser {
   }
 
   /**
+   * Returns raw celestial bindings for the browser. Super unsafe unless you know what you're doing.
+   */
+  unsafelyGetCelestialBindings(): Celestial {
+    return this.#celestial;
+  }
+
+  /**
    * Closes the browser and all of its pages (if any were opened). The Browser object itself is considered to be disposed and cannot be used anymore.
    */
   async close() {
