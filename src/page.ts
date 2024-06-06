@@ -533,7 +533,10 @@ export class Page extends EventTarget {
   async pdf(opts?: PdfOptions): Promise<Uint8Array> {
     opts = opts ?? {};
     const { data } = await retryDeadline(
-      this.#celestial.Page.printToPDF(opts),
+      this.#celestial.Page.printToPDF({
+        ...opts,
+        transferMode: "ReturnAsBase64",
+      }),
       this.timeout,
     );
     return convertToUint8Array(data);
