@@ -16,7 +16,6 @@ Deno.test("Extracting page content", async (t) => {
   await browser.close();
 });
 
-
 Deno.test("Screenshot page content", async () => {
   // Launch browser
   const browser = await launch();
