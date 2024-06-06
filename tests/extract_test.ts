@@ -33,19 +33,22 @@ Deno.test("Screenshot page content", async () => {
 });
 
 // TODO(lino-levan): figure out why this fails on windows
-// , { ignore: Deno.build.os === "windows" }
-Deno.test("Make a PDF of page content", async () => {
-  // Launch browser
-  const browser = await launch();
+Deno.test(
+  "Make a PDF of page content",
+  { ignore: Deno.build.os === "windows" },
+  async () => {
+    // Launch browser
+    const browser = await launch();
 
-  // Open the webpage
-  const page = await browser.newPage("http://example.com");
+    // Open the webpage
+    const page = await browser.newPage("http://example.com");
 
-  // TODO(lino-levan): figure out why pdf is causing issues for snapshots
-  // PDF of page
-  // assertSnapshot(t, await page.pdf())
-  await page.pdf();
+    // TODO(lino-levan): figure out why pdf is causing issues for snapshots
+    // PDF of page
+    // assertSnapshot(t, await page.pdf())
+    await page.pdf();
 
-  // Close browser
-  await browser.close();
-});
+    // Close browser
+    await browser.close();
+  },
+);
