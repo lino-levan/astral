@@ -338,15 +338,9 @@ export class Page extends EventTarget {
    */
   async content(): Promise<string> {
     // https://stackoverflow.com/questions/6088972/get-doctype-of-an-html-as-string-with-javascript
-    const { result } = await retryDeadline(
-      this.#celestial.Runtime.evaluate({
-        expression:
-          `"<!DOCTYPE " + document.doctype.name + (document.doctype.publicId ? ' PUBLIC "' + document.doctype.publicId + '"' : '') + (!document.doctype.publicId && document.doctype.systemId ? ' SYSTEM' : '') + (document.doctype.systemId ? ' "' + document.doctype.systemId + '"' : '') + '>\\n' + document.documentElement.outerHTML`,
-      }),
-      this.timeout,
+    return await this.evaluate(
+      `"<!DOCTYPE " + document.doctype.name + (document.doctype.publicId ? ' PUBLIC "' + document.doctype.publicId + '"' : '') + (!document.doctype.publicId && document.doctype.systemId ? ' SYSTEM' : '') + (document.doctype.systemId ? ' "' + document.doctype.systemId + '"' : '') + '>\\n' + document.documentElement.outerHTML`,
     );
-
-    return result.value;
   }
 
   /**
@@ -539,7 +533,10 @@ export class Page extends EventTarget {
   async pdf(opts?: PdfOptions): Promise<Uint8Array> {
     opts = opts ?? {};
     const { data } = await retryDeadline(
-      this.#celestial.Page.printToPDF(opts),
+      this.#celestial.Page.printToPDF({
+        ...opts,
+        transferMode: "ReturnAsBase64",
+      }),
       this.timeout,
     );
     return convertToUint8Array(data);
