@@ -156,4 +156,24 @@ Technically, only the first flag is necessary, though I've found that these
 flags generally get the best result. Once your browser process is running,
 connecting to it is as simple as
 
-[Example](/examples/byob.ts) included in the `examples` directory.
+```typescript
+// Import Astral
+import { launch } from "jsr:@astral/astral";
+
+// Connect to remote endpoint
+const browser = await launch({
+  wsEndpoint: "<WS-ENDPOINT>",
+  // args: ["--no-sandbox"],
+  // product: "chrome",
+  headless: false,
+});
+
+console.log(browser.wsEndpoint());
+
+// Do stuff
+const page = await browser.newPage("http://example.com");
+console.log(await page.evaluate(() => document.title));
+
+// Close connection
+await browser.close();
+```
