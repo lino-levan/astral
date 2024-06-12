@@ -15,7 +15,6 @@
   },
   "lock": false,
   "imports": {
-    "jsr:@astral/astral": "./mod.ts",
     "@deno-library/progress": "jsr:@deno-library/progress@1.4.9",
     "@std/assert": "jsr:@std/assert@0.223.0",
     "@std/async": "jsr:@std/async@0.223.0",

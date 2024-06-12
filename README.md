@@ -163,8 +163,6 @@ import { launch } from "jsr:@astral/astral";
 // Connect to remote endpoint
 const browser = await launch({
   wsEndpoint: "<WS-ENDPOINT>",
-  // args: ["--no-sandbox"],
-  // product: "chrome",
   headless: false,
 });
 
