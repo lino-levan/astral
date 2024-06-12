@@ -140,11 +140,11 @@ const anotherBrowser = await launch({ wsEndpoint: browser.wsEndpoint() });
 
 ## BYOB - Bring Your Own Browser
 
-
-Essentially the process is as simple as running a chromium-like binary with the following flags:
+Essentially the process is as simple as running a chromium-like binary with the
+following flags:
 
 ```
-chromium --remote-debugging-port=<SOME_PORT> \
+chromium --remote-debugging-port=1337 \
 --headless=new \
 --no-first-run \
 --password-store=basic \
@@ -152,18 +152,8 @@ chromium --remote-debugging-port=<SOME_PORT> \
 --hide-scrollbars
 ```
 
-> Technically, only the first one is necessary, though I've found that these flags generally get the best result. One this is running, it'd be as simple as
+Technically, only the first flag is necessary, though I've found that these
+flags generally get the best result. Once your browser process is running,
+connecting to it is as simple as
 
-```ts
-// Connect to remote endpoint
-const browser = await launch({
-  wsEndpoint: "wss://localhost:<SOME_PORT>",
-});
-
-// Do stuff
-const page = await browser.newPage("http://example.com");
-console.log(await page.evaluate(() => document.title));
-
-// Close connection
-await browser.close();
-```
+[Example](/examples/byob.ts) included in the `examples` directory.
