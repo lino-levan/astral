@@ -8,7 +8,7 @@ import { ZipReader } from "@zip-js/zip-js";
 import ProgressBar from "@deno-library/progress";
 
 export const SUPPORTED_VERSIONS = {
-  chrome: "124.0.6367.207",
+  chrome: "126.0.6478.126",
   firefox: "116.0",
 } as const;
 
@@ -156,7 +156,7 @@ async function decompressArchive(source: string, destination: string) {
   }
   await zip.close();
   if (!quiet) {
-    console.log(`Browser saved to ${destination}`);
+    console.log(`\nBrowser saved to ${destination}`);
   }
 }
 
@@ -230,7 +230,7 @@ export async function getBinary(
           display: ":title :bar :percent",
         });
         let downloaded = 0;
-        do {
+        while (true) {
           const { done, value } = await reader.read();
           if (done) {
             break;
@@ -238,9 +238,9 @@ export async function getBinary(
           await archive.write(value);
           downloaded += value.length;
           bar.render(downloaded);
-        } while (true);
+        }
         archive.close();
-        console.log(`Download complete (${browser} version ${VERSION})`);
+        console.log(`\nDownload complete (${browser} version ${VERSION})`);
       }
       await decompressArchive(
         resolve(cache, `raw_${VERSION}.zip`),
