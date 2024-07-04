@@ -8,7 +8,7 @@ import { ZipReader } from "@zip-js/zip-js";
 import ProgressBar from "@deno-library/progress";
 
 export const SUPPORTED_VERSIONS = {
-  chrome: "122.0.6261.128",
+  chrome: "123.0.6312.122",
   firefox: "116.0",
 } as const;
 
