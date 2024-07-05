@@ -122,6 +122,8 @@ export async function getProtocol(): Promise<Protocol> {
       args: [
         "-remote-debugging-port=9222",
         "--headless=new",
+        "--password-store=basic",
+        "--use-mock-keychain",
       ],
       stderr: "piped",
     });
