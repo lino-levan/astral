@@ -27,6 +27,16 @@ Deno.test("Set content", async () => {
   const nonsense = await page.$(".fake");
   assertExists(!nonsense);
 
+  // Set media queries
+  await page.emulateMediaFeatures([{
+    name: "prefers-reduced-motion",
+    value: "reduce",
+  }]);
+  await page.emulateMediaFeatures([{
+    name: "prefers-color-scheme",
+    value: "dark",
+  }]);
+
   // Close browser
   await browser.close();
 });

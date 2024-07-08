@@ -54,6 +54,11 @@ export type SandboxOptions = {
   sandbox?: boolean;
 };
 
+export type MediaFeature = Exclude<
+  Parameters<Celestial["Emulation"]["setEmulatedMedia"]>[0]["features"],
+  undefined
+>[0];
+
 type AnyArray = readonly unknown[];
 
 export type EvaluateFunction<T, R extends AnyArray> =
@@ -362,6 +367,39 @@ export class Page extends EventTarget {
       },
       { args: [content] },
     );
+  }
+
+  /**
+   * Emulates the given media type or media feature for CSS media queries.
+   * ```ts
+   * // Emulate prefer-reduced-motion media feature
+   * await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);
+   *
+   * // Emulate prefers-color-scheme media feature
+   * await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: "dark" }]);
+   * ```
+   */
+  async emulateMediaFeatures(features: MediaFeature[]) {
+    for (const feature of features) {
+      if (feature.name === "prefers-color-scheme") {
+        if (feature.value !== "dark" && feature.value !== "light") {
+          throw new Error(
+            `Unsupported value "${feature.value}" for media feature "prefers-color-scheme"`,
+          );
+        }
+      } else if (feature.name === "prefers-reduced-motion") {
+        if (feature.value !== "no-preference" && feature.value !== "reduce") {
+          throw new Error(
+            `Unsupported value "${feature.value}" for media feature "prefers-reduced-motion"`,
+          );
+        }
+      } else {
+        throw new Error(`Unsupported media feature "${feature.name}"`);
+      }
+    }
+    await this.#celestial.Emulation.setEmulatedMedia({
+      features: features,
+    });
   }
 
   /**
