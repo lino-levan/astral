@@ -35,6 +35,23 @@ export class Locator<T> {
     await handle.click();
   }
 
+  async fill(text: string) {
+    await retry(async () => {
+      const p = this.#fill(text);
+      await deadline(p, this.#timeout);
+    });
+  }
+
+  async #fill(text: string) {
+    await this.#page.waitForSelector(this.#selector);
+    const handle = await this.#page.$(this.#selector);
+    if (handle === null) {
+      throw new Error(`Selector "${this.#selector}" not found.`);
+    }
+
+    await handle.type(text);
+  }
+
   async wait(): Promise<ElementHandle> {
     return await this.#page.waitForSelector(this.#selector);
   }
