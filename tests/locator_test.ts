@@ -89,3 +89,21 @@ Deno.test("Locator - evaluate()", async () => {
   await page.close();
   await browser.close();
 });
+
+Deno.test("Locator - fill()", async () => {
+  await using server = await serveFixture("fixtures/fill.html");
+
+  const browser = await launch();
+  const page = await browser.newPage(server.address);
+  await page.waitForNetworkIdle();
+
+  await page.locator("#target").fill("hello");
+
+  const text = await page.locator<HTMLInputElement>("#target").evaluate((el) =>
+    el.value
+  );
+  assertEquals(text, "hello");
+
+  await page.close();
+  await browser.close();
+});
