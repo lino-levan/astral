@@ -4,6 +4,7 @@ import type {
   Page_javascriptDialogOpening,
 } from "../bindings/celestial.ts";
 
+/** The type of the dialog. */
 export type DialogType = Page_DialogType;
 
 /**

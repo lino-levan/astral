@@ -1,6 +1,7 @@
 import { deadline } from "@std/async/deadline";
 import { retry } from "@std/async/retry";
 
+/** Regular expression to extract the endpoint from a websocket url */
 export const WEBSOCKET_ENDPOINT_REGEX = /ws:\/\/(.*:.*?)\//;
 
 /**

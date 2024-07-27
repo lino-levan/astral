@@ -9,18 +9,22 @@ import type {
 } from "./page.ts";
 import { retryDeadline } from "./util.ts";
 
+/** The x and y coordinates of a point. */
 export interface Offset {
   x: number;
   y: number;
 }
 
+/** The x and y coordinates of a point. */
 export type Point = Offset;
 
+/** The xywh model of an element. */
 export interface BoundingBox extends Point {
   height: number;
   width: number;
 }
 
+/** The box model of an element. */
 export interface BoxModel {
   border: Point[];
   content: Point[];
@@ -57,12 +61,14 @@ function getTopLeft(points: Point[]) {
 
 type AnyArray = readonly unknown[];
 
+/** The evaluate function for `ElementHandle.evaluate` method. */
 export type ElementEvaluateFunction<
   E extends unknown,
   R extends AnyArray,
   T,
 > = (element: E, ...args: R) => T;
 
+/** The options for `ElementHandle.evaluate` method. */
 export interface ElementEvaluateOptions<T> {
   args: Readonly<T>;
 }

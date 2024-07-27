@@ -7,6 +7,7 @@ import { join } from "@std/path/join";
 import { ZipReader } from "@zip-js/zip-js";
 import ProgressBar from "@deno-library/progress";
 
+/** The automatically downloaded browser versions that are known to work. */
 export const SUPPORTED_VERSIONS = {
   chrome: "125.0.6400.0",
   firefox: "116.0",

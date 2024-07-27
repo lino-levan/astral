@@ -17,43 +17,53 @@ import { Dialog } from "./dialog.ts";
 import { FileChooser } from "./file_chooser.ts";
 import { Locator } from "./locator.ts";
 
+/** The options for deleting a cookie */
 export type DeleteCookieOptions = Omit<
   Parameters<Celestial["Network"]["deleteCookies"]>[0],
   "transferMode"
 >;
 
+/** The options for `goTo` */
 export type GoToOptions = WaitForOptions & {
   referrer?: string;
 };
 
+/** The options for `pdf` */
 export type PdfOptions = Omit<
   Parameters<Celestial["Page"]["printToPDF"]>[0],
   "transferMode"
 >;
 
+/** The options for `screenshot` */
 export type ScreenshotOptions = Parameters<
   Celestial["Page"]["captureScreenshot"]
 >[0];
 
+/** The type definition for a cookie */
 export type Cookie = Network_Cookie;
 
+/** The options for `waitFor` */
 export type WaitForOptions = {
   waitUntil?: "none" | "load" | "networkidle0" | "networkidle2";
 };
 
+/** The options for `waitForSelector` */
 export interface WaitForSelectorOptions {
   timeout?: number;
 }
 
+/** The options for `waitForNetworkIdle` */
 export type WaitForNetworkIdleOptions = {
   idleTime?: number;
   idleConnections?: number;
 };
 
+/** The options for sandboxing */
 export type SandboxOptions = {
   sandbox?: boolean;
 };
 
+/** The options for valid media features */
 export type MediaFeature = Exclude<
   Parameters<Celestial["Emulation"]["setEmulatedMedia"]>[0]["features"],
   undefined
@@ -61,14 +71,17 @@ export type MediaFeature = Exclude<
 
 type AnyArray = readonly unknown[];
 
+/** The type definition for a function that can be evaluated in the page */
 export type EvaluateFunction<T, R extends AnyArray> =
   | string
   | ((...args: R) => T);
 
+/** The options for evaluating a function in the page */
 export interface EvaluateOptions<T> {
   args: Readonly<T>;
 }
 
+/** The events that may be emitted from a page */
 export interface PageEventMap {
   "console": ConsoleEvent;
   "dialog": DialogEvent;
@@ -76,29 +89,34 @@ export interface PageEventMap {
   "pageerror": PageErrorEvent;
 }
 
+/** The details for a console event */
 export interface ConsoleEventDetails {
   type: Runtime_consoleAPICalled["type"];
   text: string;
 }
 
+/** The console event class */
 export class ConsoleEvent extends CustomEvent<ConsoleEventDetails> {
   constructor(detail: ConsoleEventDetails) {
     super("console", { detail });
   }
 }
 
+/** The dialog event class */
 export class DialogEvent extends CustomEvent<Dialog> {
   constructor(detail: Dialog) {
     super("dialog", { detail });
   }
 }
 
+/** The file chooser event class */
 export class FileChooserEvent extends CustomEvent<FileChooser> {
   constructor(detail: FileChooser) {
     super("filechooser", { detail });
   }
 }
 
+/** The page error event class */
 export class PageErrorEvent extends CustomEvent<Error> {
   constructor(detail: Error) {
     super("pageerror", { detail });

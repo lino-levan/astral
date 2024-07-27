@@ -1,10 +1,12 @@
 import type { Celestial, Input_MouseButton } from "../bindings/celestial.ts";
 
+/** Options for mouse clicking. */
 export interface MouseClickOptions {
   count?: number;
   delay?: number;
 }
 
+/** Options for mouse events. */
 export interface MouseOptions {
   button?: Input_MouseButton;
   clickCount?: number;

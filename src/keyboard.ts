@@ -1,6 +1,7 @@
 import type { Celestial } from "../bindings/celestial.ts";
 
 // https://pptr.dev/api/puppeteer.keyinput
+/** Valid keys. */
 export type KeyInput =
   | "0"
   | "1"
@@ -258,6 +259,7 @@ export type KeyInput =
   | "VolumeDown"
   | "VolumeUp";
 
+/** Options for typing on the keyboard */
 export interface KeyboardTypeOptions {
   delay?: number;
 }

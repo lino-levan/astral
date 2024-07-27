@@ -64,6 +64,7 @@ async function runCommand(
   return { process, endpoint };
 }
 
+/** Options for launching a browser */
 export interface BrowserOptions {
   headless: boolean;
   product: "chrome" | "firefox";
