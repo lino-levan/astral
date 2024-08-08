@@ -56,6 +56,12 @@ async function runCommand(
       return runCommand(command, { retries: retries - 1 });
     }
     console.error(stack.join("\n"));
+    // https://github.com/lino-levan/astral/issues/82
+    if (stack.join("").includes("error while loading shared libraries")) {
+      throw new Error(
+        "Your binary refused to boot due to missing system dependencies. This can happen if you are using a minimal Docker image. If you're running in a Debian-based container, the following code could work:\n\nRUN apt-get update && apt-get install -y wget gnupg && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && sh -c 'echo \"deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main\" >> /etc/apt/sources.list.d/google.list' && apt-get update && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 --no-install-recommends && rm -rf /var/lib/apt/lists/*\n\nLook at puppeteer docs for more information: https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md#running-puppeteer-in-docker",
+      );
+    }
     throw new Error("Your binary refused to boot");
   }
 
