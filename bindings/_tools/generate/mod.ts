@@ -180,6 +180,12 @@ export class Celestial extends EventTarget {
         this.#handlers.delete(data.id);
       } else {
         const className = CelestialEvents[data.method as keyof CelestialEventMap];
+        if (className === undefined) {
+          if (DEBUG) {
+            console.error("[CELESTIAL] Unknown event", data);
+          }
+          return;
+        }
         if(data.params) {
           this.dispatchEvent(new className(data.params))
         } else {
