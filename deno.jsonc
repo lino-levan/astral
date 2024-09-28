@@ -1,6 +1,6 @@
 {
   "name": "@astral/astral",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "exports": "./mod.ts",
   "tasks": {
     // The task to automatically generate `./src/celestial.ts`
