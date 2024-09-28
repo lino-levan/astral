@@ -250,15 +250,12 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
     path = await getBinary(product, { cache });
   }
 
-  const tempDir = Deno.makeTempDirSync();
-
   // Launch child process
   const binArgs = [
     "--remote-debugging-port=0",
     "--no-first-run",
     "--password-store=basic",
     "--use-mock-keychain",
-    `--user-data-dir=${tempDir}`,
     // "--no-startup-window",
     ...(headless
       ? [
@@ -268,6 +265,11 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
       : []),
     ...args,
   ];
+
+  if (!args.find((arg) => arg.startsWith("--user-data-dir="))) {
+    const tempDir = Deno.makeTempDirSync();
+    args.push(`--user-data-dir=${tempDir}`);
+  }
 
   if (DEBUG) {
     console.log(`Launching: ${path} ${binArgs.join(" ")}`);
