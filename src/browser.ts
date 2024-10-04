@@ -117,6 +117,13 @@ export class Browser {
   }
 
   /**
+   * Disconnects the browser from the websocket connection. This is useful if you want to keep the browser running but don't want to use it anymore.
+   */
+  async disconnect() {
+    await this.#celestial.close();
+  }
+
+  /**
    * Closes the browser and all of its pages (if any were opened). The Browser object itself is considered to be disposed and cannot be used anymore.
    */
   async close() {
