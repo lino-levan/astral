@@ -231,16 +231,15 @@ export class Page extends EventTarget {
     return this.close();
   }
 
-  //TODO(@lowlighter): change "query" by "request" https://github.com/denoland/deno/issues/14668
   async #validateRequest({ request }: Fetch_requestPausedEvent["detail"]) {
     const { protocol, host, href } = new URL(request.url);
     if (host) {
-      const { state } = await Deno.permissions.query({ name: "net", host });
+      const { state } = await Deno.permissions.request({ name: "net", host });
       return (state === "granted");
     }
     if (protocol === "file:") {
       const path = fromFileUrl(href);
-      const { state } = await Deno.permissions.query({ name: "read", path });
+      const { state } = await Deno.permissions.request({ name: "read", path });
       return (state === "granted");
     }
     return true;

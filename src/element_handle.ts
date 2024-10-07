@@ -345,7 +345,7 @@ export class ElementHandle {
         options?.timeout || this.#page.timeout,
       );
     } catch {
-      throw new Error("Unable to get element from selector");
+      throw new Error(`Unable to get element from selector: ${selector}`);
     }
   }
 
