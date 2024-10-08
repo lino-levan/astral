@@ -102,7 +102,7 @@ export class Browser {
 
   [Symbol.asyncDispose](): Promise<void> {
     if (this.isRemoteConnection) return this.disconnect();
-    
+
     return this.close();
   }
 
