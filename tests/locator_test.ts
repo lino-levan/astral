@@ -15,20 +15,14 @@ async function serveFixture(name: string) {
 
   const html = await Deno.readFile(file);
 
-  let address = "";
-  const server = Deno.serve({
-    port: 0,
-    onListen(addr) {
-      address = `http://${addr.hostname}:${addr.port}`;
-    },
-  }, () => {
+  const server = Deno.serve({ port: 0 }, () => {
     return new Response(html, {
       headers: { "Content-Type": "text/html; charset=utf-8" },
     });
   });
 
   return {
-    address,
+    address: `http://localhost:${server.addr.port}`,
     async [Symbol.asyncDispose]() {
       await server.shutdown();
       await server.finished;
