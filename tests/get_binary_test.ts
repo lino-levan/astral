@@ -1,6 +1,4 @@
-import { assertStringIncludes } from "@std/assert/assert-string-includes";
-import { assertRejects } from "@std/assert/assert-rejects";
-import { assertMatch } from "@std/assert/assert-match";
+import { assertMatch, assertRejects, assertStringIncludes } from "@std/assert";
 import { assert } from "@std/assert/assert";
 import { resolve } from "@std/path/resolve";
 import { cleanCache, getBinary, launch } from "../mod.ts";

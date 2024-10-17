@@ -1,4 +1,4 @@
-import { assertStrictEquals } from "@std/assert/assert-strict-equals";
+import { assertStrictEquals } from "@std/assert";
 import { launch } from "../mod.ts";
 
 Deno.test("Set content", async () => {

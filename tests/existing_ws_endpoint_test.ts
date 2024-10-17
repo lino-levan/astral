@@ -1,5 +1,5 @@
 import { launch } from "../mod.ts";
-import { assertThrows } from "@std/assert/assert-throws";
+import { assertThrows } from "@std/assert";
 import { assert } from "@std/assert/assert";
 
 Deno.test("Test existing ws endpoint", async () => {

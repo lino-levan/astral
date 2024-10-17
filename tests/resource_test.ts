@@ -1,5 +1,5 @@
 import { type Browser, launch, type Page } from "../mod.ts";
-import { assertRejects } from "@std/assert/assert-rejects";
+import { assertRejects } from "@std/assert";
 
 Deno.test("Page - close with 'using' keyword", async () => {
   const browser = await launch();

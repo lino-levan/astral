@@ -1,5 +1,5 @@
 /// <reference lib="dom" />
-import { assertEquals } from "jsr:@std/assert@0.223.0/assert-equals";
+import { assertEquals } from "@std/assert";
 import { launch } from "../mod.ts";
 import * as path from "@std/path";
 

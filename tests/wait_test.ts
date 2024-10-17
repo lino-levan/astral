@@ -1,5 +1,5 @@
 import { assertSnapshot } from "@std/testing/snapshot";
-import { assertRejects } from "@std/assert/assert-rejects";
+import { assertRejects } from "@std/assert";
 
 import { launch } from "../mod.ts";
 

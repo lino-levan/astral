@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
 
-import { assertEquals } from "@std/assert/assert-equals";
+import { assertEquals } from "@std/assert";
 import { assertSnapshot } from "@std/testing/snapshot";
 
 import { launch } from "../mod.ts";
