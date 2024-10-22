@@ -1,5 +1,5 @@
 import { getDefaultCachePath, launch } from "../mod.ts";
-import { assertStrictEquals } from "@std/assert/assert-strict-equals";
+import { assertStrictEquals } from "@std/assert";
 import { fromFileUrl } from "@std/path/from-file-url";
 import { assert } from "@std/assert/assert";
 

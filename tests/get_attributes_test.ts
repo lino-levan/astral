@@ -1,7 +1,6 @@
 /// <reference lib="dom" />
 
-import { assertEquals } from "@std/assert/assert-equals";
-import { assertExists } from "@std/assert/assert-exists";
+import { assertEquals, assertExists } from "@std/assert";
 
 import { launch } from "../mod.ts";
 

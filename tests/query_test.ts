@@ -1,4 +1,4 @@
-import { assertExists } from "@std/assert/assert-exists";
+import { assertExists } from "@std/assert";
 import { launch } from "../mod.ts";
 
 Deno.test("Set content", async () => {
