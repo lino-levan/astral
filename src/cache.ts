@@ -137,6 +137,7 @@ async function decompressArchive(source: string, destination: string) {
       total: entries.length,
       clear: true,
       display: ":title :bar :percent",
+      output: Deno.stderr,
     })
     : null;
   let progress = 0;
@@ -157,7 +158,7 @@ async function decompressArchive(source: string, destination: string) {
   }
   await zip.close();
   if (!quiet) {
-    console.log(`\nBrowser saved to ${destination}`);
+    console.error(`\nBrowser saved to ${destination}`);
   }
 }
 
@@ -229,6 +230,7 @@ export async function getBinary(
           total: Number(req.headers.get("Content-Length") ?? 0),
           clear: true,
           display: ":title :bar :percent",
+          output: Deno.stderr,
         });
         let downloaded = 0;
         while (true) {
@@ -241,7 +243,7 @@ export async function getBinary(
           bar.render(downloaded);
         }
         archive.close();
-        console.log(`\nDownload complete (${browser} version ${VERSION})`);
+        console.error(`\nDownload complete (${browser} version ${VERSION})`);
       }
       await decompressArchive(
         resolve(cache, `raw_${VERSION}.zip`),
