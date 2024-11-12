@@ -58,7 +58,13 @@ console.log(result);
 await browser.close();
 ```
 
+Run basic test scenarios with path and other options.
+
 ```js
+/* basic working example for a UI test with macOS specific path
+ * deno test -A ./page-content-test.js
+ * see also https://docs.deno.com/runtime/fundamentals/testing/
+ * */
 import { launch } from "jsr:@astral/astral";
 import { assert } from "jsr:@std/assert";
 
