@@ -18,8 +18,6 @@ const text = await page.evaluate(() => {
   return document.body.querySelector('main h1')?.textContent ?? '';
 });
 
-Deno.test('test page content', async ()=>{
-  assert(text.includes('JavaScript'), 'has JavaScript');
-});
+assert(text.includes('JavaScript'), 'has JavaScript');
 
 await browser.close();
