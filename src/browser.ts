@@ -264,6 +264,7 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
     "--remote-debugging-port=0",
     "--no-first-run",
     "--password-store=basic",
+    `--user-data-dir=./.astral/browserContext${Date.now()}`,
     "--use-mock-keychain",
     // "--no-startup-window",
     ...(headless
