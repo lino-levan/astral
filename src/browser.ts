@@ -259,6 +259,11 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
     path = await getBinary(product, { cache });
   }
 
+  if (!args.find((arg) => arg.startsWith("--user-data-dir="))) {
+    const tempDir = Deno.makeTempDirSync();
+    args.push(`--user-data-dir=${tempDir}`);
+  }
+
   // Launch child process
   const binArgs = [
     "--remote-debugging-port=0",
@@ -274,11 +279,6 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
       : []),
     ...args,
   ];
-
-  if (!args.find((arg) => arg.startsWith("--user-data-dir="))) {
-    const tempDir = Deno.makeTempDirSync();
-    args.push(`--user-data-dir=${tempDir}`);
-  }
 
   if (DEBUG) {
     console.log(`Launching: ${path} ${binArgs.join(" ")}`);
