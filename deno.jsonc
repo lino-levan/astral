@@ -1,7 +1,10 @@
 {
   "name": "@astral/astral",
   "version": "0.4.8",
-  "exports": "./mod.ts",
+  "exports": {
+    ".": "./mod.ts",
+    "./ext/crawler": "./ext/crawler.ts"
+  },
   "tasks": {
     // The task to automatically generate `./src/celestial.ts`
     "bind": "deno run -A ./bindings/_tools/generate/mod.ts && deno fmt",
