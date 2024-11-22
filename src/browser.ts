@@ -230,11 +230,7 @@ export type LaunchOptions = BrowserOptions & {
 };
 
 export type ConnectOptions = BrowserOptions & {
-  // ASK: I assume path doesn't matter for this, right?
   wsEndpoint: string;
-  // cache?: string; // ASK: is this relevant here?
-  // based on the return that was already there,
-  //  I doubt it
 };
 
 /**
@@ -247,7 +243,6 @@ export async function connect(opts: ConnectOptions): Promise<Browser> {
     product,
   };
 
-  // Connect to endpoint directly if one was specified
   const ws = new WebSocket(wsEndpoint);
   await websocketReady(ws);
   return new Browser(ws, null, options);
