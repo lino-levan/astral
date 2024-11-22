@@ -223,13 +223,36 @@ export class Browser {
   }
 }
 
-export interface LaunchOptions {
-  headless?: boolean;
+export type LaunchOptions = BrowserOptions & {
   path?: string;
-  product?: "chrome" | "firefox";
   args?: string[];
-  wsEndpoint?: string;
   cache?: string;
+}
+
+export type ConnectOptions = BrowserOptions & {
+  // ASK: I assume path doesn't matter for this, right?
+  wsEndpoint: string;
+  // cache?: string; // ASK: is this relevant here?
+  // based on the return, I doubt it
+}
+
+/**
+ * Connects to a given browser over a WebSockets endpoint.
+ */
+export async function connect(opts: ConnectOptions): Promise<Browser> {
+  const headless = opts?.headless ?? true; // ASK: are either of
+  const product = opts?.product ?? "chrome"; // these necessary here?
+  const { wsEndpoint } = opts;
+  
+  const options: BrowserOptions = {
+    headless,
+    product,
+  };
+
+  // Connect to endpoint directly if one was specified
+  const ws = new WebSocket(wsEndpoint);
+  await websocketReady(ws);
+  return new Browser(ws, null, options);
 }
 
 /**
@@ -239,7 +262,6 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
   const headless = opts?.headless ?? true;
   const product = opts?.product ?? "chrome";
   const args = opts?.args ?? [];
-  const wsEndpoint = opts?.wsEndpoint;
   const cache = opts?.cache;
   let path = opts?.path;
 
@@ -248,20 +270,8 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
     product,
   };
 
-  // Connect to endpoint directly if one was specified
-  if (wsEndpoint) {
-    const ws = new WebSocket(wsEndpoint);
-    await websocketReady(ws);
-    return new Browser(ws, null, options);
-  }
-
   if (!path) {
     path = await getBinary(product, { cache });
-  }
-
-  if (!args.find((arg) => arg.startsWith("--user-data-dir="))) {
-    const tempDir = Deno.makeTempDirSync();
-    args.push(`--user-data-dir=${tempDir}`);
   }
 
   // Launch child process
@@ -279,6 +289,11 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
       : []),
     ...args,
   ];
+
+  if (!args.find((arg) => arg.startsWith("--user-data-dir="))) {
+    const tempDir = Deno.makeTempDirSync();
+    args.push(`--user-data-dir=${tempDir}`);
+  }
 
   if (DEBUG) {
     console.log(`Launching: ${path} ${binArgs.join(" ")}`);
