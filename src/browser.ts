@@ -73,7 +73,7 @@ async function runCommand(
 /** Options for launching a browser */
 export interface BrowserOptions {
   headless?: boolean;
-  product: "chrome" | "firefox";
+  product?: "chrome" | "firefox";
 }
 
 /**
