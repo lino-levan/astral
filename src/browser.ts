@@ -176,8 +176,9 @@ export class Browser {
     const { userAgent: defaultUserAgent } = await celestial.Browser.getVersion();
     
     const {
+      // FIX: some type error here I haven't pinned down
       userAgent = defaultUserAgent.replaceAll("Headless", "")
-    } = this.#options
+    } = [ options, this.#options ].find(({ userAgent: ua }) => Boolean(ua))
 
     await Promise.all([
       celestial.Emulation.setUserAgentOverride({ userAgent }),

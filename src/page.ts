@@ -61,6 +61,8 @@ export type WaitForNetworkIdleOptions = {
 /** The options for sandboxing */
 export type SandboxOptions = {
   sandbox?: boolean;
+  // temporary, might not want to keep this here
+  userAgent?: string;
 };
 
 /** The options for valid media features */
