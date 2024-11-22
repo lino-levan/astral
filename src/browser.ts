@@ -72,7 +72,7 @@ async function runCommand(
 
 /** Options for launching a browser */
 export interface BrowserOptions {
-  headless: boolean;
+  headless?: boolean;
   product: "chrome" | "firefox";
 }
 
@@ -227,25 +227,23 @@ export type LaunchOptions = BrowserOptions & {
   path?: string;
   args?: string[];
   cache?: string;
-}
+};
 
 export type ConnectOptions = BrowserOptions & {
   // ASK: I assume path doesn't matter for this, right?
   wsEndpoint: string;
   // cache?: string; // ASK: is this relevant here?
-  // based on the return, I doubt it
-}
+  // based on the return that was already there,
+  //  I doubt it
+};
 
 /**
  * Connects to a given browser over a WebSockets endpoint.
  */
 export async function connect(opts: ConnectOptions): Promise<Browser> {
-  const headless = opts?.headless ?? true; // ASK: are either of
-  const product = opts?.product ?? "chrome"; // these necessary here?
-  const { wsEndpoint } = opts;
-  
+  const { wsEndpoint, product = "chrome" } = opts;
+
   const options: BrowserOptions = {
-    headless,
     product,
   };
 
