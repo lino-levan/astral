@@ -1,4 +1,4 @@
-import { launch, connect } from "../mod.ts";
+import { connect, launch } from "../mod.ts";
 import { assertThrows } from "@std/assert";
 import { assert } from "@std/assert/assert";
 
