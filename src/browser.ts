@@ -72,8 +72,8 @@ async function runCommand(
 
 /** Options for launching a browser */
 export interface BrowserOptions {
-  headless: boolean;
-  product: "chrome" | "firefox";
+  headless?: boolean;
+  product?: "chrome" | "firefox";
 }
 
 /**
@@ -223,13 +223,29 @@ export class Browser {
   }
 }
 
-export interface LaunchOptions {
-  headless?: boolean;
+export type LaunchOptions = BrowserOptions & {
   path?: string;
-  product?: "chrome" | "firefox";
   args?: string[];
-  wsEndpoint?: string;
   cache?: string;
+};
+
+export type ConnectOptions = BrowserOptions & {
+  wsEndpoint: string;
+};
+
+/**
+ * Connects to a given browser over a WebSockets endpoint.
+ */
+export async function connect(opts: ConnectOptions): Promise<Browser> {
+  const { wsEndpoint, product = "chrome" } = opts;
+
+  const options: BrowserOptions = {
+    product,
+  };
+
+  const ws = new WebSocket(wsEndpoint);
+  await websocketReady(ws);
+  return new Browser(ws, null, options);
 }
 
 /**
@@ -239,7 +255,6 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
   const headless = opts?.headless ?? true;
   const product = opts?.product ?? "chrome";
   const args = opts?.args ?? [];
-  const wsEndpoint = opts?.wsEndpoint;
   const cache = opts?.cache;
   let path = opts?.path;
 
@@ -247,13 +262,6 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
     headless,
     product,
   };
-
-  // Connect to endpoint directly if one was specified
-  if (wsEndpoint) {
-    const ws = new WebSocket(wsEndpoint);
-    await websocketReady(ws);
-    return new Browser(ws, null, options);
-  }
 
   if (!path) {
     path = await getBinary(product, { cache });
