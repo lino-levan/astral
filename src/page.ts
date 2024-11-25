@@ -262,6 +262,10 @@ export class Page extends EventTarget {
     return new ElementHandle(doc.root.nodeId, this.#celestial, this);
   }
 
+  async setUserAgent(userAgent: string) {
+    await this.#celestial.Emulation.setUserAgentOverride({ userAgent })
+  }
+
   // @ts-ignore see below
   addEventListener<K extends keyof PageEventMap>(
     type: K,
