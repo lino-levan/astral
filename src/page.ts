@@ -263,7 +263,7 @@ export class Page extends EventTarget {
   }
 
   async setUserAgent(userAgent: string) {
-    await this.#celestial.Emulation.setUserAgentOverride({ userAgent })
+    await this.#celestial.Emulation.setUserAgentOverride({ userAgent });
   }
 
   // @ts-ignore see below
