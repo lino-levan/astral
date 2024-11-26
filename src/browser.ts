@@ -177,9 +177,8 @@ export class Browser {
       .getVersion();
 
     const userAgent = [options, this.#options]
-      .find((e) => e?.userAgent)
-      ?.userAgent
-      || defaultUserAgent.replaceAll("Headless", "");
+      .find((e) => e?.userAgent)?.userAgent ||
+      defaultUserAgent.replaceAll("Headless", "");
 
     await Promise.all([
       celestial.Emulation.setUserAgentOverride({ userAgent }),
