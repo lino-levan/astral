@@ -72,8 +72,8 @@ async function runCommand(
 
 /** Options for launching a browser */
 export interface BrowserOptions {
-  headless: boolean;
-  product: "chrome" | "firefox";
+  headless?: boolean;
+  product?: "chrome" | "firefox";
   userAgent?: string;
 }
 
@@ -176,10 +176,10 @@ export class Browser {
     const { userAgent: defaultUserAgent } = await celestial.Browser
       .getVersion();
 
-    const {
-      // FIX: some type error here I haven't pinned down
-      userAgent = defaultUserAgent.replaceAll("Headless", ""),
-    } = [options, this.#options].find(({ userAgent: ua }) => Boolean(ua));
+    const userAgent = [options, this.#options]
+      .find((e) => e?.userAgent)
+      ?.userAgent
+      || defaultUserAgent.replaceAll("Headless", "");
 
     await Promise.all([
       celestial.Emulation.setUserAgentOverride({ userAgent }),
