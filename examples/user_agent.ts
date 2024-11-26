@@ -14,7 +14,7 @@ const getUserAgent = async () => {
   return ua;
 };
 
-let userAgent = await getUserAgent();
+const userAgent = await getUserAgent();
 
 // get current version of Chrome
 const version = userAgent?.split("Chrome/")?.at(1)?.split(".").at(0) || "";
