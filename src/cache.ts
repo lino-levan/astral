@@ -301,6 +301,30 @@ class Lock {
 
   constructor({ cache = getDefaultCachePath() } = {}) {
     this.path = resolve(cache, ".lock");
+    this.removeExpiredLockPath();
+  }
+
+  /** Clean expired lock path */
+  removeExpiredLockPath() {
+    // if this.path's create time is older than cacheTTL, remove it
+    try {
+      const fileInfo = Deno.statSync(this.path);
+      const lockTTL = 1800 * 1000;
+      if (
+        fileInfo.birthtime &&
+        Date.now() - fileInfo.birthtime.getTime() > lockTTL
+      ) {
+        Deno.removeSync(this.path);
+        console.log(
+          `%c There is an old lock file (${this.path}), this is probably due to a failed download. It has been removed automatically.`,
+          "color: #ff0000",
+        );
+      }
+    } catch (error) {
+      if (!(error instanceof Deno.errors.NotFound)) {
+        throw error;
+      }
+    }
   }
 
   /** Returns true if lock file exists */
