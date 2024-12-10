@@ -74,6 +74,7 @@ async function runCommand(
 export interface BrowserOptions {
   headless?: boolean;
   product?: "chrome" | "firefox";
+  userAgent?: string;
 }
 
 /**
@@ -172,12 +173,15 @@ export class Browser {
     this.pages.push(page);
 
     const celestial = page.unsafelyGetCelestialBindings();
-    const { userAgent } = await celestial.Browser.getVersion();
+    const { userAgent: defaultUserAgent } = await celestial.Browser
+      .getVersion();
+
+    const userAgent = [options, this.#options]
+      .find((e) => e?.userAgent)?.userAgent ||
+      defaultUserAgent.replaceAll("Headless", "");
 
     await Promise.all([
-      celestial.Emulation.setUserAgentOverride({
-        userAgent: userAgent.replaceAll("Headless", ""),
-      }),
+      celestial.Emulation.setUserAgentOverride({ userAgent }),
       celestial.Page.enable(),
       celestial.Runtime.enable(),
       celestial.Network.enable({}),

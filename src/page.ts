@@ -61,6 +61,8 @@ export type WaitForNetworkIdleOptions = {
 /** The options for sandboxing */
 export type SandboxOptions = {
   sandbox?: boolean;
+  // temporary, might not want to keep this here
+  userAgent?: string;
 };
 
 /** The options for valid media features */
@@ -258,6 +260,10 @@ export class Page extends EventTarget {
       this.timeout,
     );
     return new ElementHandle(doc.root.nodeId, this.#celestial, this);
+  }
+
+  async setUserAgent(userAgent: string) {
+    await this.#celestial.Emulation.setUserAgentOverride({ userAgent });
   }
 
   // @ts-ignore see below
