@@ -3,7 +3,12 @@ import { deadline } from "@std/async/deadline";
 
 import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
 import { getBinary } from "./cache.ts";
-import { Page, type SandboxOptions, type WaitForOptions } from "./page.ts";
+import {
+  Page,
+  type SandboxOptions,
+  type UserAgentOptions,
+  type WaitForOptions,
+} from "./page.ts";
 import { WEBSOCKET_ENDPOINT_REGEX, websocketReady } from "./util.ts";
 import { DEBUG } from "./debug.ts";
 
@@ -157,7 +162,7 @@ export class Browser {
    */
   async newPage(
     url?: string,
-    options?: WaitForOptions & SandboxOptions,
+    options?: WaitForOptions & SandboxOptions & UserAgentOptions,
   ): Promise<Page> {
     const { targetId } = await this.#celestial.Target.createTarget({
       url: "",
@@ -176,8 +181,8 @@ export class Browser {
     const { userAgent: defaultUserAgent } = await celestial.Browser
       .getVersion();
 
-    const userAgent = [options, this.#options]
-      .find((e) => e?.userAgent)?.userAgent ||
+    const userAgent = options?.userAgent ||
+      this.#options.userAgent ||
       defaultUserAgent.replaceAll("Headless", "");
 
     await Promise.all([

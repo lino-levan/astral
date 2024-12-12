@@ -61,7 +61,10 @@ export type WaitForNetworkIdleOptions = {
 /** The options for sandboxing */
 export type SandboxOptions = {
   sandbox?: boolean;
-  // temporary, might not want to keep this here
+};
+
+/** The options for user agents */
+export type UserAgentOptions = {
   userAgent?: string;
 };
 
