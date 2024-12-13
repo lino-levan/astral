@@ -63,6 +63,11 @@ export type SandboxOptions = {
   sandbox?: boolean;
 };
 
+/** The options for user agents */
+export type UserAgentOptions = {
+  userAgent?: string;
+};
+
 /** The options for valid media features */
 export type MediaFeature = Exclude<
   Parameters<Celestial["Emulation"]["setEmulatedMedia"]>[0]["features"],
@@ -258,6 +263,10 @@ export class Page extends EventTarget {
       this.timeout,
     );
     return new ElementHandle(doc.root.nodeId, this.#celestial, this);
+  }
+
+  async setUserAgent(userAgent: string) {
+    await this.#celestial.Emulation.setUserAgentOverride({ userAgent });
   }
 
   // @ts-ignore see below
