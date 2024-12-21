@@ -225,7 +225,7 @@ export class Browser {
   }
 
   /**
-   * Returns true if the browser and its websocket have benn closed
+   * Returns true if the browser and its websocket have been closed
    */
   get closed(): boolean {
     return this.#celestial.ws.readyState === WebSocket.CLOSED;
