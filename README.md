@@ -136,6 +136,9 @@ const browser = await launch();
 
 // Connect to first browser instead
 const anotherBrowser = await launch({ wsEndpoint: browser.wsEndpoint() });
+// or simply...
+const anotherBrowser2 = await launch(browser.wsEndpoint());
+
 ```
 
 ## BYOB - Bring Your Own Browser
@@ -161,10 +164,7 @@ connecting to it is as simple as
 import { launch } from "jsr:@astral/astral";
 
 // Connect to remote endpoint
-const browser = await launch({
-  wsEndpoint: "<WS-ENDPOINT>",
-  headless: false,
-});
+const browser = await launch("localhost:1337");
 
 console.log(browser.wsEndpoint());
 

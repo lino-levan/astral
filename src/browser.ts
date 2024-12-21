@@ -17,7 +17,7 @@ async function runCommand(
   { retries = 60 } = {},
 ): Promise<{ process: Deno.ChildProcess; endpoint: string }> {
   const process = command.spawn();
-  let endpoint = null;
+  let endpoint = undefined as string | undefined;
 
   // Wait until write to stdout containing the localhost address
   // This probably means that the process is read to accept communication
@@ -232,35 +232,80 @@ export class Browser {
   }
 }
 
+export type ConnectOptions =  string | (
+  {product?: "chrome" | "firefox"} & ({
+    wsEndpoint: string; // example: ws://localhost:9222/devtools/browser/<id>
+  } | {
+    endpoint: string;   // example: http://localhost:9222
+  })
+);
+
+
+/**
+ * Get the websocket endpoint for the browser.
+ * You can pass either a URL or an object with the `endpoint` or `wsEndpoint` property.
+ */
+async function getWebsocketEndpoint (opts: ConnectOptions) : Promise<string> {
+
+  if(typeof opts === "string"){
+    if(opts.startsWith("ws://") || opts.startsWith("wss://")) return opts;
+    opts = { endpoint: opts }
+  } 
+
+  if("wsEndpoint" in opts) return opts.wsEndpoint
+  if(!("endpoint" in opts)) throw new Error("Either wsEndpoint or endpoint must be provided");
+
+  const endpoint = opts.endpoint.startsWith("http") ?  opts.endpoint : `http://${opts.endpoint}` ;
+
+  const browserRes = await retry(async () => {
+    const browserReq = await fetch(`${endpoint}/json/version`);
+    return await browserReq.json();
+  })
+  
+  if (browserRes["Protocol-Version"] !== PROTOCOL_VERSION) {
+    throw new Error("Differing protocol versions between binary and bindings.");
+  }
+
+  return browserRes.webSocketDebuggerUrl
+}
+
+
+
+
+/**
+ * Connects to a given browser over a Http/WebSocket endpoint.
+ */
+export async function connect(opts: ConnectOptions): Promise<Browser> {
+  const product = typeof opts == "string" ? "chrome" : (opts.product ?? "chrome");
+  const options: BrowserOptions = {
+    product,
+  };
+
+  const ws = new WebSocket(await getWebsocketEndpoint(opts));
+  await websocketReady(ws);
+  return new Browser(ws, null, options);
+}
+
+
+
+/**
+ * Options for launching a browser instance.
+ */
 export type LaunchOptions = BrowserOptions & {
   path?: string;
   args?: string[];
   cache?: string;
 };
 
-export type ConnectOptions = BrowserOptions & {
-  wsEndpoint: string;
-};
-
-/**
- * Connects to a given browser over a WebSockets endpoint.
- */
-export async function connect(opts: ConnectOptions): Promise<Browser> {
-  const { wsEndpoint, product = "chrome" } = opts;
-
-  const options: BrowserOptions = {
-    product,
-  };
-
-  const ws = new WebSocket(wsEndpoint);
-  await websocketReady(ws);
-  return new Browser(ws, null, options);
-}
 
 /**
  * Launches a browser instance with given arguments and options when specified.
+ * Connects to an existing browser if an URL is passed instead.
  */
-export async function launch(opts?: LaunchOptions): Promise<Browser> {
+export async function launch(opts?: string | LaunchOptions): Promise<Browser> {
+  if(typeof opts === "string") return connect(opts);
+  if(opts && ("endpoint" in opts || "wsEndpoint" in opts)) return connect(opts as ConnectOptions);
+
   const headless = opts?.headless ?? true;
   const product = opts?.product ?? "chrome";
   const args = opts?.args ?? [];
@@ -307,20 +352,8 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
   });
   const { process, endpoint } = await runCommand(launch);
 
-  // Fetch browser websocket
-  const browserRes = await retry(async () => {
-    const browserReq = await fetch(`http://${endpoint}/json/version`);
-    return await browserReq.json();
-  });
 
-  if (browserRes["Protocol-Version"] !== PROTOCOL_VERSION) {
-    throw new Error("Differing protocol versions between binary and bindings.");
-  }
-
-  // Set up browser websocket
-  const ws = new WebSocket(browserRes.webSocketDebuggerUrl);
-
-  // Make sure that websocket is open before continuing
+  const ws = new WebSocket(await getWebsocketEndpoint(endpoint));
   await websocketReady(ws);
 
   // Construct browser and return
