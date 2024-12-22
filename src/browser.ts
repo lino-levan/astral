@@ -232,51 +232,55 @@ export class Browser {
   }
 }
 
-export type ConnectOptions =  string | (
-  {product?: "chrome" | "firefox"} & ({
-    wsEndpoint: string; // example: ws://localhost:9222/devtools/browser/<id>
-  } | {
-    endpoint: string;   // example: http://localhost:9222
-  })
-);
-
+export type ConnectOptions =
+  | string
+  | (
+    & { product?: "chrome" | "firefox" }
+    & ({
+      wsEndpoint: string; // example: ws://localhost:9222/devtools/browser/<id>
+    } | {
+      endpoint: string; // example: http://localhost:9222
+    })
+  );
 
 /**
  * Get the websocket endpoint for the browser.
  * You can pass either a URL or an object with the `endpoint` or `wsEndpoint` property.
  */
-async function getWebsocketEndpoint (opts: ConnectOptions) : Promise<string> {
+async function getWebsocketEndpoint(opts: ConnectOptions): Promise<string> {
+  if (typeof opts === "string") {
+    if (opts.startsWith("ws://") || opts.startsWith("wss://")) return opts;
+    opts = { endpoint: opts };
+  }
 
-  if(typeof opts === "string"){
-    if(opts.startsWith("ws://") || opts.startsWith("wss://")) return opts;
-    opts = { endpoint: opts }
-  } 
+  if ("wsEndpoint" in opts) return opts.wsEndpoint;
+  if (!("endpoint" in opts)) {
+    throw new Error("Either wsEndpoint or endpoint must be provided");
+  }
 
-  if("wsEndpoint" in opts) return opts.wsEndpoint
-  if(!("endpoint" in opts)) throw new Error("Either wsEndpoint or endpoint must be provided");
-
-  const endpoint = opts.endpoint.startsWith("http") ?  opts.endpoint : `http://${opts.endpoint}` ;
+  const endpoint = opts.endpoint.startsWith("http")
+    ? opts.endpoint
+    : `http://${opts.endpoint}`;
 
   const browserRes = await retry(async () => {
     const browserReq = await fetch(`${endpoint}/json/version`);
     return await browserReq.json();
-  })
-  
+  });
+
   if (browserRes["Protocol-Version"] !== PROTOCOL_VERSION) {
     throw new Error("Differing protocol versions between binary and bindings.");
   }
 
-  return browserRes.webSocketDebuggerUrl
+  return browserRes.webSocketDebuggerUrl;
 }
-
-
-
 
 /**
  * Connects to a given browser over a Http/WebSocket endpoint.
  */
 export async function connect(opts: ConnectOptions): Promise<Browser> {
-  const product = typeof opts == "string" ? "chrome" : (opts.product ?? "chrome");
+  const product = typeof opts == "string"
+    ? "chrome"
+    : (opts.product ?? "chrome");
   const options: BrowserOptions = {
     product,
   };
@@ -285,8 +289,6 @@ export async function connect(opts: ConnectOptions): Promise<Browser> {
   await websocketReady(ws);
   return new Browser(ws, null, options);
 }
-
-
 
 /**
  * Options for launching a browser instance.
@@ -297,14 +299,15 @@ export type LaunchOptions = BrowserOptions & {
   cache?: string;
 };
 
-
 /**
  * Launches a browser instance with given arguments and options when specified.
  * Connects to an existing browser if an URL is passed instead.
  */
 export async function launch(opts?: string | LaunchOptions): Promise<Browser> {
-  if(typeof opts === "string") return connect(opts);
-  if(opts && ("endpoint" in opts || "wsEndpoint" in opts)) return connect(opts as ConnectOptions);
+  if (typeof opts === "string") return connect(opts);
+  if (opts && ("endpoint" in opts || "wsEndpoint" in opts)) {
+    return connect(opts as ConnectOptions);
+  }
 
   const headless = opts?.headless ?? true;
   const product = opts?.product ?? "chrome";
@@ -351,7 +354,6 @@ export async function launch(opts?: string | LaunchOptions): Promise<Browser> {
     stderr: "piped",
   });
   const { process, endpoint } = await runCommand(launch);
-
 
   const ws = new WebSocket(await getWebsocketEndpoint(endpoint));
   await websocketReady(ws);

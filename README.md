@@ -138,7 +138,6 @@ const browser = await launch();
 const anotherBrowser = await launch({ wsEndpoint: browser.wsEndpoint() });
 // or simply...
 const anotherBrowser2 = await launch(browser.wsEndpoint());
-
 ```
 
 ## BYOB - Bring Your Own Browser
