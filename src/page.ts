@@ -287,31 +287,6 @@ export class Page extends EventTarget {
   }
 
   /**
-   * Provide credentials for HTTP authentication.
-   *
-   * @example
-   * ```ts
-   * await page.authenticate({ 'username': username, 'password': password });
-   * ```
-   */
-  authenticate(
-    { username, password }: { username: string; password: string },
-  ): Promise<void> {
-    function base64encoded(s: string) {
-      const codeUnits = new Uint16Array(s.length);
-      for (let i = 0; i < codeUnits.length; i++) {
-        codeUnits[i] = s.charCodeAt(i);
-      }
-      return btoa(String.fromCharCode(...new Uint8Array(codeUnits.buffer)));
-    }
-
-    const auth = base64encoded(`${username}:${password}`);
-    return this.#celestial.Network.setExtraHTTPHeaders({
-      headers: { "Authorization": `Basic ${auth}` },
-    });
-  }
-
-  /**
    * Runs `document.querySelector` within the page. If no element matches the selector, the return value resolves to `null`.
    *
    * @example
