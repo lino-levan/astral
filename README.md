@@ -138,6 +138,16 @@ const browser = await launch();
 const anotherBrowser = await launch({ wsEndpoint: browser.wsEndpoint() });
 ```
 
+### Page authenticate
+
+[authenticate example code](https://github.com/lino-levan/astral/blob/main/examples/authenticate.ts):
+
+    // Open a new page
+    const page = await browser.newPage("https://httpbin.org/basic-auth/user/passwd");
+
+    // Provide credentials for HTTP authentication.
+    await page.authenticate({ username: "user", password: "passwd" });
+
 ## BYOB - Bring Your Own Browser
 
 Essentially the process is as simple as running a chromium-like binary with the
@@ -175,3 +185,24 @@ console.log(await page.evaluate(() => document.title));
 // Close connection
 await browser.close();
 ```
+
+## FAQ
+
+### Launch FAQ
+
+#### "No usable sandbox!" with user namespace cloning enabled
+
+> Ubuntu 23.10+ (or possibly other Linux distros in the future) ship an AppArmor
+> profile that applies to Chrome stable binaries installed at
+> /opt/google/chrome/chrome (the default installation path). This policy is
+> stored at /etc/apparmor.d/chrome. This AppArmor policy prevents Chrome for
+> Testing binaries downloaded by Puppeteer from using user namespaces resulting
+> in the No usable sandbox! error when trying to launch the browser. For
+> workarounds, see
+> https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md
+
+The following shell can remove AppArmor restrictions on user namespaces so that
+Puppeteer can launch Chrome without the "No usable sandbox!" error (Refer
+[puppeteer#13196](https://github.com/puppeteer/puppeteer/pull/13196)):
+
+    echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
