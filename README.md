@@ -144,7 +144,9 @@ const anotherBrowser = await launch({ wsEndpoint: browser.wsEndpoint() });
 
 ```ts
 // Open a new page
-const page = await browser.newPage("https://httpbin.org/basic-auth/user/passwd");
+const page = await browser.newPage(
+  "https://httpbin.org/basic-auth/user/passwd",
+);
 
 // Provide credentials for HTTP authentication.
 await page.authenticate({ username: "user", password: "passwd" });
