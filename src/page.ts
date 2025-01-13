@@ -1,21 +1,21 @@
 import { deadline } from "@std/async/deadline";
 import { fromFileUrl } from "@std/path/from-file-url";
 
-import { Celestial } from "../bindings/celestial.ts";
 import type {
   Fetch_requestPausedEvent,
   Network_Cookie,
   Runtime_consoleAPICalled,
 } from "../bindings/celestial.ts";
+import { Celestial } from "../bindings/celestial.ts";
 import type { Browser } from "./browser.ts";
-import { ElementHandle } from "./element_handle.ts";
-import { convertToUint8Array, retryDeadline } from "./util.ts";
-import { Mouse } from "./mouse.ts";
-import { Keyboard } from "./keyboard.ts";
-import { Touchscreen } from "./touchscreen.ts";
 import { Dialog } from "./dialog.ts";
+import { ElementHandle } from "./element_handle.ts";
 import { FileChooser } from "./file_chooser.ts";
+import { Keyboard } from "./keyboard.ts";
 import { Locator } from "./locator.ts";
+import { Mouse } from "./mouse.ts";
+import { Touchscreen } from "./touchscreen.ts";
+import { convertToUint8Array, retryDeadline } from "./util.ts";
 
 /** The options for deleting a cookie */
 export type DeleteCookieOptions = Omit<
@@ -284,6 +284,28 @@ export class Page extends EventTarget {
    */
   unsafelyGetCelestialBindings(): Celestial {
     return this.#celestial;
+  }
+
+  /**
+   * Provide credentials for HTTP authentication.
+   *
+   * @example
+   * ```ts
+   * await page.authenticate({ 'username': username, 'password': password });
+   * ```
+   */
+  authenticate(
+    { username, password }: { username: string; password: string },
+  ): Promise<void> {
+    function base64encoded(s: string) {
+      const bytes = new TextEncoder().encode(s);
+      return btoa(String.fromCharCode(...bytes));
+    }
+
+    const auth = base64encoded(`${username}:${password}`);
+    return this.#celestial.Network.setExtraHTTPHeaders({
+      headers: { "Authorization": `Basic ${auth}` },
+    });
   }
 
   /**
