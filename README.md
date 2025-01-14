@@ -144,12 +144,12 @@ const anotherBrowser = await launch({ wsEndpoint: browser.wsEndpoint() });
 
 ```ts
 // Open a new page
-const page = await browser.newPage(
-  "https://httpbin.org/basic-auth/user/passwd",
-);
+const page = await browser.newPage();
 
 // Provide credentials for HTTP authentication.
-await page.authenticate({ username: "user", password: "passwd" });
+const url = "https://postman-echo.com/basic-auth";
+await page.authenticate({ username: "postman", password: "password" });
+await page.goto(url, { waitUntil: "networkidle2" });
 ```
 
 ## BYOB - Bring Your Own Browser
@@ -205,8 +205,8 @@ await browser.close();
 > workarounds, see
 > https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md
 
-The following shell can remove AppArmor restrictions on user namespaces so that
-Puppeteer can launch Chrome without the "No usable sandbox!" error (Refer
+The following command removes AppArmor restrictions on user namespaces, allowing
+Puppeteer to launch Chrome without the "No usable sandbox!" error (see
 [puppeteer#13196](https://github.com/puppeteer/puppeteer/pull/13196)):
 
     echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
