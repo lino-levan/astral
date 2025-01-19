@@ -1,5 +1,30 @@
 import type { Celestial } from "../bindings/celestial.ts";
 
+// Modifier bit flags
+const enum Modifiers {
+  None = 0,
+  Alt = 1,
+  Control = 2,
+  Meta = 4,
+  Shift = 8,
+}
+
+// Map of modifier keys to their corresponding bit flags
+const MODIFIER_MAP = new Map<KeyInput, Modifiers>([
+  ["Alt", Modifiers.Alt],
+  ["AltLeft", Modifiers.Alt],
+  ["AltRight", Modifiers.Alt],
+  ["Control", Modifiers.Control],
+  ["ControlLeft", Modifiers.Control],
+  ["ControlRight", Modifiers.Control],
+  ["Meta", Modifiers.Meta],
+  ["MetaLeft", Modifiers.Meta],
+  ["MetaRight", Modifiers.Meta],
+  ["Shift", Modifiers.Shift],
+  ["ShiftLeft", Modifiers.Shift],
+  ["ShiftRight", Modifiers.Shift],
+]);
+
 // https://pptr.dev/api/puppeteer.keyinput
 /** Valid keys. */
 export type KeyInput =
@@ -269,16 +294,31 @@ export interface KeyboardTypeOptions {
  */
 export class Keyboard {
   #celestial: Celestial;
-  #modifiers = 0;
+  #modifiers = Modifiers.None;
 
   constructor(celestial: Celestial) {
     this.#celestial = celestial;
   }
 
   /**
-   * Dispatches a `keydown` event.
+   * Updates the modifier state based on the key and whether it's being pressed or released
+   */
+  #updateModifierState(key: KeyInput, pressed: boolean) {
+    const modifier = MODIFIER_MAP.get(key);
+    if (modifier !== undefined) {
+      if (pressed) {
+        this.#modifiers |= modifier;
+      } else {
+        this.#modifiers &= ~modifier;
+      }
+    }
+  }
+
+  /**
+   * Dispatches a `keydown` event and updates modifier state.
    */
   async down(key: KeyInput) {
+    this.#updateModifierState(key, true);
     await this.#celestial.Input.dispatchKeyEvent({
       type: "keyDown",
       modifiers: this.#modifiers,
@@ -312,9 +352,10 @@ export class Keyboard {
   }
 
   /**
-   * Dispatches a `keyup` event.
+   * Dispatches a `keyup` event and updates modifier state.
    */
   async up(key: KeyInput) {
+    this.#updateModifierState(key, false);
     await this.#celestial.Input.dispatchKeyEvent({
       type: "keyUp",
       modifiers: this.#modifiers,
