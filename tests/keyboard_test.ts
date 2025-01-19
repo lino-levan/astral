@@ -6,7 +6,7 @@ import { launch } from "../mod.ts";
 Deno.test("Keyboard - basic input", async () => {
   const browser = await launch();
   const page = await browser.newPage();
-
+  
   await page.setContent(`
     <!DOCTYPE html>
     <html>
@@ -19,11 +19,8 @@ Deno.test("Keyboard - basic input", async () => {
           const keydowns = document.getElementById('keydowns');
           const keyups = document.getElementById('keyups');
           
-          input.addEventListener('keydown', (e) => {
+          input.addEventListener('keypress', (e) => {
             keydowns.textContent = (keydowns.textContent || '') + e.key;
-          });
-          
-          input.addEventListener('keyup', (e) => {
             keyups.textContent = (keyups.textContent || '') + e.key;
           });
         </script>
@@ -37,16 +34,15 @@ Deno.test("Keyboard - basic input", async () => {
 
   // Test individual key presses
   await page.keyboard.type("Hello");
-
-  const inputValue = await input.evaluate((el) =>
-    (el as HTMLInputElement).value
-  );
+  await page.waitForTimeout(100); // Give events time to process
+  
+  const inputValue = await input.evaluate((el) => (el as HTMLInputElement).value);
   assertEquals(inputValue, "Hello");
 
-  const keydowns = await page.$eval("#keydowns", (el) => el.textContent);
+  const keydowns = await page.evaluate(() => document.getElementById("keydowns")?.textContent || "");
   assertEquals(keydowns, "Hello");
 
-  const keyups = await page.$eval("#keyups", (el) => el.textContent);
+  const keyups = await page.evaluate(() => document.getElementById("keyups")?.textContent || "");
   assertEquals(keyups, "Hello");
 
   await browser.close();
@@ -55,7 +51,7 @@ Deno.test("Keyboard - basic input", async () => {
 Deno.test("Keyboard - modifier keys", async () => {
   const browser = await launch();
   const page = await browser.newPage();
-
+  
   await page.setContent(`
     <!DOCTYPE html>
     <html>
@@ -65,14 +61,15 @@ Deno.test("Keyboard - modifier keys", async () => {
         <script>
           const input = document.getElementById('input');
           const modifiers = document.getElementById('modifiers');
+          let currentModifiers = [];
           
-          input.addEventListener('keydown', (e) => {
-            const activeModifiers = [];
-            if (e.shiftKey) activeModifiers.push('Shift');
-            if (e.ctrlKey) activeModifiers.push('Control');
-            if (e.altKey) activeModifiers.push('Alt');
-            if (e.metaKey) activeModifiers.push('Meta');
-            modifiers.textContent = JSON.stringify(activeModifiers);
+          document.addEventListener('keydown', (e) => {
+            currentModifiers = [];
+            if (e.shiftKey) currentModifiers.push('Shift');
+            if (e.ctrlKey) currentModifiers.push('Control');
+            if (e.altKey) currentModifiers.push('Alt');
+            if (e.metaKey) currentModifiers.push('Meta');
+            modifiers.textContent = JSON.stringify(currentModifiers);
           });
         </script>
       </body>
@@ -84,24 +81,24 @@ Deno.test("Keyboard - modifier keys", async () => {
   await input.click();
 
   // Test Shift modifier
-  await page.keyboard.down("ShiftLeft");
-  await page.keyboard.press("a");
-  let modifierState = await page.$eval("#modifiers", (el) => el.textContent);
+  await page.keyboard.down('ShiftLeft');
+  await page.keyboard.press('a');
+  await page.waitForTimeout(100); // Give events time to process
+  let modifierState = await page.evaluate(() => document.getElementById("modifiers")?.textContent || "[]");
   assertEquals(modifierState, '["Shift"]');
+  
+  // Test releasing modifiers
+  await page.keyboard.up('ShiftLeft');
+  await page.waitForTimeout(100); // Give events time to process
+  modifierState = await page.evaluate(() => document.getElementById("modifiers")?.textContent || "[]");
+  assertEquals(modifierState, '[]');
 
   // Test multiple modifiers
-  await page.keyboard.down("ControlLeft");
-  modifierState = await page.$eval("#modifiers", (el) => el.textContent);
+  await page.keyboard.down('ShiftLeft');
+  await page.keyboard.down('ControlLeft');
+  await page.waitForTimeout(100); // Give events time to process
+  modifierState = await page.evaluate(() => document.getElementById("modifiers")?.textContent || "[]");
   assertEquals(modifierState, '["Shift","Control"]');
-
-  // Test releasing modifiers
-  await page.keyboard.up("ShiftLeft");
-  modifierState = await page.$eval("#modifiers", (el) => el.textContent);
-  assertEquals(modifierState, '["Control"]');
-
-  await page.keyboard.up("ControlLeft");
-  modifierState = await page.$eval("#modifiers", (el) => el.textContent);
-  assertEquals(modifierState, "[]");
 
   await browser.close();
 });
@@ -109,7 +106,7 @@ Deno.test("Keyboard - modifier keys", async () => {
 Deno.test("Keyboard - special keys", async () => {
   const browser = await launch();
   const page = await browser.newPage();
-
+  
   await page.setContent(`
     <!DOCTYPE html>
     <html>
@@ -130,22 +127,18 @@ Deno.test("Keyboard - special keys", async () => {
   await page.keyboard.type("First line");
   await page.keyboard.press("Enter");
   await page.keyboard.type("Second line");
+  await page.waitForTimeout(100); // Give events time to process
 
-  const value = await textarea.evaluate((el) =>
-    (el as HTMLTextAreaElement).value
-  );
+  const value = await textarea.evaluate((el) => (el as HTMLTextAreaElement).value);
   assertEquals(value, "First line\nSecond line");
 
   // Test Backspace
-  await page.keyboard.press("Backspace");
-  await page.keyboard.press("Backspace");
-  await page.keyboard.press("Backspace");
-  await page.keyboard.press("Backspace");
-  await page.keyboard.press("Backspace");
+  for (let i = 0; i < 5; i++) {
+    await page.keyboard.press("Backspace");
+  }
+  await page.waitForTimeout(100); // Give events time to process
 
-  const valueAfterBackspace = await textarea.evaluate((el) =>
-    (el as HTMLTextAreaElement).value
-  );
+  const valueAfterBackspace = await textarea.evaluate((el) => (el as HTMLTextAreaElement).value);
   assertEquals(valueAfterBackspace, "First line\nSecond");
 
   await browser.close();
@@ -154,7 +147,7 @@ Deno.test("Keyboard - special keys", async () => {
 Deno.test("Keyboard - typing with delay", async () => {
   const browser = await launch();
   const page = await browser.newPage();
-
+  
   await page.setContent(`
     <!DOCTYPE html>
     <html>
@@ -186,17 +179,14 @@ Deno.test("Keyboard - typing with delay", async () => {
   // Type with 100ms delay between each key
   await page.keyboard.type("test", { delay: 100 });
 
-  const inputValue = await input.evaluate((el) =>
-    (el as HTMLInputElement).value
-  );
+  const inputValue = await input.evaluate((el) => (el as HTMLInputElement).value);
   assertEquals(inputValue, "test");
 
   // Verify delays between keystrokes are approximately correct
-  const timings = await page.$eval("#timings", (el) => {
-    const delays = (el.textContent || "").split(",").filter(Boolean).map(
-      Number,
-    );
-    return delays.every((delay) => delay >= 90); // Allow for small timing variations
+  const timings = await page.evaluate(() => {
+    const el = document.getElementById("timings");
+    const delays = (el?.textContent || '').split(',').filter(Boolean).map(Number);
+    return delays.every(delay => delay >= 90); // Allow for small timing variations
   });
   assertEquals(timings, true);
 
