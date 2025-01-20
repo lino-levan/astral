@@ -1,7 +1,7 @@
 import { deadline } from "@std/async/deadline";
 
 import type { Celestial, Runtime_CallArgument } from "../bindings/celestial.ts";
-import type { KeyboardTypeOptions } from "./keyboard.ts";
+import type { KeyboardTypeOptions } from "./keyboard/mod.ts";
 import type {
   Page,
   ScreenshotOptions,

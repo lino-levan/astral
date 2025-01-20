@@ -11,7 +11,7 @@ import type { Browser } from "./browser.ts";
 import { Dialog } from "./dialog.ts";
 import { ElementHandle } from "./element_handle.ts";
 import { FileChooser } from "./file_chooser.ts";
-import { Keyboard } from "./keyboard.ts";
+import { Keyboard } from "./keyboard/mod.ts";
 import { Locator } from "./locator.ts";
 import { Mouse } from "./mouse.ts";
 import { Touchscreen } from "./touchscreen.ts";
