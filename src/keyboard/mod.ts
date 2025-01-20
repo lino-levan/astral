@@ -174,8 +174,9 @@ export class Keyboard {
   async type(text: string | KeyInput[], options: KeyboardTypeOptions = {}) {
     const delay = options.delay;
     for (const char of text) {
-      if (this.#isDefinedKey(char as KeyInput)) {
-        await this.press(char as KeyInput, { delay });
+      const key = char as KeyInput;
+      if (key in KEY_DEFINITIONS) {
+        await this.press(key, { delay });
       } else {
         if (delay) {
           await new Promise((f) => setTimeout(f, delay));
@@ -183,12 +184,5 @@ export class Keyboard {
         await this.sendCharacter(char as string);
       }
     }
-  }
-
-  /**
-   * Checks if a key is defined in the keyboard layout
-   */
-  #isDefinedKey(key: KeyInput): boolean {
-    return key in KEY_DEFINITIONS;
   }
 }
