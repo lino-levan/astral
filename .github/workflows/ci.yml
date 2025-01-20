@@ -14,15 +14,11 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
     steps:
-      - uses: actions/checkout@v4
-      - name: download deno
-        uses: denoland/setup-deno@v2
+      - uses: actions/checkout@v2
+      - name: download .
+        uses: denoland/setup-deno@v1
         with:
-          deno-version: v2.x
-
-      - name: Disable AppArmor
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
+          deno-version: v1.x
 
       - name: check format
         if: matrix.os == 'ubuntu-latest'
@@ -32,8 +28,11 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: deno lint
 
-      - name: run tests
+      - name: run normal tests in parallel
         run: deno task test
+
+      - name: run download tests sequentially
+        run: deno task test:download
 
       - name: pretend to publish package
         run: deno publish --dry-run
