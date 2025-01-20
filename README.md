@@ -112,10 +112,10 @@ connect to its endpoint rather than spawning a new process.
 
 ```ts
 // Import Astral
-import { launch } from "jsr:@astral/astral";
+import { connect } from "jsr:@astral/astral";
 
 // Connect to remote endpoint
-const browser = await launch({
+const browser = await connect({
   wsEndpoint: "wss://remote-browser-endpoint.example.com",
 });
 
@@ -135,7 +135,7 @@ exposes the WebSocket endpoint through `browser.wsEndpoint()`.
 const browser = await launch();
 
 // Connect to first browser instead
-const anotherBrowser = await launch({ wsEndpoint: browser.wsEndpoint() });
+const anotherBrowser = await connect({ wsEndpoint: browser.wsEndpoint() });
 ```
 
 ### Page authenticate
@@ -172,10 +172,10 @@ connecting to it is as simple as
 
 ```typescript
 // Import Astral
-import { launch } from "jsr:@astral/astral";
+import { connect } from "jsr:@astral/astral";
 
 // Connect to remote endpoint
-const browser = await launch({
+const browser = await connect({
   wsEndpoint: "<WS-ENDPOINT>",
   headless: false,
 });
