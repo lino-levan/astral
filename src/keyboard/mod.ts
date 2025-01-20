@@ -1,5 +1,9 @@
 import type { Celestial } from "../../bindings/celestial.ts";
-import { type KeyInput, type KeyDefinition, KEY_DEFINITIONS } from "./layout.ts";
+import {
+  KEY_DEFINITIONS,
+  type KeyDefinition,
+  type KeyInput,
+} from "./layout.ts";
 
 /** Options for typing on the keyboard */
 export interface KeyboardTypeOptions {
@@ -32,11 +36,10 @@ export class Keyboard {
    * Returns the modifier bit for a given key
    */
   #modifierBit(key: string): number {
-    console.log(key)
-    if (key === 'Alt') return 1;
-    if (key === 'Control') return 2;
-    if (key === 'Meta') return 4;
-    if (key === 'Shift') return 8;
+    if (key === "Alt") return 1;
+    if (key === "Control") return 2;
+    if (key === "Meta") return 4;
+    if (key === "Shift") return 8;
     return 0;
   }
 
@@ -46,16 +49,16 @@ export class Keyboard {
   #getKeyDescription(key: KeyInput): KeyDefinition {
     const shift = this.#modifiers & 8;
     const description: KeyDefinition = {
-      key: '',
+      key: "",
       keyCode: 0,
-      code: '',
-      text: '',
+      code: "",
+      text: "",
       location: 0,
     };
 
     // Get definition from your keyboard layout
     const definition = KEY_DEFINITIONS[key];
-    
+
     if (!definition) {
       throw new Error(`Unknown key: "${key}"`);
     }
@@ -95,7 +98,7 @@ export class Keyboard {
 
     // If any modifiers besides shift are pressed, no text should be sent
     if (this.#modifiers & ~8) {
-      description.text = '';
+      description.text = "";
     }
 
     return description;
@@ -114,7 +117,7 @@ export class Keyboard {
     const text = options.text === undefined ? description.text : options.text;
 
     await this.#celestial.Input.dispatchKeyEvent({
-      type: text ? 'keyDown' : 'rawKeyDown',
+      type: text ? "keyDown" : "rawKeyDown",
       modifiers: this.#modifiers,
       windowsVirtualKeyCode: description.keyCode,
       code: description.code,
@@ -137,7 +140,7 @@ export class Keyboard {
     if (description.code) this.#pressedKeys.delete(description.code);
 
     await this.#celestial.Input.dispatchKeyEvent({
-      type: 'keyUp',
+      type: "keyUp",
       modifiers: this.#modifiers,
       windowsVirtualKeyCode: description.keyCode,
       key: description.key,
@@ -160,7 +163,7 @@ export class Keyboard {
     const delay = options.delay;
     await this.down(key, options);
     if (delay) {
-      await new Promise(f => setTimeout(f, delay));
+      await new Promise((f) => setTimeout(f, delay));
     }
     await this.up(key);
   }
@@ -175,7 +178,7 @@ export class Keyboard {
         await this.press(char as KeyInput, { delay });
       } else {
         if (delay) {
-          await new Promise(f => setTimeout(f, delay));
+          await new Promise((f) => setTimeout(f, delay));
         }
         await this.sendCharacter(char as string);
       }
