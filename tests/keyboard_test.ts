@@ -34,7 +34,6 @@ Deno.test("Keyboard - basic input", async () => {
 
   // Test individual key presses
   await page.keyboard.type("Hello");
-  await page.waitForTimeout(100); // Give events time to process
 
   const inputValue = await input.evaluate((el) =>
     (el as HTMLInputElement).value
@@ -110,8 +109,6 @@ Deno.test("Keyboard - modifier keys", async () => {
   await page.keyboard.press("z");
   await page.keyboard.up("ControlLeft");
   await page.keyboard.up("ShiftLeft");
-
-  await page.waitForTimeout(100); // Give events time to process
 
   // Verify the events were recorded correctly
   const events = await page.evaluate(() =>
@@ -193,7 +190,6 @@ Deno.test("Keyboard - special keys", async () => {
   await page.keyboard.type("First line");
   await page.keyboard.press("Enter");
   await page.keyboard.type("Second line");
-  await page.waitForTimeout(100); // Give events time to process
 
   const value = await textarea.evaluate((el) =>
     (el as HTMLTextAreaElement).value
@@ -204,7 +200,6 @@ Deno.test("Keyboard - special keys", async () => {
   for (let i = 0; i < 5; i++) {
     await page.keyboard.press("Backspace");
   }
-  await page.waitForTimeout(100); // Give events time to process
 
   const valueAfterBackspace = await textarea.evaluate((el) =>
     (el as HTMLTextAreaElement).value
@@ -301,7 +296,6 @@ Deno.test("Keyboard - tab navigation", async () => {
   await page.keyboard.press("Tab");
   await page.keyboard.press("Tab");
   await page.keyboard.press("Tab");
-  await page.waitForTimeout(100); // Give events time to process
 
   // Check the focus order
   const focusOrder = await page.evaluate(() =>
@@ -314,7 +308,6 @@ Deno.test("Keyboard - tab navigation", async () => {
   await page.keyboard.press("Tab");
   await page.keyboard.press("Tab");
   await page.keyboard.up("ShiftLeft");
-  await page.waitForTimeout(100);
 
   // Verify we can type in the input we tabbed to
   await page.keyboard.type("Hello");
