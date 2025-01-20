@@ -287,6 +287,9 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
     "--no-first-run",
     "--password-store=basic",
     "--use-mock-keychain",
+    ...(product === "chrome"
+      ? ["--disable-blink-features=AutomationControlled"]
+      : []),
     // "--no-startup-window",
     ...(headless
       ? [
