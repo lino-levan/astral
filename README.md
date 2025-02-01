@@ -1,6 +1,4 @@
-# Astral
-
-<img src="./docs/static/icon.png" height="200" width="200" align="right"/>
+<img src="./docs/static/astral.png"/>
 
 Astral is a high-level puppeteer/playwright-like library that allows for control
 over a web browser (primarily for automation and testing). It is written from
