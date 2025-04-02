@@ -718,7 +718,7 @@ export class Page extends EventTarget {
     }
 
     return retryDeadline(
-      new Promise<void>((resolve) => {
+      new Promise<void>((resolve, reject) => {
         if (options?.waitUntil === "load") {
           this.#celestial.addEventListener(
             "Page.loadEventFired",
@@ -726,15 +726,15 @@ export class Page extends EventTarget {
             { once: true },
           );
         } else if (options?.waitUntil === "networkidle0") {
-          this.waitForNetworkIdle({ idleTime: 500 }).then(() => {
+          this.waitForNetworkIdle({ idleTime: options?.idleTime ?? 500 }).then(() => {
             resolve();
-          });
+          }).catch(reject);
         } else {
-          this.waitForNetworkIdle({ idleTime: 500, idleConnections: 2 }).then(
+          this.waitForNetworkIdle({ idleTime: options?.idleTime ?? 500, idleConnections: 2 }).then(
             () => {
               resolve();
             },
-          );
+          ).catch(reject)
         }
       }),
       this.timeout,
