@@ -44,7 +44,11 @@ export type Cookie = Network_Cookie;
 
 /** The options for `waitFor` */
 export type WaitForOptions = {
-  waitUntil?: "none" | "load" | "networkidle0" | "networkidle2";
+  waitUntil: "load";
+} | {
+  waitUntil?: "none" | "networkidle0" | "networkidle2";
+  idleTime?: number;
+  idleConnections?: number;
 };
 
 /** The options for `waitForSelector` */
@@ -726,15 +730,20 @@ export class Page extends EventTarget {
             { once: true },
           );
         } else if (options?.waitUntil === "networkidle0") {
-          this.waitForNetworkIdle({ idleTime: options?.idleTime ?? 500 }).then(() => {
-            resolve();
-          }).catch(reject);
-        } else {
-          this.waitForNetworkIdle({ idleTime: options?.idleTime ?? 500, idleConnections: 2 }).then(
+          this.waitForNetworkIdle({ idleTime: options?.idleTime ?? 500 }).then(
             () => {
               resolve();
             },
-          ).catch(reject)
+          ).catch(reject);
+        } else {
+          this.waitForNetworkIdle({
+            idleTime: options?.idleTime ?? 500,
+            idleConnections: 2,
+          }).then(
+            () => {
+              resolve();
+            },
+          ).catch(reject);
         }
       }),
       this.timeout,
