@@ -276,12 +276,12 @@ export class ElementHandle {
    * This method scrolls element into view if needed, and then uses `Page.screenshot()` to take a screenshot of the element.
    */
   async screenshot(
-    opts?: Omit<ScreenshotOptions, "clip">,
+    opts?: Omit<ScreenshotOptions, "clip"> & { scale?: number },
   ): Promise<Uint8Array> {
     await this.scrollIntoView();
-    const box = await this.boundingBox();
 
-    if (!box) {
+    const boxModel = await this.boxModel();
+    if (!boxModel) {
       throw new Error(
         "No bounding box found when trying to screenshot element",
       );
@@ -290,8 +290,11 @@ export class ElementHandle {
     return await this.#page.screenshot({
       ...opts,
       clip: {
-        ...box,
-        scale: 1,
+        x: boxModel.border[0].x,
+        y: boxModel.border[0].y,
+        width: boxModel.border[2].x - boxModel.border[0].x,
+        height: boxModel.border[2].y - boxModel.border[0].y,
+        scale: opts?.scale ?? 1,
       },
     });
   }
