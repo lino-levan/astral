@@ -41,8 +41,7 @@ export class Locator<T> {
       await handle.click();
     });
   }
-  
-  
+
   /** Evaluates the given function in the context of the element. */
   async evaluate<R>(fn: (el: T) => R): Promise<R> {
     return await this.#runLocator(async (handle) => {
@@ -57,7 +56,7 @@ export class Locator<T> {
       await handle.type(text);
     });
   }
-  
+
   /** Focuses the element. */
   async focus() {
     await this.#runLocator(async (handle) => {
