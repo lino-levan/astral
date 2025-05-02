@@ -1,4 +1,5 @@
 import type { Celestial, Input_MouseButton } from "../bindings/celestial.ts";
+import type { KeyboardPageData } from "./keyboard/mod.ts";
 
 /** Options for mouse clicking. */
 export interface MouseClickOptions {
@@ -19,9 +20,11 @@ export class Mouse {
   #celestial: Celestial;
   #x = 0;
   #y = 0;
+  #keyboardPageData: KeyboardPageData;
 
-  constructor(celestial: Celestial) {
+  constructor(celestial: Celestial, keyboardPageData: KeyboardPageData) {
     this.#celestial = celestial;
+    this.#keyboardPageData = keyboardPageData;
   }
 
   /**
@@ -50,6 +53,7 @@ export class Mouse {
       y: this.#y,
       button: opts?.button ?? "left",
       clickCount: opts?.clickCount ?? 1,
+      modifiers: this.#keyboardPageData.modifiers,
     });
   }
 
@@ -70,6 +74,7 @@ export class Mouse {
         type: "mouseMoved",
         x: this.#x,
         y: this.#y,
+        modifiers: this.#keyboardPageData.modifiers,
       });
     }
   }
@@ -85,6 +90,7 @@ export class Mouse {
       type: "mouseMoved",
       x: 0,
       y: 0,
+      modifiers: this.#keyboardPageData.modifiers,
     });
   }
 
@@ -98,6 +104,7 @@ export class Mouse {
       y: this.#y,
       button: opts?.button ?? "left",
       clickCount: opts?.clickCount ?? 1,
+      modifiers: this.#keyboardPageData.modifiers,
     });
   }
 
@@ -111,6 +118,7 @@ export class Mouse {
       y: this.#y,
       deltaX: options?.deltaX ?? 0,
       deltaY: options?.deltaY ?? 0,
+      modifiers: this.#keyboardPageData.modifiers,
     });
   }
 }
