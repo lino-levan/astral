@@ -8,9 +8,9 @@ export class Touchscreen {
   #celestial: Celestial;
   #keyboardPageData: KeyboardPageData;
 
-  constructor(celestial: Celestial, keyboardPageData: KeyboardPageData) {
+  constructor(celestial: Celestial, keyboardPageData?: KeyboardPageData) {
     this.#celestial = celestial;
-    this.#keyboardPageData = keyboardPageData;
+    this.#keyboardPageData = keyboardPageData || { modifiers: 0 };
   }
 
   /**

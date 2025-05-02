@@ -32,9 +32,9 @@ export class Keyboard {
   #pageData: KeyboardPageData;
   #pressedKeys = new Set<string>();
 
-  constructor(celestial: Celestial, pageData: KeyboardPageData) {
+  constructor(celestial: Celestial, pageData?: KeyboardPageData) {
     this.#celestial = celestial;
-    this.#pageData = pageData;
+    this.#pageData = pageData || { modifiers: 0 };
   }
 
   /**
