@@ -1,13 +1,16 @@
 import type { Celestial } from "../bindings/celestial.ts";
+import type { KeyboardPageData } from "./keyboard/mod.ts";
 
 /**
  * The Touchscreen class exposes touchscreen events.
  */
 export class Touchscreen {
   #celestial: Celestial;
+  #keyboardPageData: KeyboardPageData;
 
-  constructor(celestial: Celestial) {
+  constructor(celestial: Celestial, keyboardPageData?: KeyboardPageData) {
     this.#celestial = celestial;
+    this.#keyboardPageData = keyboardPageData || { modifiers: 0 };
   }
 
   /**
@@ -25,6 +28,7 @@ export class Touchscreen {
     await this.#celestial.Input.dispatchTouchEvent({
       type: "touchEnd",
       touchPoints: [],
+      modifiers: this.#keyboardPageData.modifiers,
     });
   }
 
@@ -35,6 +39,7 @@ export class Touchscreen {
     await this.#celestial.Input.dispatchTouchEvent({
       type: "touchMove",
       touchPoints: [{ x, y }],
+      modifiers: this.#keyboardPageData.modifiers,
     });
   }
 
@@ -45,6 +50,7 @@ export class Touchscreen {
     await this.#celestial.Input.dispatchTouchEvent({
       type: "touchStart",
       touchPoints: [{ x, y }],
+      modifiers: this.#keyboardPageData.modifiers,
     });
   }
 }

@@ -20,16 +20,21 @@ export interface KeyPressOptions extends KeyDownOptions {
   delay?: number;
 }
 
+export interface KeyboardPageData {
+  modifiers: number;
+}
+
 /**
  * Keyboard provides an api for managing a virtual keyboard. The high level api is `Keyboard.type()`, which takes raw characters and generates proper `keydown`, `keypress`/`input`, and `keyup` events on your page.
  */
 export class Keyboard {
   #celestial: Celestial;
-  #modifiers = 0;
+  #pageData: KeyboardPageData;
   #pressedKeys = new Set<string>();
 
-  constructor(celestial: Celestial) {
+  constructor(celestial: Celestial, pageData?: KeyboardPageData) {
     this.#celestial = celestial;
+    this.#pageData = pageData || { modifiers: 0 };
   }
 
   /**
@@ -47,7 +52,7 @@ export class Keyboard {
    * Gets key description including code, key, text, and keyCode
    */
   #getKeyDescription(key: KeyInput): KeyDefinition {
-    const shift = this.#modifiers & 8;
+    const shift = this.#pageData.modifiers & 8;
     const description: KeyDefinition = {
       key: "",
       keyCode: 0,
@@ -97,7 +102,7 @@ export class Keyboard {
     }
 
     // If any modifiers besides shift are pressed, no text should be sent
-    if (this.#modifiers & ~8) {
+    if (this.#pageData.modifiers & ~8) {
       description.text = "";
     }
 
@@ -112,13 +117,15 @@ export class Keyboard {
 
     const autoRepeat = this.#pressedKeys.has(description.code || "");
     if (description.code) this.#pressedKeys.add(description.code);
-    if (description.key) this.#modifiers |= this.#modifierBit(description.key);
+    if (description.key) {
+      this.#pageData.modifiers |= this.#modifierBit(description.key);
+    }
 
     const text = options.text === undefined ? description.text : options.text;
 
     await this.#celestial.Input.dispatchKeyEvent({
       type: text ? "keyDown" : "rawKeyDown",
-      modifiers: this.#modifiers,
+      modifiers: this.#pageData.modifiers,
       windowsVirtualKeyCode: description.keyCode,
       code: description.code,
       key: description.key,
@@ -136,12 +143,14 @@ export class Keyboard {
   async up(key: KeyInput) {
     const description = this.#getKeyDescription(key);
 
-    if (description.key) this.#modifiers &= ~this.#modifierBit(description.key);
+    if (description.key) {
+      this.#pageData.modifiers &= ~this.#modifierBit(description.key);
+    }
     if (description.code) this.#pressedKeys.delete(description.code);
 
     await this.#celestial.Input.dispatchKeyEvent({
       type: "keyUp",
-      modifiers: this.#modifiers,
+      modifiers: this.#pageData.modifiers,
       windowsVirtualKeyCode: description.keyCode,
       key: description.key,
       code: description.code,

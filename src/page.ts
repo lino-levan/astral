@@ -231,9 +231,11 @@ export class Page extends EventTarget {
       });
     }
 
-    this.mouse = new Mouse(this.#celestial);
-    this.keyboard = new Keyboard(this.#celestial);
-    this.touchscreen = new Touchscreen(this.#celestial);
+    const pageData = { modifiers: 0 };
+
+    this.mouse = new Mouse(this.#celestial, pageData);
+    this.keyboard = new Keyboard(this.#celestial, pageData);
+    this.touchscreen = new Touchscreen(this.#celestial, pageData);
   }
 
   [Symbol.asyncDispose](): Promise<void> {

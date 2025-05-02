@@ -18,7 +18,7 @@ Deno.test("Keyboard - basic input", async () => {
           const input = document.getElementById('input');
           const keydowns = document.getElementById('keydowns');
           const keyups = document.getElementById('keyups');
-          
+
           input.addEventListener('keypress', (e) => {
             keydowns.textContent = (keydowns.textContent || '') + e.key;
             keyups.textContent = (keyups.textContent || '') + e.key;
@@ -66,17 +66,17 @@ Deno.test("Keyboard - modifier keys", async () => {
         <script>
           const input = document.getElementById('input');
           const events = document.getElementById('events');
-          
+
           input.addEventListener('keydown', (e) => {
             const modifiers = [];
             if (e.shiftKey) modifiers.push('Shift');
             if (e.ctrlKey) modifiers.push('Ctrl');
             if (e.altKey) modifiers.push('Alt');
-            
-            const eventDesc = modifiers.length > 0 
+
+            const eventDesc = modifiers.length > 0
               ? \`\${modifiers.join("+")}+\${e.key}\`
               : e.key;
-            
+
             events.textContent = (events.textContent || '') + eventDesc + ',';
           });
         </script>
@@ -223,7 +223,7 @@ Deno.test("Keyboard - typing with delay", async () => {
           const input = document.getElementById('input');
           const timings = document.getElementById('timings');
           let lastKeyTime = 0;
-          
+
           input.addEventListener('keydown', () => {
             const now = Date.now();
             if (lastKeyTime) {
@@ -315,6 +315,74 @@ Deno.test("Keyboard - tab navigation", async () => {
     (document.getElementById("second") as HTMLInputElement).value
   );
   assertEquals(secondInputValue, "Hello");
+
+  await browser.close();
+});
+
+Deno.test("Keyboard - modifier keys with click", async () => {
+  const browser = await launch();
+  const page = await browser.newPage();
+
+  await page.setContent(`
+    <!DOCTYPE html>
+    <html>
+      <body>
+        <div id="clickTarget" style="width: 200px; height: 200px; background-color: #eee;">Click here</div>
+        <div id="clickEvents"></div>
+        <script>
+          const clickTarget = document.getElementById('clickTarget');
+          const clickEvents = document.getElementById('clickEvents');
+
+          clickTarget.addEventListener('click', (e) => {
+            const modifiers = [];
+            if (e.shiftKey) modifiers.push('Shift');
+            if (e.ctrlKey) modifiers.push('Ctrl');
+            if (e.altKey) modifiers.push('Alt');
+            if (e.metaKey) modifiers.push('Meta');
+
+            const eventDesc = modifiers.length > 0
+              ? \`\${modifiers.join("+")}+Click\`
+              : 'Click';
+
+            clickEvents.textContent = (clickEvents.textContent || '') + eventDesc + ',';
+          });
+        </script>
+      </body>
+    </html>
+  `);
+
+  const clickTarget = await page.$("#clickTarget");
+  assertExists(clickTarget);
+
+  // Basic click without modifiers
+  await clickTarget.click();
+
+  // Shift + Click
+  await page.keyboard.down("ShiftLeft");
+  await clickTarget.click();
+  await page.keyboard.up("ShiftLeft");
+
+  // Alt + Click
+  await page.keyboard.down("AltLeft");
+  await clickTarget.click();
+  await page.keyboard.up("AltLeft");
+
+  // Multiple modifiers: Shift + Alt + Click
+  await page.keyboard.down("ShiftLeft");
+  await page.keyboard.down("AltLeft");
+  await clickTarget.click();
+  await page.keyboard.up("AltLeft");
+  await page.keyboard.up("ShiftLeft");
+
+  // Verify the events were recorded correctly
+  const events = await page.evaluate(() =>
+    document.getElementById("clickEvents")?.textContent || ""
+  );
+
+  assertEquals(
+    events,
+    "Click,Shift+Click,Alt+Click,Shift+Alt+Click,",
+  );
 
   await browser.close();
 });
