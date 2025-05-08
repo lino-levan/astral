@@ -384,10 +384,9 @@ export class Page extends EventTarget {
       if (index > -1) {
         this.#browser.pages.splice(index, 1);
       }
+      await this.#celestial.close();
       return;
     }
-
-    await this.#celestial.close();
 
     throw new Error(`Page has already been closed or doesn't exist (${res})`);
   }
