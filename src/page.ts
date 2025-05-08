@@ -135,7 +135,7 @@ export class PageErrorEvent extends CustomEvent<Error> {
 /**
  * Page provides methods to interact with a single tab in the browser
  */
-export class Page extends EventTarget {
+export class Page extends EventTarget implements AsyncDisposable {
   #id: string;
   #celestial: Celestial;
   #browser: Browser;
