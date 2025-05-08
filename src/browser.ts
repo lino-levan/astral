@@ -90,7 +90,7 @@ export interface BrowserOptions {
  * const browser = await launch();
  * ```
  */
-export class Browser {
+export class Browser implements AsyncDisposable {
   #options: BrowserOptions;
   #celestial: Celestial;
   #process: Deno.ChildProcess | null;
