@@ -81,7 +81,7 @@ Deno.test("Accepting prompt", async () => {
   await browser.close();
 });
 
-Deno.test("Declining comfirm", async () => {
+Deno.test("Declining confirm", async () => {
   // Launch browser
   const browser = await launch();
 

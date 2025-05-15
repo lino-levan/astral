@@ -15,17 +15,16 @@ Take a screenshot of a website.
 import { launch } from "jsr:@astral/astral";
 
 // Launch the browser
-const browser = await launch();
+await using browser = await launch();
 
 // Open a new page
-const page = await browser.newPage("https://deno.land");
+await using page = await browser.newPage("https://deno.land");
 
 // Take a screenshot of the page and save that to disk
 const screenshot = await page.screenshot();
 Deno.writeFileSync("screenshot.png", screenshot);
 
-// Close the browser
-await browser.close();
+// Clean up is performed automatically
 ```
 
 You can use the evaluate function to run code in the context of the browser.
@@ -35,10 +34,10 @@ You can use the evaluate function to run code in the context of the browser.
 import { launch } from "jsr:@astral/astral";
 
 // Launch the browser
-const browser = await launch();
+await using browser = await launch();
 
 // Open a new page
-const page = await browser.newPage("https://deno.land");
+await using page = await browser.newPage("https://deno.land");
 
 // Run code in the context of the browser
 const value = await page.evaluate(() => {
@@ -53,9 +52,6 @@ const result = await page.evaluate((x, y) => {
   args: [10, 15],
 });
 console.log(result);
-
-// Close the browser
-await browser.close();
 ```
 
 You can navigate to a page and interact with it.
@@ -65,10 +61,10 @@ You can navigate to a page and interact with it.
 import { launch } from "jsr:@astral/astral";
 
 // Launch browser in headfull mode
-const browser = await launch({ headless: false });
+await using browser = await launch({ headless: false });
 
 // Open the webpage
-const page = await browser.newPage("https://deno.land");
+await using page = await browser.newPage("https://deno.land");
 
 // Click the search button
 const button = await page.$("button");
@@ -96,9 +92,6 @@ await Promise.all([
   page.waitForNavigation(),
   dLink!.click(),
 ]);
-
-// Close browser
-await browser.close();
 ```
 
 TODO: Document the locator API.
@@ -116,7 +109,7 @@ import { connect } from "jsr:@astral/astral";
 
 // Connect to remote endpoint
 const browser = await connect({
-  wsEndpoint: "wss://remote-browser-endpoint.example.com",
+  endpoint: "wss://remote-browser-endpoint.example.com",
 });
 
 // Do stuff
@@ -135,7 +128,7 @@ exposes the WebSocket endpoint through `browser.wsEndpoint()`.
 const browser = await launch();
 
 // Connect to first browser instead
-const anotherBrowser = await connect({ wsEndpoint: browser.wsEndpoint() });
+const anotherBrowser = await connect({ endpoint: browser.wsEndpoint() });
 ```
 
 ### Page authenticate
@@ -176,7 +169,7 @@ import { connect } from "jsr:@astral/astral";
 
 // Connect to remote endpoint
 const browser = await connect({
-  wsEndpoint: "<WS-ENDPOINT>",
+  endpoint: "localhost:1337",
   headless: false,
 });
 
