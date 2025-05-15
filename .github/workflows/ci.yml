@@ -34,6 +34,8 @@ jobs:
 
       - name: run tests
         run: deno task test
+        env:
+          DEBUG: true
 
       - name: pretend to publish package
         run: deno publish --dry-run
