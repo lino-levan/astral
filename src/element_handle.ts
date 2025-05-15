@@ -2,6 +2,7 @@ import { deadline } from "@std/async/deadline";
 
 import type { Celestial, Runtime_CallArgument } from "../bindings/celestial.ts";
 import type { KeyboardTypeOptions } from "./keyboard/mod.ts";
+import type { MouseClickOptions } from "./mouse.ts";
 import type {
   Page,
   ScreenshotOptions,
@@ -33,6 +34,9 @@ export interface BoxModel {
   padding: Point[];
   width: number;
 }
+
+/** Click options on an element */
+export type ElementClickOptions = { offset?: Offset } & MouseClickOptions;
 
 function intoPoints(pointsRaw: number[]) {
   const points: Point[] = [];
@@ -185,7 +189,7 @@ export class ElementHandle {
   /**
    * This method scrolls element into view if needed, and then uses `Page.mouse` to click in the center of the element.
    */
-  async click(opts?: { offset?: Offset }) {
+  async click(opts?: ElementClickOptions) {
     await this.scrollIntoView();
 
     const model: BoxModel | null = await this.boxModel();
@@ -197,11 +201,13 @@ export class ElementHandle {
       await this.#page.mouse.click(
         x + opts.offset.x,
         y + opts.offset.y,
+        opts,
       );
     } else {
       await this.#page.mouse.click(
         x + (model.width / 2),
         y + (model.height / 2),
+        opts,
       );
     }
   }
