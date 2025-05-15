@@ -17,7 +17,7 @@ Here are a few examples to get you started:
 - Crawl a SPA (Single-Page Application) and generate pre-rendered content (i.e.
   "SSR" (Server-Side Rendering)).
 - Automate form submission, UI testing, keyboard input, etc.
-- Create a reproducable, automated testing environment using the latest
+- Create a reproducible, automated testing environment using the latest
   JavaScript and browser features.
 - Stealthy by default. No need to install or setup extra libraries to get
   features that should come by default.

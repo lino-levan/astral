@@ -225,11 +225,35 @@ export class Browser implements AsyncDisposable {
   }
 
   /**
-   * Returns true if the browser and its websocket have benn closed
+   * Returns true if the browser and its websocket have been closed
    */
   get closed(): boolean {
     return this.#celestial.ws.readyState === WebSocket.CLOSED;
   }
+}
+
+/**
+ * Get the websocket endpoint for the browser.
+ */
+async function getWebSocketEndpoint(endpoint: string): Promise<string> {
+  if (endpoint.startsWith("ws://") || endpoint.startsWith("wss://")) {
+    return endpoint;
+  }
+
+  const httpEndpoint = endpoint.startsWith("http")
+    ? endpoint
+    : `http://${endpoint}`;
+
+  const browserRes = await retry(async () => {
+    const browserReq = await fetch(`${httpEndpoint}/json/version`);
+    return await browserReq.json();
+  });
+
+  if (browserRes["Protocol-Version"] !== PROTOCOL_VERSION) {
+    throw new Error("Differing protocol versions between binary and bindings.");
+  }
+
+  return browserRes.webSocketDebuggerUrl;
 }
 
 export type LaunchOptions = BrowserOptions & {
@@ -239,19 +263,20 @@ export type LaunchOptions = BrowserOptions & {
 };
 
 export type ConnectOptions = BrowserOptions & {
-  wsEndpoint: string;
+  endpoint: string;
 };
 
 /**
- * Connects to a given browser over a WebSockets endpoint.
+ * Connects to a given browser over an HTTP/WebSocket endpoint.
  */
 export async function connect(opts: ConnectOptions): Promise<Browser> {
-  const { wsEndpoint, product = "chrome" } = opts;
+  const { endpoint, product = "chrome" } = opts;
 
   const options: BrowserOptions = {
     product,
   };
 
+  const wsEndpoint = await getWebSocketEndpoint(endpoint);
   const ws = new WebSocket(wsEndpoint);
   await websocketReady(ws);
   return new Browser(ws, null, options);
