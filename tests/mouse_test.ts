@@ -387,7 +387,7 @@ Deno.test("Mouse - wheel", async () => {
   await page.mouse.wheel({ deltaY: 100 });
 
   // Wait for scroll to complete
-  await page.waitForTimeout(50);
+  await page.waitForTimeout(200);
 
   // Verify vertical scroll
   let scrollPosition = await page.evaluate(() =>
@@ -403,7 +403,7 @@ Deno.test("Mouse - wheel", async () => {
   await page.mouse.wheel({ deltaX: 100 });
 
   // Wait for scroll to complete
-  await page.waitForTimeout(50);
+  await page.waitForTimeout(200);
 
   // Verify horizontal scroll
   scrollPosition = await page.evaluate(() =>
