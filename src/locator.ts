@@ -2,6 +2,7 @@ import { retry } from "@std/async/retry";
 import { deadline } from "@std/async/deadline";
 import type { Page } from "./page.ts";
 import type { ElementHandle } from "./element_handle.ts";
+import type { ElementClickOptions } from "./element_handle.ts";
 
 /** Locator provides an api for interacting with elements on a page in a way that avoids race conditions. */
 export class Locator<T> {
@@ -36,9 +37,9 @@ export class Locator<T> {
   }
 
   /** Clicks the element. */
-  async click() {
+  async click(opts?: ElementClickOptions) {
     await this.#runLocator(async (handle) => {
-      await handle.click();
+      await handle.click(opts);
     });
   }
 

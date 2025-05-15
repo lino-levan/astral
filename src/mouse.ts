@@ -33,13 +33,14 @@ export class Mouse {
   async click(x: number, y: number, opts?: MouseClickOptions) {
     await this.move(x, y);
 
-    let count = opts?.count ?? 1;
+    const totalCount = opts?.count ?? 1;
+    let clickCount = 0;
 
-    while (count > 0) {
-      count--;
-      await this.down();
+    while (clickCount < totalCount) {
+      clickCount++;
+      await this.down({ clickCount });
       await new Promise((r) => setTimeout(r, opts?.delay ?? 0));
-      await this.up();
+      await this.up({ clickCount });
     }
   }
 
