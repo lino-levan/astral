@@ -187,7 +187,7 @@ export class Browser implements AsyncDisposable {
 
     await Promise.all([
       celestial.Emulation.setUserAgentOverride({ userAgent }),
-      celestial.Page.enable(),
+      celestial.Page.enable({}),
       celestial.Runtime.enable(),
       celestial.Network.enable({}),
       celestial.Page.setInterceptFileChooserDialog({ enabled: true }),
