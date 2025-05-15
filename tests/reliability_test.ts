@@ -6,7 +6,7 @@ for (let i = 0; i < 100; i++) {
     const browser = await launch();
 
     // Open the webpage
-    await browser.newPage("https://www.chromium.org/Home/");
+    await browser.newPage("http://example.com");
 
     // Close browser
     await browser.close();
