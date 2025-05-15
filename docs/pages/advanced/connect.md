@@ -17,7 +17,7 @@ import { launch } from "jsr:@astral/astral";
 
 // Connect to remote endpoint
 const browser = await launch({
-  wsEndpoint: "wss://remote-browser-endpoint.example.com",
+  endpoint: "wss://remote-browser-endpoint.example.com",
 });
 
 // Do stuff
@@ -37,7 +37,7 @@ A browser instance expose its WebSocket endpoint through `browser.wsEndpoint()`.
 const browser = await launch();
 
 // Connect to first browser instead
-const anotherBrowser = await launch({ wsEndpoint: browser.wsEndpoint() });
+const anotherBrowser = await launch({ endpoint: browser.wsEndpoint() });
 ```
 
 This is especially useful in unit testing as you can setup a shared browser
