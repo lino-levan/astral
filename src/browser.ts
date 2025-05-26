@@ -301,29 +301,29 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
     path = await getBinary(product, { cache });
   }
 
-  if (!args.find((arg) => arg.startsWith("--user-data-dir="))) {
+  const dirArg = product === "chrome" ? "--user-data-dir=" : "--profile ";
+  if (!args.find((arg) => arg.startsWith(dirArg))) {
     const tempDir = Deno.makeTempDirSync();
-    args.push(`--user-data-dir=${tempDir}`);
+    args.push(dirArg + tempDir);
   }
 
   // Launch child process
   const binArgs = [
     "--remote-debugging-port=0",
     "--no-first-run",
-    "--password-store=basic",
     "--use-mock-keychain",
-    ...(product === "chrome"
-      ? ["--disable-blink-features=AutomationControlled"]
-      : []),
+    product === "chrome"
+      ? ["--password-store=basic", "--disable-blink-features=AutomationControlled"]
+      : [],
     // "--no-startup-window",
-    ...(headless
+    headless
       ? [
         product === "chrome" ? "--headless=new" : "--headless",
         "--hide-scrollbars",
       ]
-      : []),
-    ...args,
-  ];
+      : [],
+    args,
+  ].flat();
 
   if (DEBUG) {
     console.log(`Launching: ${path} ${binArgs.join(" ")}`);
