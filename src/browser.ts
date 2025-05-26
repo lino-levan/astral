@@ -313,7 +313,10 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
     "--no-first-run",
     "--use-mock-keychain",
     product === "chrome"
-      ? ["--password-store=basic", "--disable-blink-features=AutomationControlled"]
+      ? [
+        "--password-store=basic",
+        "--disable-blink-features=AutomationControlled",
+      ]
       : [],
     // "--no-startup-window",
     headless
