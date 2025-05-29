@@ -1,5 +1,8 @@
 import { deadline } from "@std/async/deadline";
 import { fromFileUrl } from "@std/path/from-file-url";
+import { toFileUrl } from "@std/path/to-file-url";
+import { join } from "@std/path/join";
+import { ensureDir } from "@std/fs/ensure-dir";
 
 import type {
   Fetch_requestPausedEvent,
@@ -65,6 +68,19 @@ export type WaitForNetworkIdleOptions = {
 /** The options for sandboxing */
 export type SandboxOptions = {
   sandbox?: boolean;
+};
+
+/** The options for coverage */
+export type CoverageOptions = {
+  coverageDir?: string;
+};
+
+/** V8 CallSite (subset). */
+type CallSite = {
+  getFileName: () => string;
+  getFunctionName: () => string | null;
+  getLineNumber: () => number;
+  getColumnNumber: () => number;
 };
 
 /** The options for user agents */
@@ -140,6 +156,7 @@ export class Page extends EventTarget implements AsyncDisposable {
   #celestial: Celestial;
   #browser: Browser;
   #url: string;
+  #coverageDir?: string;
 
   readonly timeout = 10000;
   readonly mouse: Mouse;
@@ -151,7 +168,7 @@ export class Page extends EventTarget implements AsyncDisposable {
     url: string | undefined,
     ws: WebSocket,
     browser: Browser,
-    options: SandboxOptions,
+    options: SandboxOptions & CoverageOptions,
   ) {
     super();
 
@@ -159,6 +176,7 @@ export class Page extends EventTarget implements AsyncDisposable {
     this.#url = url ?? "about:blank";
     this.#celestial = new Celestial(ws);
     this.#browser = browser;
+    this.#coverageDir = options?.coverageDir;
 
     this.#celestial.addEventListener("Page.frameNavigated", (e) => {
       const { frame } = e.detail;
@@ -526,12 +544,23 @@ export class Page extends EventTarget implements AsyncDisposable {
     func: EvaluateFunction<T, R>,
     evaluateOptions?: EvaluateOptions<R>,
   ): Promise<T> {
+    let coverage = false;
     if (typeof func === "function") {
+      coverage = !!this.#coverageDir;
       const args = evaluateOptions?.args ?? [];
       func = `(${func.toString()})(${
         args.map((arg) => `${JSON.stringify(arg)}`).join(",")
       })`;
     }
+
+    if (coverage && (this.#coverageDir)) {
+      await this.#celestial.Profiler.startPreciseCoverage({
+        callCount: true,
+        detailed: true,
+        allowTriggeredUpdates: false,
+      });
+    }
+
     const { result, exceptionDetails } = await retryDeadline(
       this.#celestial.Runtime.evaluate({
         expression: func,
@@ -540,6 +569,36 @@ export class Page extends EventTarget implements AsyncDisposable {
       }),
       this.timeout,
     );
+
+    if (coverage && (this.#coverageDir)) {
+      const { result: [coverage] } = await this.#celestial.Profiler
+        .takePreciseCoverage();
+      await this.#celestial.Profiler.stopPreciseCoverage();
+
+      const caller = this.#getCaller();
+      const source = await Deno.readTextFile(caller.filename);
+      const offset =
+        source.replace(source.split("\n").slice(caller.line).join("\n"), "")
+          .slice(caller.column).length;
+      coverage.url = caller.url;
+
+      coverage.functions.forEach(({ ranges }) =>
+        ranges.forEach((range) => {
+          range.startOffset += offset;
+          range.endOffset += offset;
+        })
+      );
+      await ensureDir(this.#coverageDir);
+      console.log("caller:", caller);
+      console.log("coverage report:", coverage);
+      console.log("computed offset:", offset);
+      console.log("source mapping (attempt):", source.slice(offset));
+
+      await Deno.writeTextFile(
+        join(this.#coverageDir, "coverage-test.json"), // `${crypto.randomUUID()}.json`
+        JSON.stringify(coverage, null, 2),
+      );
+    }
 
     if (exceptionDetails) {
       throw exceptionDetails;
@@ -559,6 +618,31 @@ export class Page extends EventTarget implements AsyncDisposable {
     }
 
     return result.value;
+  }
+
+  #getCaller() {
+    const Trace = Error as unknown as {
+      prepareStackTrace: (error: Error, stack: CallSite[]) => unknown;
+    };
+    const _ = Trace.prepareStackTrace;
+    Trace.prepareStackTrace = (_, stack) => stack;
+    const { stack } = new Error();
+    Trace.prepareStackTrace = _;
+    const callers = (stack as unknown as CallSite[])
+      .map((callsite) => ({
+        filename: callsite.getFileName(),
+        line: callsite.getLineNumber() - 1,
+        column: callsite.getColumnNumber() - 1,
+      }))
+      .filter((callsite) =>
+        !callsite.filename.startsWith("ext:") &&
+        callsite.filename !== import.meta.filename
+      )
+      .map((callsite) => ({
+        ...callsite,
+        url: toFileUrl(callsite.filename).href,
+      }));
+    return callers[0];
   }
 
   /**
