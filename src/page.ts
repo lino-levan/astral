@@ -290,7 +290,9 @@ export class Page extends EventTarget implements AsyncDisposable {
     }
     if (
       (permissions === "inherit") ||
-      (permissions[descriptor.name] === "inherit")
+      (permissions[descriptor.name] === "inherit") ||
+      (permissions[descriptor.name] === true) ||
+      (permissions[descriptor.name] === undefined)
     ) {
       const { state } = await Deno.permissions.request(descriptor);
       return state;

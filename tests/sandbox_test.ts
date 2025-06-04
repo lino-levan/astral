@@ -64,3 +64,103 @@ Deno.test("Sandbox cannot be escaped with redirects or scripts", {
   );
   await browser.close();
 });
+
+Deno.test("Sandbox supports granular permissions", {
+  permissions: {
+    ...permissions,
+    read: [...permissions.read, fromFileUrl(import.meta.url)],
+    net: true,
+  },
+}, async (t) => {
+  for (
+    const { url, code, sandbox } of [
+      {
+        url: "http://example.com",
+        code: 200,
+        sandbox: { permissions: "inherit" as const },
+      },
+      {
+        url: "http://example.com",
+        code: 200,
+        sandbox: { permissions: { net: "inherit" as const } },
+      },
+      {
+        url: "http://example.com",
+        code: 200,
+        sandbox: { permissions: { net: true } },
+      },
+      {
+        url: "http://example.com",
+        code: 200,
+        sandbox: { permissions: { net: undefined } },
+      },
+      {
+        url: "http://example.com",
+        code: 200,
+        sandbox: { permissions: { net: ["example.com"] } },
+      },
+      {
+        url: "http://example.com",
+        code: 0,
+        sandbox: { permissions: "none" as const },
+      },
+      {
+        url: "http://example.com",
+        code: 0,
+        sandbox: { permissions: { net: false } },
+      },
+      {
+        url: "http://example.com",
+        code: 0,
+        sandbox: { permissions: { net: [] } },
+      },
+      {
+        url: import.meta.url,
+        code: 200,
+        sandbox: { permissions: "inherit" as const },
+      },
+      {
+        url: import.meta.url,
+        code: 200,
+        sandbox: { permissions: { read: "inherit" as const } },
+      },
+      {
+        url: import.meta.url,
+        code: 200,
+        sandbox: { permissions: { read: true } },
+      },
+      {
+        url: import.meta.url,
+        code: 200,
+        sandbox: { permissions: { read: undefined } },
+      },
+      {
+        url: import.meta.url,
+        code: 200,
+        sandbox: { permissions: { read: [fromFileUrl(import.meta.url)] } },
+      },
+      {
+        url: import.meta.url,
+        code: 0,
+        sandbox: { permissions: "none" as const },
+      },
+      {
+        url: import.meta.url,
+        code: 0,
+        sandbox: { permissions: { read: false } },
+      },
+      { url: import.meta.url, code: 0, sandbox: { permissions: { read: [] } } },
+    ]
+  ) {
+    await t.step(
+      `${new URL(url).protocol} with permissions ${
+        JSON.stringify(sandbox.permissions)
+      }`,
+      async () => {
+        await using browser = await launch();
+        await using page = await browser.newPage(url, { sandbox });
+        assertStrictEquals(await page.evaluate(status), code);
+      },
+    );
+  }
+});

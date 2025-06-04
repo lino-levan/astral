@@ -40,3 +40,35 @@ const browser = await launch();
 // Close browser
 await browser.close();
 ```
+
+## Using permissions subsets
+
+By default, using `sandbox: true` will inherit all permissions from current
+thread.
+
+You can choose to pass a
+[`Deno.PermissionOptionsObject`](https://docs.deno.com/api/deno/~/Deno.PermissionOptionsObject)
+to use a subset of these permissions instead and further restrict what a given
+page can access.
+
+Currently both
+[`Deno.ReadPermissionDescriptor`](https://docs.deno.com/api/deno/~/Deno.ReadPermissionDescriptor)
+and
+[`Deno.NetPermissionDescriptor`](https://docs.deno.com/api/deno/~/Deno.NetPermissionDescriptor)
+are supported.
+
+Using `true` (e.g. `net: true` / `read: true`) is the same as using `"inherit"`
+and will not throw any permission escalation error.
+
+```ts
+await using browser = await launch();
+await using page = await browser.newPage("https://example.com", {
+  sandbox: { permissions: { net: ["example.com"] } },
+});
+```
+
+Under the hood, this option spawns a self-closing `Worker` with the given
+permissions subset and validates permissions from within the restricted thread,
+meaning that this feature actually use Deno's own permission system.
+
+Using permissions subsets requires the `--unstable-worker-options` flag.
