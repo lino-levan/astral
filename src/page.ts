@@ -64,7 +64,16 @@ export type WaitForNetworkIdleOptions = {
 
 /** The options for sandboxing */
 export type SandboxOptions = {
-  sandbox?: boolean;
+  sandbox?: boolean | {
+    permissions:
+      | "inherit"
+      | "none"
+      | Pick<Deno.PermissionOptionsObject, "read" | "net">;
+  };
+};
+
+type SandboxNormalizedOptions = {
+  sandbox: NonNullable<Exclude<Required<SandboxOptions["sandbox"]>, boolean>>;
 };
 
 /** The options for user agents */
@@ -219,9 +228,18 @@ export class Page extends EventTarget implements AsyncDisposable {
     });
 
     if (options?.sandbox) {
+      if (options.sandbox === true) {
+        options.sandbox = { permissions: "inherit" };
+      }
+
       this.#celestial.addEventListener("Fetch.requestPaused", async (e) => {
         const { requestId } = e.detail;
-        if (!await this.#validateRequest(e.detail)) {
+        if (
+          !await this.#validateRequest(
+            e.detail,
+            options as SandboxNormalizedOptions,
+          )
+        ) {
           return this.#celestial.Fetch.failRequest({
             requestId,
             errorReason: "AccessDenied",
@@ -242,18 +260,52 @@ export class Page extends EventTarget implements AsyncDisposable {
     return this.close();
   }
 
-  async #validateRequest({ request }: Fetch_requestPausedEvent["detail"]) {
+  async #validateRequest(
+    { request }: Fetch_requestPausedEvent["detail"],
+    sandbox: SandboxNormalizedOptions,
+  ) {
     const { protocol, host, href } = new URL(request.url);
     if (host) {
-      const { state } = await Deno.permissions.request({ name: "net", host });
-      return (state === "granted");
+      return (await this.#getPermissionState(sandbox, {
+        name: "net",
+        host,
+      })) === "granted";
     }
     if (protocol === "file:") {
       const path = fromFileUrl(href);
-      const { state } = await Deno.permissions.request({ name: "read", path });
-      return (state === "granted");
+      return (await this.#getPermissionState(sandbox, {
+        name: "read",
+        path,
+      })) === "granted";
     }
     return true;
+  }
+
+  async #getPermissionState(
+    { sandbox: { permissions } }: SandboxNormalizedOptions,
+    descriptor: Deno.NetPermissionDescriptor | Deno.ReadPermissionDescriptor,
+  ) {
+    if (permissions === "none") {
+      return "denied";
+    }
+    if (
+      (permissions === "inherit") ||
+      (permissions[descriptor.name] === "inherit") ||
+      (permissions[descriptor.name] === true) ||
+      (permissions[descriptor.name] === undefined)
+    ) {
+      const { state } = await Deno.permissions.request(descriptor);
+      return state;
+    }
+    const { promise, resolve } = Promise.withResolvers<Deno.PermissionState>();
+    const worker = new Worker(
+      `data:,postMessage(Deno.permissions.requestSync(${
+        JSON.stringify(descriptor)
+      }).state);self.close()`,
+      { type: "module", deno: { permissions } },
+    );
+    worker.onmessage = ({ data: state }) => resolve(state);
+    return promise;
   }
 
   async #getRoot() {
