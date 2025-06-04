@@ -11,6 +11,7 @@ import {
 } from "./page.ts";
 import { WEBSOCKET_ENDPOINT_REGEX, websocketReady } from "./util.ts";
 import { DEBUG } from "./debug.ts";
+import { generateBinArgs } from "./bin_args.ts";
 
 async function runCommand(
   command: Deno.Command,
@@ -260,6 +261,11 @@ export type LaunchOptions = BrowserOptions & {
   path?: string;
   args?: string[];
   cache?: string;
+  quickConfig?: {
+    hardened?: boolean;
+    bgTransparent?: boolean;
+    windowSize?: { width: number; height: number };
+  };
 };
 
 export type ConnectOptions = BrowserOptions & {
@@ -290,6 +296,7 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
   const product = opts?.product ?? "chrome";
   const args = opts?.args ?? [];
   const cache = opts?.cache;
+  const quickConfig = opts?.quickConfig;
   let path = opts?.path;
 
   const options: BrowserOptions = {
@@ -307,23 +314,7 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
   }
 
   // Launch child process
-  const binArgs = [
-    "--remote-debugging-port=0",
-    "--no-first-run",
-    "--password-store=basic",
-    "--use-mock-keychain",
-    ...(product === "chrome"
-      ? ["--disable-blink-features=AutomationControlled"]
-      : []),
-    // "--no-startup-window",
-    ...(headless
-      ? [
-        product === "chrome" ? "--headless=new" : "--headless",
-        "--hide-scrollbars",
-      ]
-      : []),
-    ...args,
-  ];
+  const binArgs = generateBinArgs(product, { quickConfig, args, headless });
 
   if (DEBUG) {
     console.log(`Launching: ${path} ${binArgs.join(" ")}`);
