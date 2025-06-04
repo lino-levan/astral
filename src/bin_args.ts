@@ -123,7 +123,7 @@ export function generateBinArgs(
     variable: "ASTRAL_BIN_ARGS",
   });
   if ((envArgs.state === "granted") && (Deno.env.has("ASTRAL_BIN_ARGS"))) {
-    binArgs.push(...Deno.env.get("ASTRAL_BIN_ARGS")!);
+    binArgs.push(...Deno.env.get("ASTRAL_BIN_ARGS")!.split(" "));
   }
 
   return [...new Set([...binArgs, ...args])];
