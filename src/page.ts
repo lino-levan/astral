@@ -17,7 +17,11 @@ import { Locator } from "./locator.ts";
 import { Mouse } from "./mouse.ts";
 import { Touchscreen } from "./touchscreen.ts";
 import { convertToUint8Array, retryDeadline } from "./util.ts";
-import { cdpRequestToRequest, responseToCdpResponse } from "./interceptor.ts";
+import {
+  cdpRequestToRequest,
+  InterceptorError,
+  responseToCdpResponse,
+} from "./interceptor.ts";
 
 /** The options for deleting a cookie */
 export type DeleteCookieOptions = Omit<
