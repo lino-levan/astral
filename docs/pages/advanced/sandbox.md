@@ -72,3 +72,29 @@ permissions subset and validates permissions from within the restricted thread,
 meaning that this feature actually use Deno's own permission system.
 
 Using permissions subsets requires the `--unstable-worker-options` flag.
+
+## Using the HTTP interceptor
+
+You can define a `sandboxInterceptor` that lets you override response from
+intercepted requests. This is very useful for testing environment where you want
+to use fixtures rather than actual performing network requests on actual domain.
+
+The interceptor will receive a `Request` object along with a
+`Network_ResourceType` (e.g. `Document`, `Stylesheet`, `Image`, etc.), and needs
+to return a `Response` object if you wish to override the response.
+
+Note that the HTTP interceptor is executed before the sandbox permissions
+checks.
+
+```ts
+await using browser = await launch();
+await using page = await browser.newPage("http://example.com", {
+  sandbox: true,
+  sandboxInterceptor(_request: Request, _type: Network_ResourceType) {
+    return new Response(
+      "<!DOCTYPE html><html><head><title>Intercepted request!</title></head><body></body></html>",
+      { status: 200, headers: { "content-type": "text/html" } },
+    );
+  },
+});
+```

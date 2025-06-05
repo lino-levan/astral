@@ -174,8 +174,11 @@ export class Browser implements AsyncDisposable {
     const websocket = new WebSocket(wsUrl);
     await websocketReady(websocket);
 
-    const { waitUntil, sandbox } = options ?? {};
-    const page = new Page(targetId, url, websocket, this, { sandbox });
+    const { waitUntil, sandbox, sandboxInterceptor } = options ?? {};
+    const page = new Page(targetId, url, websocket, this, {
+      sandbox,
+      sandboxInterceptor,
+    });
     this.pages.push(page);
 
     const celestial = page.unsafelyGetCelestialBindings();

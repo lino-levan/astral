@@ -1,5 +1,6 @@
 import { deadline } from "@std/async/deadline";
 import { retry } from "@std/async/retry";
+import type { Celestial, Network_Request } from "../bindings/celestial.ts";
 
 /** Regular expression to extract the endpoint from a websocket url */
 export const WEBSOCKET_ENDPOINT_REGEX = /ws:\/\/(.*:.*?)\//;
@@ -28,4 +29,52 @@ export function convertToUint8Array(data: string): Uint8Array {
  */
 export function retryDeadline<T>(t: Promise<T>, timeout: number): Promise<T> {
   return retry<T>(() => deadline(t, timeout));
+}
+
+/**
+ * Utility to convert a CDP network request to a `Request` object
+ * Note: the received body is encoded in base64
+ */
+export function cdpRequestToRequest(request: Network_Request): Request {
+  const encoder = new TextEncoder();
+  const body = request.hasPostData
+    ? new ReadableStream<Uint8Array<ArrayBufferLike>>({
+      pull(controller) {
+        const entry = request.postDataEntries!.shift();
+        if (!entry?.bytes) {
+          return controller.close();
+        }
+        controller.enqueue(encoder.encode(atob(entry.bytes)));
+      },
+      cancel() {
+        request.postDataEntries!.length = 0;
+      },
+    })
+    : null;
+
+  return new Request(request.url, {
+    body,
+    method: request.method,
+    headers: new Headers(request.headers as HeadersInit),
+  });
+}
+
+/**
+ * Utility to convert a `Response` object to a CDP network response
+ * Note: the responded body must be encoded into base64
+ */
+export async function responseToCdpResponse(
+  response: Response,
+): Promise<
+  Omit<Parameters<Celestial["Fetch"]["fulfillRequest"]>[0], "requestId">
+> {
+  return {
+    responseCode: response.status,
+    responsePhrase: response.statusText ? response.statusText : undefined,
+    responseHeaders: [...response.headers.entries()].map(([name, value]) => ({
+      name,
+      value,
+    })),
+    body: response.body ? btoa(await response.text()) : undefined,
+  };
 }

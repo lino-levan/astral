@@ -4,6 +4,7 @@ import { fromFileUrl } from "@std/path/from-file-url";
 import type {
   Fetch_requestPausedEvent,
   Network_Cookie,
+  Network_ResourceType,
   Runtime_consoleAPICalled,
 } from "../bindings/celestial.ts";
 import { Celestial } from "../bindings/celestial.ts";
@@ -15,7 +16,12 @@ import { Keyboard } from "./keyboard/mod.ts";
 import { Locator } from "./locator.ts";
 import { Mouse } from "./mouse.ts";
 import { Touchscreen } from "./touchscreen.ts";
-import { convertToUint8Array, retryDeadline } from "./util.ts";
+import {
+  cdpRequestToRequest,
+  convertToUint8Array,
+  responseToCdpResponse,
+  retryDeadline,
+} from "./util.ts";
 
 /** The options for deleting a cookie */
 export type DeleteCookieOptions = Omit<
@@ -70,9 +76,13 @@ export type SandboxOptions = {
       | "none"
       | Pick<Deno.PermissionOptionsObject, "read" | "net">;
   };
+  sandboxInterceptor?: (
+    request: Request,
+    resourceType: Network_ResourceType,
+  ) => Promise<Response | null | void> | Response | null | void;
 };
 
-type SandboxNormalizedOptions = {
+type SandboxNormalizedOptions = SandboxOptions & {
   sandbox: NonNullable<Exclude<Required<SandboxOptions["sandbox"]>, boolean>>;
 };
 
@@ -233,7 +243,24 @@ export class Page extends EventTarget implements AsyncDisposable {
       }
 
       this.#celestial.addEventListener("Fetch.requestPaused", async (e) => {
-        const { requestId } = e.detail;
+        const { requestId, resourceType, request: cdpRequest } = e.detail;
+
+        if (options.sandboxInterceptor) {
+          const request = cdpRequestToRequest(cdpRequest);
+          const response = await options.sandboxInterceptor(
+            request,
+            resourceType,
+          );
+          await request.body?.cancel().catch(() => null);
+          if (response) {
+            await this.#celestial.Fetch.fulfillRequest({
+              requestId,
+              ...await responseToCdpResponse(response),
+            });
+            return;
+          }
+        }
+
         if (
           !await this.#validateRequest(
             e.detail,
