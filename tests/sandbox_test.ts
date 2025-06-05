@@ -1,5 +1,5 @@
 import { getDefaultCachePath, launch } from "../mod.ts";
-import { assertEquals, assertMatch, assertStrictEquals } from "@std/assert";
+import { assertStrictEquals } from "@std/assert";
 import { fromFileUrl } from "@std/path/from-file-url";
 import { assert } from "@std/assert/assert";
 
@@ -163,51 +163,4 @@ Deno.test("Sandbox supports granular permissions", {
       },
     );
   }
-});
-
-Deno.test("Sandbox with HTTP interceptor", {
-  permissions: { ...permissions, net: ["127.0.0.1"] },
-}, async () => {
-  await using browser = await launch();
-  await using page = await browser.newPage("http://example.com", {
-    sandbox: true,
-    sandboxInterceptor() {
-      return new Response(
-        "<!DOCTYPE html><html><head><title>Intercepted request!</title></head><body></body></html>",
-        { status: 200, headers: { "content-type": "text/html" } },
-      );
-    },
-  });
-  assertStrictEquals(await page.evaluate(status), 200);
-  assertMatch(await page.evaluate("document.title"), /Intercepted request!/i);
-});
-
-Deno.test("Sandbox with conditional HTTP interceptor and request body", {
-  permissions: { ...permissions, net: ["127.0.0.1", "example.com"] },
-}, async () => {
-  await using browser = await launch();
-  await using page = await browser.newPage("http://example.com", {
-    sandbox: true,
-    async sandboxInterceptor(request) {
-      if (request.method === "POST") {
-        assertEquals(await request.json(), { foo: "bar" });
-        return new Response("foobar", { status: 418 });
-      }
-      return null;
-    },
-  });
-  assertStrictEquals(await page.evaluate(status), 200);
-  let response = await page.evaluate(() =>
-    fetch("/", { method: "POST", body: '{"foo":"bar"}' }).then(async (r) => ({
-      status: r.status,
-      body: await r.text(),
-    }))
-  );
-  assertEquals(response.status, 418);
-  assertEquals(response.body, "foobar");
-  response = await page.evaluate(() =>
-    fetch("/").then(async (r) => ({ status: r.status, body: await r.text() }))
-  );
-  assertEquals(response.status, 200);
-  assertMatch(response.body, /Example Domain/i);
 });

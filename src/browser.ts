@@ -4,6 +4,7 @@ import { deadline } from "@std/async/deadline";
 import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
 import { getBinary } from "./cache.ts";
 import {
+  type InterceptorOptions,
   Page,
   type SandboxOptions,
   type UserAgentOptions,
@@ -163,7 +164,11 @@ export class Browser implements AsyncDisposable {
    */
   async newPage(
     url?: string,
-    options?: WaitForOptions & SandboxOptions & UserAgentOptions,
+    options?:
+      & WaitForOptions
+      & SandboxOptions
+      & UserAgentOptions
+      & InterceptorOptions,
   ): Promise<Page> {
     const { targetId } = await this.#celestial.Target.createTarget({
       url: "",
@@ -174,10 +179,10 @@ export class Browser implements AsyncDisposable {
     const websocket = new WebSocket(wsUrl);
     await websocketReady(websocket);
 
-    const { waitUntil, sandbox, sandboxInterceptor } = options ?? {};
+    const { waitUntil, sandbox, interceptor } = options ?? {};
     const page = new Page(targetId, url, websocket, this, {
       sandbox,
-      sandboxInterceptor,
+      interceptor,
     });
     this.pages.push(page);
 
@@ -195,7 +200,7 @@ export class Browser implements AsyncDisposable {
       celestial.Runtime.enable(),
       celestial.Network.enable({}),
       celestial.Page.setInterceptFileChooserDialog({ enabled: true }),
-      sandbox ? celestial.Fetch.enable({}) : null,
+      (sandbox || interceptor) ? celestial.Fetch.enable({}) : null,
     ]);
 
     if (url) {

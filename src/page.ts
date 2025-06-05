@@ -4,6 +4,7 @@ import { fromFileUrl } from "@std/path/from-file-url";
 import type {
   Fetch_requestPausedEvent,
   Network_Cookie,
+  Network_ErrorReason,
   Network_ResourceType,
   Runtime_consoleAPICalled,
 } from "../bindings/celestial.ts";
@@ -76,14 +77,18 @@ export type SandboxOptions = {
       | "none"
       | Pick<Deno.PermissionOptionsObject, "read" | "net">;
   };
-  sandboxInterceptor?: (
-    request: Request,
-    resourceType: Network_ResourceType,
-  ) => Promise<Response | null | void> | Response | null | void;
 };
 
 type SandboxNormalizedOptions = SandboxOptions & {
   sandbox: NonNullable<Exclude<Required<SandboxOptions["sandbox"]>, boolean>>;
+};
+
+/** The options for HTTP interceptor */
+export type InterceptorOptions = {
+  interceptor?: (
+    request: Request,
+    infos: { resourceType: Network_ResourceType },
+  ) => Promise<Response | null | void> | Response | null | void;
 };
 
 /** The options for user agents */
@@ -170,7 +175,7 @@ export class Page extends EventTarget implements AsyncDisposable {
     url: string | undefined,
     ws: WebSocket,
     browser: Browser,
-    options: SandboxOptions,
+    options: SandboxOptions & InterceptorOptions,
   ) {
     super();
 
@@ -237,41 +242,56 @@ export class Page extends EventTarget implements AsyncDisposable {
       );
     });
 
-    if (options?.sandbox) {
-      if (options.sandbox === true) {
-        options.sandbox = { permissions: "inherit" };
-      }
+    if (options?.sandbox === true) {
+      options.sandbox = { permissions: "inherit" };
+    }
 
+    if ((options?.sandbox) || (options?.interceptor)) {
       this.#celestial.addEventListener("Fetch.requestPaused", async (e) => {
         const { requestId, resourceType, request: cdpRequest } = e.detail;
 
-        if (options.sandboxInterceptor) {
+        if (options.interceptor) {
           const request = cdpRequestToRequest(cdpRequest);
-          const response = await options.sandboxInterceptor(
-            request,
-            resourceType,
-          );
-          await request.body?.cancel().catch(() => null);
-          if (response) {
-            await this.#celestial.Fetch.fulfillRequest({
-              requestId,
-              ...await responseToCdpResponse(response),
-            });
-            return;
+          try {
+            const response = await options.interceptor(
+              request,
+              { resourceType },
+            );
+            if (response) {
+              await this.#celestial.Fetch.fulfillRequest({
+                requestId,
+                ...await responseToCdpResponse(response),
+              });
+              return;
+            }
+          } catch (error) {
+            if (error instanceof InterceptorError) {
+              this.#celestial.Fetch.failRequest({
+                requestId,
+                errorReason: error.reason,
+              });
+              return;
+            }
+            throw error;
+          } finally {
+            await request.body?.cancel().catch(() => null);
           }
         }
 
-        if (
-          !await this.#validateRequest(
-            e.detail,
-            options as SandboxNormalizedOptions,
-          )
-        ) {
-          return this.#celestial.Fetch.failRequest({
-            requestId,
-            errorReason: "AccessDenied",
-          });
+        if (options.sandbox) {
+          if (
+            !await this.#validateRequest(
+              e.detail,
+              options as SandboxNormalizedOptions,
+            )
+          ) {
+            return this.#celestial.Fetch.failRequest({
+              requestId,
+              errorReason: "AccessDenied",
+            });
+          }
         }
+
         return this.#celestial.Fetch.continueRequest({ requestId });
       });
     }
@@ -920,4 +940,23 @@ export class Page extends EventTarget implements AsyncDisposable {
   async waitForTimeout(timeout: number) {
     await new Promise((r) => setTimeout(r, timeout));
   }
+}
+
+/**
+ * Creates a new interceptor error.
+ *
+ * When thrown within an {@linkcode InterceptorOptions.interceptor} handler,
+ * the captured network request will be aborted with the specified CDS reason.
+ */
+export class InterceptorError extends Error {
+  constructor(
+    reason: Network_ErrorReason = "Failed",
+    message: string = reason,
+  ) {
+    super(message);
+    this.reason = reason;
+  }
+
+  /** Abort reason */
+  readonly reason: Network_ErrorReason;
 }

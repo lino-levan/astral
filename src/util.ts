@@ -1,6 +1,7 @@
 import { deadline } from "@std/async/deadline";
 import { retry } from "@std/async/retry";
 import type { Celestial, Network_Request } from "../bindings/celestial.ts";
+import { decodeBase64, encodeBase64 } from "@std/encoding/base64";
 
 /** Regular expression to extract the endpoint from a websocket url */
 export const WEBSOCKET_ENDPOINT_REGEX = /ws:\/\/(.*:.*?)\//;
@@ -36,7 +37,6 @@ export function retryDeadline<T>(t: Promise<T>, timeout: number): Promise<T> {
  * Note: the received body is encoded in base64
  */
 export function cdpRequestToRequest(request: Network_Request): Request {
-  const encoder = new TextEncoder();
   const body = request.hasPostData
     ? new ReadableStream<Uint8Array<ArrayBufferLike>>({
       pull(controller) {
@@ -44,7 +44,7 @@ export function cdpRequestToRequest(request: Network_Request): Request {
         if (!entry?.bytes) {
           return controller.close();
         }
-        controller.enqueue(encoder.encode(atob(entry.bytes)));
+        controller.enqueue(decodeBase64(entry.bytes));
       },
       cancel() {
         request.postDataEntries!.length = 0;
@@ -75,6 +75,6 @@ export async function responseToCdpResponse(
       name,
       value,
     })),
-    body: response.body ? btoa(await response.text()) : undefined,
+    body: response.body ? encodeBase64(await response.text()) : undefined,
   };
 }
