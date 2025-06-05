@@ -4,7 +4,6 @@ import { fromFileUrl } from "@std/path/from-file-url";
 import type {
   Fetch_requestPausedEvent,
   Network_Cookie,
-  Network_ErrorReason,
   Network_ResourceType,
   Runtime_consoleAPICalled,
 } from "../bindings/celestial.ts";
@@ -17,12 +16,8 @@ import { Keyboard } from "./keyboard/mod.ts";
 import { Locator } from "./locator.ts";
 import { Mouse } from "./mouse.ts";
 import { Touchscreen } from "./touchscreen.ts";
-import {
-  cdpRequestToRequest,
-  convertToUint8Array,
-  responseToCdpResponse,
-  retryDeadline,
-} from "./util.ts";
+import { convertToUint8Array, retryDeadline } from "./util.ts";
+import { cdpRequestToRequest, responseToCdpResponse } from "./interceptor.ts";
 
 /** The options for deleting a cookie */
 export type DeleteCookieOptions = Omit<
@@ -940,23 +935,4 @@ export class Page extends EventTarget implements AsyncDisposable {
   async waitForTimeout(timeout: number) {
     await new Promise((r) => setTimeout(r, timeout));
   }
-}
-
-/**
- * Creates a new interceptor error.
- *
- * When thrown within an {@linkcode InterceptorOptions.interceptor} handler,
- * the captured network request will be aborted with the specified CDS reason.
- */
-export class InterceptorError extends Error {
-  constructor(
-    reason: Network_ErrorReason = "Failed",
-    message: string = reason,
-  ) {
-    super(message);
-    this.reason = reason;
-  }
-
-  /** Abort reason */
-  readonly reason: Network_ErrorReason;
 }
