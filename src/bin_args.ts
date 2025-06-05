@@ -2,7 +2,7 @@ import type { BrowserOptions, LaunchOptions } from "./browser.ts";
 
 /**
  * Generates a list of browser switches according to specified product,
- * environement, and `quickConfig` params.
+ * environement, and `launchPresets` params.
  *
  * It also adds switches specified in `ASTRAL_BIN_ARGS` environment variable
  * if permission is granted.
@@ -12,12 +12,12 @@ import type { BrowserOptions, LaunchOptions } from "./browser.ts";
  */
 export function generateBinArgs(
   product: NonNullable<BrowserOptions["product"]>,
-  { quickConfig, args = [], headless = true }: {
-    quickConfig?: LaunchOptions["quickConfig"];
+  { launchPresets, args = [], headless = true }: {
+    launchPresets?: LaunchOptions["launchPresets"];
     args?: string[];
     headless?: boolean;
-  },
-) {
+  } = {},
+): string[] {
   const binArgs = [
     "--remote-debugging-port=0",
     "--no-first-run",
@@ -28,6 +28,7 @@ export function generateBinArgs(
   if (product === "chrome") {
     binArgs.push("--disable-blink-features=AutomationControlled");
   }
+
   if (headless) {
     binArgs.push(
       product === "chrome" ? "--headless=new" : "--headless",
@@ -35,13 +36,13 @@ export function generateBinArgs(
     );
   }
 
-  if (quickConfig?.windowSize) {
+  if (launchPresets?.windowSize) {
     binArgs.push(
-      `--window-size=${quickConfig.windowSize.width},${quickConfig.windowSize.height}`,
+      `--window-size=${launchPresets.windowSize.width},${launchPresets.windowSize.height}`,
     );
   }
 
-  if ((product === "chrome") && (quickConfig?.hardened)) {
+  if ((product === "chrome") && (launchPresets?.hardened)) {
     binArgs.push(
       // Skip additional first run tasks
       "--disable-first-run-ui",
@@ -114,7 +115,7 @@ export function generateBinArgs(
     );
   }
 
-  if ((product === "chrome") && (quickConfig?.bgTransparent)) {
+  if ((product === "chrome") && (launchPresets?.bgTransparent)) {
     binArgs.push("--default-background-color=00000000");
   }
 

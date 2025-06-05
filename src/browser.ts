@@ -261,7 +261,7 @@ export type LaunchOptions = BrowserOptions & {
   path?: string;
   args?: string[];
   cache?: string;
-  quickConfig?: {
+  launchPresets?: {
     hardened?: boolean;
     bgTransparent?: boolean;
     windowSize?: { width: number; height: number };
@@ -296,7 +296,7 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
   const product = opts?.product ?? "chrome";
   const args = opts?.args ?? [];
   const cache = opts?.cache;
-  const quickConfig = opts?.quickConfig;
+  const launchPresets = opts?.launchPresets;
   let path = opts?.path;
 
   const options: BrowserOptions = {
@@ -314,7 +314,7 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
   }
 
   // Launch child process
-  const binArgs = generateBinArgs(product, { quickConfig, args, headless });
+  const binArgs = generateBinArgs(product, { launchPresets, args, headless });
 
   if (DEBUG) {
     console.log(`Launching: ${path} ${binArgs.join(" ")}`);

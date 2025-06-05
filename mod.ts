@@ -1,3 +1,4 @@
+export * from "./src/bin_args.ts";
 export * from "./src/browser.ts";
 export * from "./src/cache.ts";
 export * from "./src/dialog.ts";

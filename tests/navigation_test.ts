@@ -15,7 +15,7 @@ Deno.test("Page - back and forth navigation works", async () => {
 });
 
 Deno.test("Page - back and forth navigation works (hardened browser)", async () => {
-  const browser = await launch({ quickConfig: { hardened: true } });
+  const browser = await launch({ launchPresets: { hardened: true } });
   const page = await browser.newPage();
   await page.goto("https://example.com");
   await page.locator("a").click();
