@@ -4,6 +4,7 @@ import { fromFileUrl } from "@std/path/from-file-url";
 import type {
   Fetch_requestPausedEvent,
   Network_Cookie,
+  Network_ResourceType,
   Runtime_consoleAPICalled,
 } from "../bindings/celestial.ts";
 import { Celestial } from "../bindings/celestial.ts";
@@ -16,6 +17,11 @@ import { Locator } from "./locator.ts";
 import { Mouse } from "./mouse.ts";
 import { Touchscreen } from "./touchscreen.ts";
 import { convertToUint8Array, retryDeadline } from "./util.ts";
+import {
+  cdpRequestToRequest,
+  InterceptorError,
+  responseToCdpResponse,
+} from "./interceptor.ts";
 
 /** The options for deleting a cookie */
 export type DeleteCookieOptions = Omit<
@@ -72,8 +78,16 @@ export type SandboxOptions = {
   };
 };
 
-type SandboxNormalizedOptions = {
+type SandboxNormalizedOptions = SandboxOptions & {
   sandbox: NonNullable<Exclude<Required<SandboxOptions["sandbox"]>, boolean>>;
+};
+
+/** The options for HTTP interceptor */
+export type InterceptorOptions = {
+  interceptor?: (
+    request: Request,
+    infos: { resourceType: Network_ResourceType },
+  ) => Promise<Response | null | void> | Response | null | void;
 };
 
 /** The options for user agents */
@@ -160,7 +174,7 @@ export class Page extends EventTarget implements AsyncDisposable {
     url: string | undefined,
     ws: WebSocket,
     browser: Browser,
-    options: SandboxOptions,
+    options: SandboxOptions & InterceptorOptions,
   ) {
     super();
 
@@ -227,24 +241,56 @@ export class Page extends EventTarget implements AsyncDisposable {
       );
     });
 
-    if (options?.sandbox) {
-      if (options.sandbox === true) {
-        options.sandbox = { permissions: "inherit" };
-      }
+    if (options?.sandbox === true) {
+      options.sandbox = { permissions: "inherit" };
+    }
 
+    if ((options?.sandbox) || (options?.interceptor)) {
       this.#celestial.addEventListener("Fetch.requestPaused", async (e) => {
-        const { requestId } = e.detail;
-        if (
-          !await this.#validateRequest(
-            e.detail,
-            options as SandboxNormalizedOptions,
-          )
-        ) {
-          return this.#celestial.Fetch.failRequest({
-            requestId,
-            errorReason: "AccessDenied",
-          });
+        const { requestId, resourceType, request: cdpRequest } = e.detail;
+
+        if (options.interceptor) {
+          const request = cdpRequestToRequest(cdpRequest);
+          try {
+            const response = await options.interceptor(
+              request,
+              { resourceType },
+            );
+            if (response) {
+              await this.#celestial.Fetch.fulfillRequest({
+                requestId,
+                ...await responseToCdpResponse(response),
+              });
+              return;
+            }
+          } catch (error) {
+            if (error instanceof InterceptorError) {
+              this.#celestial.Fetch.failRequest({
+                requestId,
+                errorReason: error.reason,
+              });
+              return;
+            }
+            throw error;
+          } finally {
+            await request.body?.cancel().catch(() => null);
+          }
         }
+
+        if (options.sandbox) {
+          if (
+            !await this.#validateRequest(
+              e.detail,
+              options as SandboxNormalizedOptions,
+            )
+          ) {
+            return this.#celestial.Fetch.failRequest({
+              requestId,
+              errorReason: "AccessDenied",
+            });
+          }
+        }
+
         return this.#celestial.Fetch.continueRequest({ requestId });
       });
     }
