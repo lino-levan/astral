@@ -19,7 +19,7 @@ export async function processPageEvaluateCoverage(
   >["result"],
 ) {
   try {
-    const cacheDir = new DenoDir().createGenCache();
+    let cacheDir = new DenoDir().createGenCache().location;
     const coverageDir = Deno.env.get("DENO_COVERAGE_DIR");
     // TODO: we could remove this check in next versions of Deno,
     // as it'll always be populated when coverage is enabled
@@ -45,9 +45,9 @@ export async function processPageEvaluateCoverage(
     }
     if (Deno.build.os === "darwin") {
       // https://github.com/denoland/deno_cache_dir/issues/86
-      filepath = filepath.replace("/.cache/deno/", "/Library/Caches/deno/");
+      cacheDir = cacheDir.replace("/.cache/deno/", "/Library/Caches/deno/");
     }
-    const emittedPath = join(cacheDir.location, "file", `${filepath}.js`);
+    const emittedPath = join(cacheDir, "file", `${filepath}.js`);
     if (!await exists(emittedPath)) {
       throw new TypeError(`Could not find emitted file at: ${emittedPath}`);
     }
