@@ -5,6 +5,7 @@ import { exists } from "@std/fs/exists";
 import { ensureDir } from "@std/fs/ensure-dir";
 import type { Celestial } from "../bindings/celestial.ts";
 import { DenoDir } from "@deno/cache-dir";
+import { fromFileUrl } from "@std/path";
 
 /** V8 CallSite (subset). */
 type CallSite = {
@@ -92,7 +93,6 @@ export async function processPageEvaluateCoverage(
       source: caller.url,
       line: caller.line - 1,
       column: caller.column - 1,
-      bias: sourceMap.SourceMapConsumer.LEAST_UPPER_BOUND,
     });
     if ((line === null) || (column === null)) {
       throw new TypeError(
@@ -101,22 +101,30 @@ export async function processPageEvaluateCoverage(
     }
 
     // Compute the range offset
-    // We do that by "removing" the mapped content from the full content
-    // and reading the resulting length (which gives us the actual start of the mapped content)
-    // The `lastColumn` points toward the function passed to `page.evaluate()`
-    let mappedContent = emittedContent.split("\n").slice(line).join("\n").slice(
-      column,
+    // ======================== Why this works ?
+    const originalContent = await Deno.readTextFile(fromFileUrl(caller.url));
+    const originalMappedContent = originalContent.split("\n").slice(
+      caller.line - 1,
     );
-    if (lastColumn !== null) {
-      mappedContent = `${
-        emittedContent.split("\n").at(line - 1)!.slice(-lastColumn)
-      }\n${mappedContent}`;
-    }
-    const offset = emittedContent.replace(mappedContent, "").length - 1;
+    const mappedContent = emittedContent.split("\n").slice(line);
+    const offset = emittedContent.replace(mappedContent.join("\n"), "")
+      .length +
+      commonPrefix(mappedContent[0], originalMappedContent[0]).length - 3;
+    console.log({
+      line,
+      column,
+      offset,
+      lastColumn,
+      commonPrefix:
+        commonPrefix(mappedContent[0], originalMappedContent[0]).length,
+    });
+    // ==========================================
 
     // Patch all coverage ranges to reflect the actual position with the computed offset
+    // Note: the first coverage result is garbage
     const [coverage] = result;
     coverage.url = caller.url;
+    coverage.functions.shift();
     coverage.functions.forEach(({ ranges }) =>
       ranges.forEach((range) => {
         range.startOffset += offset;
@@ -137,4 +145,11 @@ export async function processPageEvaluateCoverage(
       `Failed to generate coverage: ${error}\nIf you see this message, please open an issue at lino-levan/astral`,
     );
   }
+}
+
+function commonPrefix(a: string, b: string) {
+  const minLength = Math.min(a.length, b.length);
+  let i = 0;
+  while (i < minLength && a[i] === b[i]) i++;
+  return { prefix: a.slice(0, i), length: i };
 }
