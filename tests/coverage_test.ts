@@ -5,7 +5,7 @@ import { assertEquals } from "@std/assert/equals";
 
 Deno.test("Page.evaluate coverage", async () => {
   // TODO(@lowlighter): find how to compute this variable
-  const DENO_CACHE_DIR = "/home/codespace/.cache/deno"; 
+  const DENO_CACHE_DIR = "/home/codespace/.cache/deno";
   const DENO_COVERAGE_DIR = fromFileUrl(import.meta.resolve("./coverage_test"));
 
   const testFile = fromFileUrl(
@@ -53,10 +53,10 @@ Deno.test("Page.evaluate coverage", async () => {
 
   // Check that coverage files matches
   assertEquals(
+    new TextDecoder().decode(output.stdout).trim(),
     Deno.readTextFileSync(expectFile).replace(
       "[import.meta.url]",
       toFileUrl(scriptFile).href,
     ).trim(),
-    new TextDecoder().decode(output.stdout).trim(),
   );
 });

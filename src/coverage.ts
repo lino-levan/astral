@@ -13,7 +13,10 @@ type CallSite = {
   getColumnNumber: () => number;
 };
 
-/** This function uses the internal V8 stacktrace engine to get the caller source file. */
+/**
+ * This function uses the internal V8 stacktrace engine to get the caller source file.
+ * We remove all `ext:` files (deno internals), and also this file itself from the stacktrace.
+ */
 function getCaller() {
   const Trace = Error as unknown as {
     prepareStackTrace: (error: Error, stack: CallSite[]) => unknown;
@@ -51,12 +54,16 @@ export async function processPageEvaluateCoverage(
 ) {
   try {
     const coverageDir = Deno.env.get("DENO_COVERAGE_DIR");
-    const cacheDir = Deno.env.get("DENO_CACHE_DIR");
+    // TODO: we could remove this check in next versions of Deno,
+    // as it'll always be populated when coverage is enabled
+    // https://github.com/denoland/deno/pull/29363
     if (!coverageDir) {
       throw new TypeError(
         "Enabling coverage requires `DENO_COVERAGE_DIR` environment variable to be set",
       );
     }
+
+    const cacheDir = Deno.env.get("DENO_CACHE_DIR");
     if (!cacheDir) {
       throw new TypeError(
         "Enabling coverage requires `DENO_CACHE_DIR` environment variable to be set",
@@ -112,8 +119,6 @@ export async function processPageEvaluateCoverage(
     }
     const offset = emittedContent.replace(mappedContent, "").length - 1;
 
-    console.log(mappedContent);
-
     // Patch all coverage ranges to reflect the actual position with the computed offset
     const [coverage] = result;
     coverage.url = caller.url;
@@ -131,6 +136,10 @@ export async function processPageEvaluateCoverage(
       JSON.stringify(coverage, null, 2),
     );
   } catch (error) {
-    console.warn(`Failed to generate coverage: ${error}`);
+    // We don't want to make the user app crash if we somehow
+    // fail to collect coverage
+    console.warn(
+      `Failed to generate coverage: ${error}\nIf you see this message, please open an issue at lino-levan/astral`,
+    );
   }
 }

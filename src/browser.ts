@@ -4,8 +4,8 @@ import { deadline } from "@std/async/deadline";
 import { Celestial, PROTOCOL_VERSION } from "../bindings/celestial.ts";
 import { getBinary } from "./cache.ts";
 import {
-  type InterceptorOptions,
   type CoverageOptions,
+  type InterceptorOptions,
   Page,
   type SandboxOptions,
   type UserAgentOptions,
@@ -170,7 +170,7 @@ export class Browser implements AsyncDisposable {
       & SandboxOptions
       & UserAgentOptions
       & InterceptorOptions
-      & CoverageOptions
+      & CoverageOptions,
   ): Promise<Page> {
     const { targetId } = await this.#celestial.Target.createTarget({
       url: "",

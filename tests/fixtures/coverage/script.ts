@@ -16,3 +16,17 @@ await page.evaluate(() => {
     console.log("covered");
   }
 });
+
+await page.evaluate(() => {
+  if (false) {
+    console.log("not covered");
+  }
+  console.log("covered");
+  if (true) {
+    console.log("covered");
+    if (false) {
+      console.log("not covered");
+    }
+  }
+  console.log("covered");
+});
