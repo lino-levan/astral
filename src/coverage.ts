@@ -38,7 +38,12 @@ export async function processPageEvaluateCoverage(
     }
 
     // Read emitted content from deno cache and extract source mapping url
-    const emittedPath = join(cacheDir, "/gen/file", `${fromFileUrl(url)}.js`);
+    let filepath = fromFileUrl(url);
+    if (Deno.build.os === "windows") {
+      // On windows, we need to remove the semicolon from the disk label
+      filepath = filepath.replace(/^([A-Z]):/, "$1");
+    }
+    const emittedPath = join(cacheDir, "/gen/file", `${filepath}.js`);
     if (!await exists(emittedPath)) {
       throw new TypeError(`Could not find emitted file at: ${emittedPath}`);
     }
