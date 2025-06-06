@@ -44,7 +44,6 @@ export async function processPageEvaluateCoverage(
       filepath = filepath.replace(/^([A-Z]):/, "$1");
     }
     const emittedPath = join(cacheDir.location, "file", `${filepath}.js`);
-    console.log(emittedPath);
     if (!await exists(emittedPath)) {
       throw new TypeError(`Could not find emitted file at: ${emittedPath}`);
     }
