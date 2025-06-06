@@ -103,6 +103,14 @@ type FunctionLocation = {
   };
 };
 
+/**
+ * This helpers locates a given function reference within the associated codebase.
+ * It uses the V8 internal inspector to get back the scriptId along with the
+ * line and column numbers, and the file reference.
+ *
+ * It also computes the delta for non-arrow functions as the column number will
+ * be slightly offset.
+ */
 async function locateFunction(
   // deno-lint-ignore ban-types
   func: Function,

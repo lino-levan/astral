@@ -4,7 +4,7 @@ import { fromFileUrl, toFileUrl } from "@std/path";
 import { assertEquals } from "@std/assert/equals";
 
 // Toggle this variable print the stdout for easier debugging
-const DEBUG = true;
+const DEBUG = false;
 
 // To add a new coverage test case:
 //
@@ -106,21 +106,20 @@ Deno.test(
         assert(output.success, "deno coverage");
 
         // Check that coverage files matches
-        const stdout = decoder.decode(output.stdout).trim();
+        const stdout = decoder.decode(output.stdout).replaceAll("\r\n", "\n")
+          .trim();
         if (DEBUG) {
           console.log(stdout);
         }
+        const expected = Deno.readTextFileSync(expectFile).replace(
+          "[import.meta.url]",
+          toFileUrl(scriptFile).href,
+        ).replaceAll("\r\n", "\n").trim();
         assertEquals(
           stdout,
-          Deno.readTextFileSync(expectFile).replace(
-            "[import.meta.url]",
-            toFileUrl(scriptFile).href,
-          ).trim(),
+          expected,
         );
       });
     }
   },
 );
-
-const x = await new Deno.Command(Deno.execPath(), { args: ["info"] }).output();
-console.log(new TextDecoder().decode(x.stdout));
