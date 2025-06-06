@@ -101,7 +101,7 @@ export async function processPageEvaluateCoverage(
     }
 
     // Compute the range offset
-    // ======================== Why this works ?
+    // ======================== Why this works/does not work ?
     const originalContent = await Deno.readTextFile(fromFileUrl(caller.url));
     const originalMappedContent = originalContent.split("\n").slice(
       caller.line - 1,
@@ -118,6 +118,11 @@ export async function processPageEvaluateCoverage(
       commonPrefix:
         commonPrefix(mappedContent[0], originalMappedContent[0]).length,
     });
+    console.log({
+      mappedContent0: mappedContent[0],
+      originalMappedContent0: originalMappedContent[0],
+    });
+    console.log({ mappedContent });
     // ==========================================
 
     // Patch all coverage ranges to reflect the actual position with the computed offset
