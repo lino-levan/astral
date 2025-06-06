@@ -43,6 +43,10 @@ export async function processPageEvaluateCoverage(
       // On windows, we need to remove the semicolon from the disk label
       filepath = filepath.replace(/^([A-Z]):/, "$1");
     }
+    if (Deno.build.os === "darwin") {
+      // https://github.com/denoland/deno_cache_dir/issues/86
+      filepath = filepath.replace("/.cache/deno/", "/Library/Caches/deno/");
+    }
     const emittedPath = join(cacheDir.location, "file", `${filepath}.js`);
     if (!await exists(emittedPath)) {
       throw new TypeError(`Could not find emitted file at: ${emittedPath}`);
