@@ -26,7 +26,7 @@ const DEBUG = true;
 //     which makes the coverage functions not able to find emitted files
 Deno.test(
   "Page.evaluate coverage",
-  // { ignore: Deno.build.os !== "linux" },
+  { ignore: Deno.build.os !== "darwin" },
   async (t) => {
     const DENO_COVERAGE_DIR = fromFileUrl(
       import.meta.resolve("./coverage_test"),

@@ -54,7 +54,6 @@ export async function processPageEvaluateCoverage(
       emittedContent.split("\n").slice(lineNumber).join("\n"),
       "",
     ).length + columnNumber - delta - 1;
-    console.log(offset);
 
     // Patch all coverage ranges to reflect the actual position with the computed offset
     // Note: the first coverage result is garbage
@@ -68,7 +67,6 @@ export async function processPageEvaluateCoverage(
         range.endOffset += offset;
       })
     );
-    console.log(coverage.functions);
 
     // Save coverage
     await ensureDir(coverageDir);
