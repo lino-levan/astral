@@ -90,6 +90,11 @@ export type InterceptorOptions = {
   ) => Promise<Response | null | void> | Response | null | void;
 };
 
+/** The options for coverage */
+export type CoverageOptions = {
+  coverage?: boolean;
+};
+
 /** The options for user agents */
 export type UserAgentOptions = {
   userAgent?: string;
@@ -163,6 +168,7 @@ export class Page extends EventTarget implements AsyncDisposable {
   #celestial: Celestial;
   #browser: Browser;
   #url: string;
+  #coverage?: boolean;
 
   readonly timeout = 10000;
   readonly mouse: Mouse;
@@ -174,7 +180,7 @@ export class Page extends EventTarget implements AsyncDisposable {
     url: string | undefined,
     ws: WebSocket,
     browser: Browser,
-    options: SandboxOptions & InterceptorOptions,
+    options: SandboxOptions & InterceptorOptions & CoverageOptions,
   ) {
     super();
 
@@ -182,6 +188,7 @@ export class Page extends EventTarget implements AsyncDisposable {
     this.#url = url ?? "about:blank";
     this.#celestial = new Celestial(ws);
     this.#browser = browser;
+    this.#coverage = options?.coverage;
 
     this.#celestial.addEventListener("Page.frameNavigated", (e) => {
       const { frame } = e.detail;
@@ -624,12 +631,23 @@ export class Page extends EventTarget implements AsyncDisposable {
     func: EvaluateFunction<T, R>,
     evaluateOptions?: EvaluateOptions<R>,
   ): Promise<T> {
+    let collectCoverage = false;
     if (typeof func === "function") {
+      collectCoverage = Boolean(this.#coverage);
       const args = evaluateOptions?.args ?? [];
       func = `(${func.toString()})(${
         args.map((arg) => `${JSON.stringify(arg)}`).join(",")
       })`;
     }
+
+    if (collectCoverage) {
+      await this.#celestial.Profiler.startPreciseCoverage({
+        callCount: true,
+        detailed: true,
+        allowTriggeredUpdates: false,
+      });
+    }
+
     const { result, exceptionDetails } = await retryDeadline(
       this.#celestial.Runtime.evaluate({
         expression: func,
@@ -638,6 +656,14 @@ export class Page extends EventTarget implements AsyncDisposable {
       }),
       this.timeout,
     );
+
+    if (collectCoverage) {
+      const { processPageEvaluateCoverage } = await import("./coverage.ts");
+      const { result } = await this.#celestial.Profiler
+        .takePreciseCoverage();
+      await this.#celestial.Profiler.stopPreciseCoverage();
+      await processPageEvaluateCoverage(result);
+    }
 
     if (exceptionDetails) {
       throw exceptionDetails;
