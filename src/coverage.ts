@@ -102,6 +102,7 @@ export async function processPageEvaluateCoverage(
 
     // Compute the range offset
     // ======================== Why this works/does not work ?
+    const DEBUG_ARBITRARY_OFFSET = 3;
     const originalContent = await Deno.readTextFile(fromFileUrl(caller.url));
     const originalMappedContent = originalContent.split("\n").slice(
       caller.line - 1,
@@ -109,7 +110,8 @@ export async function processPageEvaluateCoverage(
     const mappedContent = emittedContent.split("\n").slice(line);
     const offset = emittedContent.replace(mappedContent.join("\n"), "")
       .length +
-      commonPrefix(mappedContent[0], originalMappedContent[0]).length - 3;
+      commonPrefix(mappedContent[0], originalMappedContent[0]).length -
+      DEBUG_ARBITRARY_OFFSET;
     console.log({
       caller,
       LEAST_UPPER_BOUND: consumer.generatedPositionFor({
@@ -126,12 +128,18 @@ export async function processPageEvaluateCoverage(
       }),
       mappedContent0: mappedContent[0],
       originalMappedContent0: originalMappedContent[0],
-      commonPrefixBetween0:
+      commonPrefixBetween0: commonPrefix(
+        mappedContent[0],
+        originalMappedContent[0],
+      ),
+      differenceBetween0:
+        Math.max(mappedContent[0].length, originalMappedContent[0].length) -
         commonPrefix(mappedContent[0], originalMappedContent[0]).length,
       offsetEmittedMinusMappedContent:
         emittedContent.replace(mappedContent.join("\n"), "")
           .length,
       attemptedPatchOffset: offset,
+      DEBUG_ARBITRARY_OFFSET,
     });
     console.log(
       "The following content should match the source code (it is the position returned by the source map)",
