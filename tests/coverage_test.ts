@@ -5,11 +5,11 @@ import { assertEquals } from "@std/assert/equals";
 
 const DEBUG = true;
 
-// CI: On windows, the DENO_DIR points to C:/ but the repository is mapped on D:/
-//     which cause resolution issues, skipping support for now
+// CI: On windows/macos seems that deno cache dir is resolved incorrectly
+//     which makes the coverage functions not able to find emitted files
 Deno.test(
   "Page.evaluate coverage",
-  { ignore: Deno.build.os === "windows" },
+  { ignore: Deno.build.os !== "linux" },
   async (t) => {
     const DENO_COVERAGE_DIR = fromFileUrl(
       import.meta.resolve("./coverage_test"),
@@ -19,13 +19,31 @@ Deno.test(
     for (
       const testcase of [
         "anon",
-        //"anon-async",
+        "anon-async",
         "class-method",
-        //"named"
-        //"named-async"
-      ]
+        "named",
+        "named-async",
+        "misc_1",
+        "misc_2",
+      ] as const
     ) {
       await t.step(testcase, async () => {
+        // TODO(@lowlighter): to remove
+        const EXPECTED_DEBUG = {
+          anon: { "startOffset": 236, "endOffset": 392 },
+          "anon-async": { "startOffset": 236, "endOffset": 425 },
+          "class-method": { "startOffset": 284, "endOffset": 476 },
+          named: { "startOffset": 236, "endOffset": 403 },
+          "named-async": { "startOffset": 236, "endOffset": 436 },
+          misc_1: { "startOffset": 243, "endOffset": 406 },
+          misc_2: [{ "startOffset": 266, "endOffset": 440 }, {
+            "startOffset": 472,
+            "endOffset": 653,
+          }],
+        } as const;
+        console.log("expected offsets", EXPECTED_DEBUG[testcase]);
+        // ======================
+
         await ensureDir(DENO_COVERAGE_DIR);
         await emptyDir(DENO_COVERAGE_DIR);
 
