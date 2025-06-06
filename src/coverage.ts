@@ -19,7 +19,7 @@ export async function processPageEvaluateCoverage(
   >["result"],
 ) {
   try {
-    const cacheDir = new DenoDir().root;
+    const cacheDir = new DenoDir().createGenCache();
     const coverageDir = Deno.env.get("DENO_COVERAGE_DIR");
     // TODO: we could remove this check in next versions of Deno,
     // as it'll always be populated when coverage is enabled
@@ -43,7 +43,8 @@ export async function processPageEvaluateCoverage(
       // On windows, we need to remove the semicolon from the disk label
       filepath = filepath.replace(/^([A-Z]):/, "$1");
     }
-    const emittedPath = join(cacheDir, "/gen/file", `${filepath}.js`);
+    const emittedPath = join(cacheDir.location, "file", `${filepath}.js`);
+    console.log(emittedPath);
     if (!await exists(emittedPath)) {
       throw new TypeError(`Could not find emitted file at: ${emittedPath}`);
     }
