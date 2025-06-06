@@ -3,3 +3,4 @@ types.json
 ./docs/build
 .DS_Store
 vendor
+tests/coverage_test
