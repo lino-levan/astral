@@ -29,6 +29,9 @@ Deno.test(
     ) {
       await t.step(testcase, async () => {
         // TODO(@lowlighter): to remove
+        console.log(
+          "===============================================================================",
+        );
         const EXPECTED_DEBUG = {
           anon: { "startOffset": 236, "endOffset": 392 },
           "anon-async": { "startOffset": 236, "endOffset": 425 },

@@ -89,7 +89,7 @@ export async function processPageEvaluateCoverage(
     const consumer = await new sourceMap.SourceMapConsumer(
       atob(sourceMapContent),
     );
-    const { line, column, lastColumn } = consumer.generatedPositionFor({
+    const { line, column } = consumer.generatedPositionFor({
       source: caller.url,
       line: caller.line - 1,
       column: caller.column - 1,
@@ -111,17 +111,31 @@ export async function processPageEvaluateCoverage(
       .length +
       commonPrefix(mappedContent[0], originalMappedContent[0]).length - 3;
     console.log({
-      line,
-      column,
-      offset,
-      lastColumn,
-      commonPrefix:
-        commonPrefix(mappedContent[0], originalMappedContent[0]).length,
-    });
-    console.log({
+      caller,
+      LEAST_UPPER_BOUND: consumer.generatedPositionFor({
+        source: caller.url,
+        line: caller.line - 1,
+        column: caller.column - 1,
+        bias: sourceMap.SourceMapConsumer.LEAST_UPPER_BOUND,
+      }),
+      GREATEST_LOWER_BOUND: consumer.generatedPositionFor({
+        source: caller.url,
+        line: caller.line - 1,
+        column: caller.column - 1,
+        bias: sourceMap.SourceMapConsumer.GREATEST_LOWER_BOUND,
+      }),
       mappedContent0: mappedContent[0],
       originalMappedContent0: originalMappedContent[0],
+      commonPrefixBetween0:
+        commonPrefix(mappedContent[0], originalMappedContent[0]).length,
+      offsetEmittedMinusMappedContent:
+        emittedContent.replace(mappedContent.join("\n"), "")
+          .length,
+      attemptedPatchOffset: offset,
     });
+    console.log(
+      "The following content should match the source code (it is the position returned by the source map)",
+    );
     console.log({ mappedContent });
     // ==========================================
 
