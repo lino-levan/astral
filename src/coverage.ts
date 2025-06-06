@@ -4,7 +4,7 @@ import { join } from "@std/path/join";
 import { exists } from "@std/fs/exists";
 import { ensureDir } from "@std/fs/ensure-dir";
 import type { Celestial } from "../bindings/celestial.ts";
-import { DenoDir } from "jsr:@deno/cache-dir";
+import { DenoDir } from "@deno/cache-dir";
 
 /** V8 CallSite (subset). */
 type CallSite = {
