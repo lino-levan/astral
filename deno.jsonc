@@ -23,7 +23,9 @@
     "@std/path": "jsr:@std/path@^1",
     "@std/testing": "jsr:@std/testing@^1",
     "@std/encoding": "jsr:@std/encoding@1",
-    "@zip-js/zip-js": "jsr:@zip-js/zip-js@^2.7.52"
+    "@zip-js/zip-js": "jsr:@zip-js/zip-js@^2.7.52",
+    "@deno/cache-dir": "jsr:@deno/cache-dir@0.22.2",
+    "source-map": "npm:source-map@0.7.4"
   },
   "publish": {
     "include": [

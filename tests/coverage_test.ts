@@ -4,8 +4,6 @@ import { fromFileUrl, toFileUrl } from "@std/path";
 import { assertEquals } from "@std/assert/equals";
 
 Deno.test("Page.evaluate coverage", async () => {
-  // TODO(@lowlighter): find how to compute this variable
-  const DENO_CACHE_DIR = "/home/codespace/.cache/deno";
   const DENO_COVERAGE_DIR = fromFileUrl(import.meta.resolve("./coverage_test"));
 
   const testFile = fromFileUrl(
@@ -29,9 +27,6 @@ Deno.test("Page.evaluate coverage", async () => {
       `--coverage=${DENO_COVERAGE_DIR}`,
       testFile,
     ],
-    env: {
-      DENO_CACHE_DIR,
-    },
   });
   let output = await denoTest.output();
   assert(output.success);

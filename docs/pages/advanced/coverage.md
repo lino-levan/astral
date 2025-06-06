@@ -27,10 +27,14 @@ coverage.
 ```
 
 In order to enable this feature, you will need to pass `coverage: true`, and the
-following environment variables:
+following environment variables must be accessible.
 
-- `DENO_COVERAGE_DIR` (e.g. `coverage`)
-- `DENO_CACHE_DIR` (e.g. `/home/codespace/.cache/deno`)
+- `DENO_DIR`
+  - Astral needs to be able to access the generated files cache to map backs
+    sources. This variable is used by `@deno/cache-dir` to compute this path.
+- `DENO_COVERAGE_DIR`
+  - From deno 2.4 and later, this variable is automatically set when coverage is
+    enabled
 
 > ⚠️ Limitations
 >

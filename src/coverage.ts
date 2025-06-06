@@ -1,9 +1,10 @@
-import * as sourceMap from "npm:source-map@0.7.4";
+import * as sourceMap from "source-map";
 import { toFileUrl } from "@std/path/to-file-url";
 import { join } from "@std/path/join";
 import { exists } from "@std/fs/exists";
 import { ensureDir } from "@std/fs/ensure-dir";
 import type { Celestial } from "../bindings/celestial.ts";
+import { DenoDir } from "jsr:@deno/cache-dir";
 
 /** V8 CallSite (subset). */
 type CallSite = {
@@ -53,6 +54,7 @@ export async function processPageEvaluateCoverage(
   >["result"],
 ) {
   try {
+    const cacheDir = new DenoDir().root;
     const coverageDir = Deno.env.get("DENO_COVERAGE_DIR");
     // TODO: we could remove this check in next versions of Deno,
     // as it'll always be populated when coverage is enabled
@@ -60,13 +62,6 @@ export async function processPageEvaluateCoverage(
     if (!coverageDir) {
       throw new TypeError(
         "Enabling coverage requires `DENO_COVERAGE_DIR` environment variable to be set",
-      );
-    }
-
-    const cacheDir = Deno.env.get("DENO_CACHE_DIR");
-    if (!cacheDir) {
-      throw new TypeError(
-        "Enabling coverage requires `DENO_CACHE_DIR` environment variable to be set",
       );
     }
 
