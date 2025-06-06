@@ -6,6 +6,7 @@ import { ensureDir } from "@std/fs/ensure-dir";
 import type { Celestial } from "../bindings/celestial.ts";
 import { DenoDir } from "@deno/cache-dir";
 import { fromFileUrl } from "@std/path";
+import { decodeBase64 } from "@std/encoding/base64";
 
 /** V8 CallSite (subset). */
 type CallSite = {
@@ -14,6 +15,8 @@ type CallSite = {
   getLineNumber: () => number;
   getColumnNumber: () => number;
 };
+
+const decoder = new TextDecoder();
 
 /**
  * This function uses the internal V8 stacktrace engine to get the caller source file.
@@ -87,7 +90,7 @@ export async function processPageEvaluateCoverage(
 
     // Map back generated position from original position
     const consumer = await new sourceMap.SourceMapConsumer(
-      atob(sourceMapContent),
+      decoder.decode(decodeBase64(sourceMapContent)),
     );
     const { line, column } = consumer.generatedPositionFor({
       source: caller.url,
@@ -102,49 +105,63 @@ export async function processPageEvaluateCoverage(
 
     // Compute the range offset
     // ======================== Why this works/does not work ?
-    const DEBUG_ARBITRARY_OFFSET = 3;
     const originalContent = await Deno.readTextFile(fromFileUrl(caller.url));
     const originalMappedContent = originalContent.split("\n").slice(
       caller.line - 1,
     );
+    const A = consumer.generatedPositionFor({
+      source: caller.url,
+      line: caller.line - 1,
+      column: caller.column - 1,
+      bias: sourceMap.SourceMapConsumer.LEAST_UPPER_BOUND,
+    });
+    const mappedContentA = emittedContent.split("\n").slice(A.line!);
+    const B = consumer.generatedPositionFor({
+      source: caller.url,
+      line: caller.line - 1,
+      column: caller.column - 1,
+      bias: sourceMap.SourceMapConsumer.GREATEST_LOWER_BOUND,
+    });
+    const mappedContentB = emittedContent.split("\n").slice(B.line!);
+    console.log({
+      TYPESCRIPT: {
+        caller,
+        originalMappedContent0: originalMappedContent[0],
+      },
+      LEAST_UPPER_BOUND: {
+        mapping: A,
+        mappedContent: mappedContentA,
+        commonPrefixBetween0: commonPrefix(
+          mappedContentA[0],
+          originalMappedContent[0],
+        ),
+        differenceBetween0:
+          Math.max(mappedContentA.length, originalMappedContent[0].length) -
+          commonPrefix(mappedContentA[0], originalMappedContent[0]).length,
+        mappedOffset: emittedContent.replace(mappedContentA.join("\n"), "")
+          .length,
+      },
+      GREATEST_LOWER_BOUND: {
+        mapping: B,
+        mappedContent: mappedContentB,
+        commonPrefixBetween0: commonPrefix(
+          mappedContentB[0],
+          originalMappedContent[0],
+        ),
+        differenceBetween0:
+          Math.max(mappedContentB.length, originalMappedContent[0].length) -
+          commonPrefix(mappedContentB[0], originalMappedContent[0]).length,
+        mappedOffset: emittedContent.replace(mappedContentB.join("\n"), "")
+          .length,
+      },
+    });
+
+    const DEBUG_ARBITRARY_OFFSET = 3;
     const mappedContent = emittedContent.split("\n").slice(line);
     const offset = emittedContent.replace(mappedContent.join("\n"), "")
       .length +
       commonPrefix(mappedContent[0], originalMappedContent[0]).length -
       DEBUG_ARBITRARY_OFFSET;
-    console.log({
-      caller,
-      LEAST_UPPER_BOUND: consumer.generatedPositionFor({
-        source: caller.url,
-        line: caller.line - 1,
-        column: caller.column - 1,
-        bias: sourceMap.SourceMapConsumer.LEAST_UPPER_BOUND,
-      }),
-      GREATEST_LOWER_BOUND: consumer.generatedPositionFor({
-        source: caller.url,
-        line: caller.line - 1,
-        column: caller.column - 1,
-        bias: sourceMap.SourceMapConsumer.GREATEST_LOWER_BOUND,
-      }),
-      mappedContent0: mappedContent[0],
-      originalMappedContent0: originalMappedContent[0],
-      commonPrefixBetween0: commonPrefix(
-        mappedContent[0],
-        originalMappedContent[0],
-      ),
-      differenceBetween0:
-        Math.max(mappedContent[0].length, originalMappedContent[0].length) -
-        commonPrefix(mappedContent[0], originalMappedContent[0]).length,
-      offsetEmittedMinusMappedContent:
-        emittedContent.replace(mappedContent.join("\n"), "")
-          .length,
-      attemptedPatchOffset: offset,
-      DEBUG_ARBITRARY_OFFSET,
-    });
-    console.log(
-      "The following content should match the source code (it is the position returned by the source map)",
-    );
-    console.log({ mappedContent });
     // ==========================================
 
     // Patch all coverage ranges to reflect the actual position with the computed offset
