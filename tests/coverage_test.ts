@@ -93,7 +93,7 @@ Deno.test(
           args: [
             "coverage",
             "--detailed",
-            `--include=${scriptFile}`,
+            `--include=${toFileUrl(scriptFile).pathname}`,
             DENO_COVERAGE_DIR,
           ],
           env: {
