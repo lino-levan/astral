@@ -11,12 +11,12 @@ const DEBUG = false;
 // 1. Create a new folder in tests/fixtures/coverage
 // 2. Create a `main.ts` file containing the code to cover
 // 3. Create a `test_main.ts` file importing the `main.ts` file
-//    It is important to NOT name it `main_test.ts`, or any file that 
-//    would be automatically caught by `deno test`, to ensure results 
+//    It is important to NOT name it `main_test.ts`, or any file that
+//    would be automatically caught by `deno test`, to ensure results
 //    are not tampered with external ones
 // 4. Create a `expect.out` file containing the expected `deno coverage` stdout,
 //    and replace the file url in it by `[import.meta.url]`
-//    This special value will automatically be replaced by the correct url, 
+//    This special value will automatically be replaced by the correct url,
 //    as the path may change depending on where the code is being tested
 // 5. Register the folder name in array of test cases below
 //
