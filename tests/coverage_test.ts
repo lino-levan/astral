@@ -4,7 +4,7 @@ import { fromFileUrl, toFileUrl } from "@std/path";
 import { assertEquals } from "@std/assert/equals";
 
 // Toggle this variable print the stdout for easier debugging
-const DEBUG = false;
+const DEBUG = true;
 
 // To add a new coverage test case:
 //
