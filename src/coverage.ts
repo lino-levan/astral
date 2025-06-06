@@ -1,51 +1,10 @@
-import * as sourceMap from "source-map";
-import { toFileUrl } from "@std/path/to-file-url";
 import { join } from "@std/path/join";
 import { exists } from "@std/fs/exists";
 import { ensureDir } from "@std/fs/ensure-dir";
 import type { Celestial } from "../bindings/celestial.ts";
 import { DenoDir } from "@deno/cache-dir";
 import { fromFileUrl } from "@std/path";
-import { decodeBase64 } from "@std/encoding/base64";
-
-/** V8 CallSite (subset). */
-type CallSite = {
-  getFileName: () => string;
-  getFunctionName: () => string | null;
-  getLineNumber: () => number;
-  getColumnNumber: () => number;
-};
-
-const decoder = new TextDecoder();
-
-/**
- * This function uses the internal V8 stacktrace engine to get the caller source file.
- * We remove all `ext:` files (deno internals), and also this file itself from the stacktrace.
- */
-function getCaller() {
-  const Trace = Error as unknown as {
-    prepareStackTrace: (error: Error, stack: CallSite[]) => unknown;
-  };
-  const _ = Trace.prepareStackTrace;
-  Trace.prepareStackTrace = (_, stack) => stack;
-  const { stack } = new Error();
-  Trace.prepareStackTrace = _;
-  const callers = (stack as unknown as CallSite[])
-    .map((callsite) => ({
-      filename: callsite.getFileName(),
-      line: callsite.getLineNumber(),
-      column: callsite.getColumnNumber(),
-    }))
-    .filter((callsite) =>
-      !callsite.filename.startsWith("ext:") &&
-      callsite.filename !== import.meta.filename
-    )
-    .map((callsite) => ({
-      ...callsite,
-      url: toFileUrl(callsite.filename).href,
-    }));
-  return callers;
-}
+import { type Debugger, Session } from "node:inspector/promises";
 
 /**
  * This function post-process the coverage results collected by `Profiler.takePreciseCoverage`
@@ -53,6 +12,8 @@ function getCaller() {
  * `deno coverage` experience with code executed within the browser V8 engine.
  */
 export async function processPageEvaluateCoverage(
+  // deno-lint-ignore ban-types
+  func: Function,
   result: Awaited<
     ReturnType<Celestial["Profiler"]["takePreciseCoverage"]>
   >["result"],
@@ -69,105 +30,32 @@ export async function processPageEvaluateCoverage(
       );
     }
 
-    // Get the caller file
-    // Caller is at `[1]` since `[0]` will be `src/page.ts`
-    const [_, caller] = getCaller();
+    // Locate function and skip non file:// sources
+    const { scriptId, lineNumber, columnNumber, url, delta } =
+      await locateFunction(func);
+    if (new URL(url).protocol !== "file:") {
+      return;
+    }
 
     // Read emitted content from deno cache and extract source mapping url
-    const emittedPath = join(cacheDir, "/gen/file", `${caller.filename}.js`);
+    const emittedPath = join(cacheDir, "/gen/file", `${fromFileUrl(url)}.js`);
     if (!await exists(emittedPath)) {
       throw new TypeError(`Could not find emitted file at: ${emittedPath}`);
     }
     const emittedContent = await Deno.readTextFile(emittedPath);
-    const sourceMapContent = emittedContent.match(
-      /^\/\/# sourceMappingURL=data:application\/json;base64,(?<sourceMap>[A-Za-z0-9+/=]+)$/m,
-    )?.groups?.sourceMap;
-    if (!sourceMapContent) {
-      throw new TypeError(
-        `Failed to extract sourceMappingURL at: ${emittedPath}`,
-      );
-    }
-
-    // Map back generated position from original position
-    const consumer = await new sourceMap.SourceMapConsumer(
-      decoder.decode(decodeBase64(sourceMapContent)),
-    );
-    const { line, column } = consumer.generatedPositionFor({
-      source: caller.url,
-      line: caller.line - 1,
-      column: caller.column - 1,
-    });
-    if ((line === null) || (column === null)) {
-      throw new TypeError(
-        `Failed to map back generated position for: ${caller.url}`,
-      );
-    }
 
     // Compute the range offset
-    // ======================== Why this works/does not work ?
-    const originalContent = await Deno.readTextFile(fromFileUrl(caller.url));
-    const originalMappedContent = originalContent.split("\n").slice(
-      caller.line - 1,
-    );
-    const A = consumer.generatedPositionFor({
-      source: caller.url,
-      line: caller.line - 1,
-      column: caller.column - 1,
-      bias: sourceMap.SourceMapConsumer.LEAST_UPPER_BOUND,
-    });
-    const mappedContentA = emittedContent.split("\n").slice(A.line!);
-    const B = consumer.generatedPositionFor({
-      source: caller.url,
-      line: caller.line - 1,
-      column: caller.column - 1,
-      bias: sourceMap.SourceMapConsumer.GREATEST_LOWER_BOUND,
-    });
-    const mappedContentB = emittedContent.split("\n").slice(B.line!);
-    console.log({
-      TYPESCRIPT: {
-        caller,
-        originalMappedContent0: originalMappedContent[0],
-      },
-      LEAST_UPPER_BOUND: {
-        mapping: A,
-        mappedContent: mappedContentA,
-        commonPrefixBetween0: commonPrefix(
-          mappedContentA[0],
-          originalMappedContent[0],
-        ),
-        differenceBetween0:
-          Math.max(mappedContentA.length, originalMappedContent[0].length) -
-          commonPrefix(mappedContentA[0], originalMappedContent[0]).length,
-        mappedOffset: emittedContent.replace(mappedContentA.join("\n"), "")
-          .length,
-      },
-      GREATEST_LOWER_BOUND: {
-        mapping: B,
-        mappedContent: mappedContentB,
-        commonPrefixBetween0: commonPrefix(
-          mappedContentB[0],
-          originalMappedContent[0],
-        ),
-        differenceBetween0:
-          Math.max(mappedContentB.length, originalMappedContent[0].length) -
-          commonPrefix(mappedContentB[0], originalMappedContent[0]).length,
-        mappedOffset: emittedContent.replace(mappedContentB.join("\n"), "")
-          .length,
-      },
-    });
-
-    const DEBUG_ARBITRARY_OFFSET = 3;
-    const mappedContent = emittedContent.split("\n").slice(line);
-    const offset = emittedContent.replace(mappedContent.join("\n"), "")
-      .length +
-      commonPrefix(mappedContent[0], originalMappedContent[0]).length -
-      DEBUG_ARBITRARY_OFFSET;
-    // ==========================================
+    const offset = emittedContent.replace(
+      emittedContent.split("\n").slice(lineNumber).join("\n"),
+      "",
+    ).length + columnNumber - delta - 1;
+    console.log(offset);
 
     // Patch all coverage ranges to reflect the actual position with the computed offset
     // Note: the first coverage result is garbage
     const [coverage] = result;
-    coverage.url = caller.url;
+    coverage.scriptId = scriptId;
+    coverage.url = url;
     coverage.functions.shift();
     coverage.functions.forEach(({ ranges }) =>
       ranges.forEach((range) => {
@@ -175,6 +63,7 @@ export async function processPageEvaluateCoverage(
         range.endOffset += offset;
       })
     );
+    console.log(coverage.functions);
 
     // Save coverage
     await ensureDir(coverageDir);
@@ -191,9 +80,78 @@ export async function processPageEvaluateCoverage(
   }
 }
 
-function commonPrefix(a: string, b: string) {
-  const minLength = Math.min(a.length, b.length);
-  let i = 0;
-  while (i < minLength && a[i] === b[i]) i++;
-  return { prefix: a.slice(0, i), length: i };
+/** Local registry to store parsed scripts references */
+const scripts = {} as {
+  [scriptId: string]: Debugger.ScriptParsedEventDataType;
+};
+
+/** Async function constructor. */
+const AsyncFunction = (async () => {}).constructor;
+
+/** Function location typing */
+type FunctionLocation = {
+  name: "[[FunctionLocation]]";
+  value: {
+    value: { scriptId: string; lineNumber: number; columnNumber: number };
+  };
+};
+
+async function locateFunction(
+  // deno-lint-ignore ban-types
+  func: Function,
+): Promise<
+  FunctionLocation["value"]["value"] & { url: string; delta: number }
+> {
+  const uuid = `__coverage__${crypto.randomUUID().replaceAll("-", "")}`;
+  (globalThis as Record<string, unknown>)[uuid] = func;
+
+  const session = new Session();
+  session.connect();
+
+  // Enable debugging to be able to catch scriptId and retrieve source url later on
+  session.on(
+    "Debugger.scriptParsed",
+    ({ params }) => scripts[params.scriptId] = params,
+  );
+  await session.post("Debugger.enable");
+
+  // Search function location
+  const { result: { objectId } } = await session.post("Runtime.evaluate", {
+    expression: `globalThis.${uuid}`,
+  });
+  const { internalProperties } = await session.post("Runtime.getProperties", {
+    objectId,
+  }) as unknown as {
+    internalProperties: Array<{ name: string; value: unknown }>;
+  };
+  session.disconnect();
+
+  const internalLocation = internalProperties.find((
+    prop,
+  ): prop is FunctionLocation => prop.name === "[[FunctionLocation]]");
+  if (!internalLocation) {
+    throw new ReferenceError(`Failed to find function location: ${func.name}`);
+  }
+
+  // Format and return values
+  const { scriptId, lineNumber, columnNumber } = internalLocation.value.value;
+  const { url } = scripts[scriptId];
+
+  // For non-arrow function, the column number points towards
+  // the parenthesis, so we need to offset by the function
+  // keywords (including namems if any)
+  let delta = 0;
+  const header = func.toString().split("\n")[0];
+  const isArrowFunc = header.includes("=>{");
+  if (!isArrowFunc) {
+    delta += "function".length;
+    if (func instanceof AsyncFunction) {
+      delta += "async ".length;
+    }
+    if (func.name) {
+      delta += ` ${func.name}`.length;
+    }
+  }
+
+  return { scriptId, lineNumber, columnNumber, url, delta };
 }

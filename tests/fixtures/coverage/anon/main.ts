@@ -6,7 +6,7 @@ await using page = await browser.newPage("http://example.com", {
   coverage: true,
 });
 
-await page.evaluate(() => {
+await page.evaluate(function () {
   console.log("covered");
   console.log("covered");
   if (false) {

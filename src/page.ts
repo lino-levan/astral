@@ -662,7 +662,7 @@ export class Page extends EventTarget implements AsyncDisposable {
       const { result } = await this.#celestial.Profiler
         .takePreciseCoverage();
       await this.#celestial.Profiler.stopPreciseCoverage();
-      await processPageEvaluateCoverage(result);
+      await processPageEvaluateCoverage(arguments[0], result);
     }
 
     if (exceptionDetails) {

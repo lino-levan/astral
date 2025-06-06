@@ -6,8 +6,7 @@ await using page = await browser.newPage("http://example.com", {
   coverage: true,
 });
 
-// deno-lint-ignore require-await
-await page.evaluate(async function () {
+function foo() {
   console.log("covered");
   console.log("covered");
   if (false) {
@@ -16,4 +15,6 @@ await page.evaluate(async function () {
   if (true) {
     console.log("covered");
   }
-});
+}
+
+await page.evaluate(foo);

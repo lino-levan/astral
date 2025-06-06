@@ -1,0 +1,4 @@
+cover [import.meta.url] ... 86.364% (19/22)
+  15 |         if (false) {
+  16 |           console.log("not covered");
+  17 |         }

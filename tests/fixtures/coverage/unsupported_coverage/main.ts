@@ -1,4 +1,3 @@
-// deno-lint-ignore-file no-constant-condition
 import { launch } from "../../../../mod.ts";
 
 await using browser = await launch();
@@ -6,8 +5,9 @@ await using page = await browser.newPage("http://example.com", {
   coverage: true,
 });
 
-// deno-lint-ignore require-await
-await page.evaluate(async function () {
+// The following will appear as covered entirely
+// because it is passed as a string value
+await page.evaluate(`
   console.log("covered");
   console.log("covered");
   if (false) {
@@ -16,4 +16,4 @@ await page.evaluate(async function () {
   if (true) {
     console.log("covered");
   }
-});
+`);

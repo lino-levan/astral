@@ -33,24 +33,25 @@ following environment variables must be accessible.
   - Astral needs to be able to access the generated files cache to map backs
     sources. This variable is used by `@deno/cache-dir` to compute this path.
 - `DENO_COVERAGE_DIR`
+  - Astral will directly write coverage files as they're collected (these files
+    are prefixed with `astral-` so you can distinguish them from deno coverage
+    files)
   - From deno 2.4 and later, this variable is automatically set when coverage is
     enabled
 
-> ⚠️ Limitations
+_Note: it is not possible to cover `string` expressions passed to
+`Page.evaluate()`_
+
+> ⚠️ Important
 >
-> This feature is only able to cover inline declared functions.
+> This feature uses [`node:inspector`](https://nodejs.org/api/inspector.html)
+> ([which relies on the V8 Inspector Protocol](https://v8.dev/docs/inspector))
+> and requires `--allow-sys=inspector` permission.
 >
-> If you use a `string` or if you pass a function reference, the mapping will
-> not be performed. The coverage utility of astral is just resolving the source
-> map of the emitted file, it does not actually parses and resolves the
-> associated TypeScript.
->
-> ```ts
-> await page.evaluate(foo); // ✘
-> await page.evaluate("1 + 1"); // ✘
-> await page.evaluate(() => {}); // ✔
-> await page.evaluate(function () {}); // ✔
-> ```
+> It may impact performances as astral will need to query the inspector to find
+> your function location, retrieves its unique identifier, read the emitted
+> transpiled JavaScript file and perform various additional tasks. You should
+> only enable this feature in non-production environments.
 
 ## Code
 
