@@ -198,6 +198,9 @@ export class Celestial extends EventTarget {
     const { promise, resolve } = Promise.withResolvers();
     this.#wsClosed = promise;
     const closed = () => {
+      if (DEBUG) {
+        console.error("[CELESTIAL] Websocket closing");
+      }
       if (this.ws.readyState === WebSocket.CLOSED) {
         resolve(true);
         return;

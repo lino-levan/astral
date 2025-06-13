@@ -199,7 +199,7 @@ export class Browser implements AsyncDisposable {
 
     await Promise.all([
       celestial.Emulation.setUserAgentOverride({ userAgent }),
-      celestial.Page.enable(),
+      celestial.Page.enable({}),
       celestial.Runtime.enable(),
       celestial.Network.enable({}),
       celestial.Page.setInterceptFileChooserDialog({ enabled: true }),
@@ -337,6 +337,9 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
     stderr: "piped",
   });
   const { process, endpoint } = await runCommand(launch);
+  if (DEBUG) {
+    console.log("[LAUNCHED BROWSER] endpoint:", endpoint);
+  }
 
   // Fetch browser websocket
   const browserRes = await retry(async () => {
