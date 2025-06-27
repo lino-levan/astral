@@ -6,6 +6,7 @@ import type {
   Network_Cookie,
   Network_ResourceType,
   Runtime_consoleAPICalled,
+  Runtime_DeepSerializedValue,
 } from "../bindings/celestial.ts";
 import { Celestial } from "../bindings/celestial.ts";
 import type { Browser } from "./browser.ts";
@@ -49,13 +50,15 @@ export type ScreenshotOptions = Parameters<
 export type Cookie = Network_Cookie;
 
 /** The options for `waitFor` */
-export type WaitForOptions = {
-  waitUntil: "load";
-} | {
-  waitUntil?: "none" | "networkidle0" | "networkidle2";
-  idleTime?: number;
-  idleConnections?: number;
-};
+export type WaitForOptions =
+  | {
+      waitUntil: "load";
+    }
+  | {
+      waitUntil?: "none" | "networkidle0" | "networkidle2";
+      idleTime?: number;
+      idleConnections?: number;
+    };
 
 /** The options for `waitForSelector` */
 export interface WaitForSelectorOptions {
@@ -70,12 +73,14 @@ export type WaitForNetworkIdleOptions = {
 
 /** The options for sandboxing */
 export type SandboxOptions = {
-  sandbox?: boolean | {
-    permissions:
-      | "inherit"
-      | "none"
-      | Pick<Deno.PermissionOptionsObject, "read" | "net">;
-  };
+  sandbox?:
+    | boolean
+    | {
+        permissions:
+          | "inherit"
+          | "none"
+          | Pick<Deno.PermissionOptionsObject, "read" | "net">;
+      };
 };
 
 type SandboxNormalizedOptions = SandboxOptions & {
@@ -120,10 +125,10 @@ export interface EvaluateOptions<T> {
 
 /** The events that may be emitted from a page */
 export interface PageEventMap {
-  "console": ConsoleEvent;
-  "dialog": DialogEvent;
-  "filechooser": FileChooserEvent;
-  "pageerror": PageErrorEvent;
+  console: ConsoleEvent;
+  dialog: DialogEvent;
+  filechooser: FileChooserEvent;
+  pageerror: PageErrorEvent;
 }
 
 /** The details for a console event */
@@ -252,21 +257,20 @@ export class Page extends EventTarget implements AsyncDisposable {
       options.sandbox = { permissions: "inherit" };
     }
 
-    if ((options?.sandbox) || (options?.interceptor)) {
+    if (options?.sandbox || options?.interceptor) {
       this.#celestial.addEventListener("Fetch.requestPaused", async (e) => {
         const { requestId, resourceType, request: cdpRequest } = e.detail;
 
         if (options.interceptor) {
           const request = cdpRequestToRequest(cdpRequest);
           try {
-            const response = await options.interceptor(
-              request,
-              { resourceType },
-            );
+            const response = await options.interceptor(request, {
+              resourceType,
+            });
             if (response) {
               await this.#celestial.Fetch.fulfillRequest({
                 requestId,
-                ...await responseToCdpResponse(response),
+                ...(await responseToCdpResponse(response)),
               });
               return;
             }
@@ -286,10 +290,10 @@ export class Page extends EventTarget implements AsyncDisposable {
 
         if (options.sandbox) {
           if (
-            !await this.#validateRequest(
+            !(await this.#validateRequest(
               e.detail,
               options as SandboxNormalizedOptions,
-            )
+            ))
           ) {
             return this.#celestial.Fetch.failRequest({
               requestId,
@@ -319,17 +323,21 @@ export class Page extends EventTarget implements AsyncDisposable {
   ) {
     const { protocol, host, href } = new URL(request.url);
     if (host) {
-      return (await this.#getPermissionState(sandbox, {
-        name: "net",
-        host,
-      })) === "granted";
+      return (
+        (await this.#getPermissionState(sandbox, {
+          name: "net",
+          host,
+        })) === "granted"
+      );
     }
     if (protocol === "file:") {
       const path = fromFileUrl(href);
-      return (await this.#getPermissionState(sandbox, {
-        name: "read",
-        path,
-      })) === "granted";
+      return (
+        (await this.#getPermissionState(sandbox, {
+          name: "read",
+          path,
+        })) === "granted"
+      );
     }
     return true;
   }
@@ -342,19 +350,19 @@ export class Page extends EventTarget implements AsyncDisposable {
       return "denied";
     }
     if (
-      (permissions === "inherit") ||
-      (permissions[descriptor.name] === "inherit") ||
-      (permissions[descriptor.name] === true) ||
-      (permissions[descriptor.name] === undefined)
+      permissions === "inherit" ||
+      permissions[descriptor.name] === "inherit" ||
+      permissions[descriptor.name] === true ||
+      permissions[descriptor.name] === undefined
     ) {
       const { state } = await Deno.permissions.request(descriptor);
       return state;
     }
     const { promise, resolve } = Promise.withResolvers<Deno.PermissionState>();
     const worker = new Worker(
-      `data:,postMessage(Deno.permissions.requestSync(${
-        JSON.stringify(descriptor)
-      }).state);self.close()`,
+      `data:,postMessage(Deno.permissions.requestSync(${JSON.stringify(
+        descriptor,
+      )}).state);self.close()`,
       { type: "module", deno: { permissions } },
     );
     worker.onmessage = ({ data: state }) => resolve(state);
@@ -405,9 +413,13 @@ export class Page extends EventTarget implements AsyncDisposable {
    * await page.authenticate({ 'username': username, 'password': password });
    * ```
    */
-  authenticate(
-    { username, password }: { username: string; password: string },
-  ): Promise<void> {
+  authenticate({
+    username,
+    password,
+  }: {
+    username: string;
+    password: string;
+  }): Promise<void> {
     function base64encoded(s: string) {
       const bytes = new TextEncoder().encode(s);
       return btoa(String.fromCharCode(...bytes));
@@ -415,7 +427,7 @@ export class Page extends EventTarget implements AsyncDisposable {
 
     const auth = base64encoded(`${username}:${password}`);
     return this.#celestial.Network.setExtraHTTPHeaders({
-      headers: { "Authorization": `Basic ${auth}` },
+      headers: { Authorization: `Basic ${auth}` },
     });
   }
 
@@ -635,9 +647,9 @@ export class Page extends EventTarget implements AsyncDisposable {
     if (typeof func === "function") {
       collectCoverage = Boolean(this.#coverage);
       const args = evaluateOptions?.args ?? [];
-      func = `(${func.toString()})(${
-        args.map((arg) => `${JSON.stringify(arg)}`).join(",")
-      })`;
+      func = `(${func.toString()})(${args
+        .map((arg) => `${JSON.stringify(arg)}`)
+        .join(",")})`;
     }
 
     if (collectCoverage) {
@@ -653,14 +665,16 @@ export class Page extends EventTarget implements AsyncDisposable {
         expression: func,
         awaitPromise: true,
         returnByValue: true,
+        serializationOptions: {
+          serialization: "deep",
+        },
       }),
       this.timeout,
     );
 
     if (collectCoverage) {
       const { processPageEvaluateCoverage } = await import("./coverage.ts");
-      const { result } = await this.#celestial.Profiler
-        .takePreciseCoverage();
+      const { result } = await this.#celestial.Profiler.takePreciseCoverage();
       await this.#celestial.Profiler.stopPreciseCoverage();
       await processPageEvaluateCoverage(arguments[0], result);
     }
@@ -680,6 +694,53 @@ export class Page extends EventTarget implements AsyncDisposable {
         // @ts-ignore Only returns this value if T does
         return null;
       }
+      // TODO(lino-levan): Find a better way to evaluate this stuff that is like performant because this sucks
+      if (result.subtype === "typedarray") {
+        const { result: propResult } = await retryDeadline(
+          this.#celestial.Runtime.getProperties({
+            objectId: result.objectId!,
+            ownProperties: true,
+          }),
+          this.timeout,
+        );
+        // @ts-ignore Only returns this value if T does
+        return new globalThis[result.className!](
+          propResult.map((res) => res.value!.value),
+        );
+      }
+      async function parseDeepSerializedValue(
+        deepSerializedValue: Runtime_DeepSerializedValue,
+      ) {
+        if (
+          deepSerializedValue.type === "string" ||
+          deepSerializedValue.type === "boolean" ||
+          deepSerializedValue.type === "number"
+        ) {
+          return deepSerializedValue.value;
+        } else if (deepSerializedValue.type === "bigint") {
+          return BigInt(deepSerializedValue.value);
+        } else if (deepSerializedValue.type === "undefined") {
+          return undefined;
+        } else if (deepSerializedValue.type === "null") {
+          return null;
+        } else if (deepSerializedValue.type === "array") {
+          return Promise.all(
+            deepSerializedValue.value.map(parseDeepSerializedValue),
+          );
+        } else if (deepSerializedValue.type === "object") {
+          const obj: Record<string, any> = {};
+          for (const [key, val] of deepSerializedValue.value) {
+            obj[key] = await parseDeepSerializedValue(val);
+          }
+          return obj;
+        }
+        throw new Error(
+          `Encountered unserializable value ${JSON.stringify(deepSerializedValue)}. Please file an issue for Astral.`,
+        );
+      }
+
+      // @ts-ignore Only returns this value if T does
+      return await parseDeepSerializedValue(result.deepSerializedValue);
     }
 
     return result.value;
@@ -699,10 +760,7 @@ export class Page extends EventTarget implements AsyncDisposable {
     await this.#go(1, options);
   }
 
-  async #go(
-    delta: number,
-    options: WaitForOptions | undefined,
-  ): Promise<void> {
+  async #go(delta: number, options: WaitForOptions | undefined): Promise<void> {
     const history = await retryDeadline(
       this.#celestial.Page.getNavigationHistory(),
       this.timeout,
@@ -855,20 +913,20 @@ export class Page extends EventTarget implements AsyncDisposable {
             { once: true },
           );
         } else if (options?.waitUntil === "networkidle0") {
-          this.waitForNetworkIdle({ idleTime: options?.idleTime ?? 500 }).then(
-            () => {
+          this.waitForNetworkIdle({ idleTime: options?.idleTime ?? 500 })
+            .then(() => {
               resolve();
-            },
-          ).catch(reject);
+            })
+            .catch(reject);
         } else {
           this.waitForNetworkIdle({
             idleTime: options?.idleTime ?? 500,
             idleConnections: 2,
-          }).then(
-            () => {
+          })
+            .then(() => {
               resolve();
-            },
-          ).catch(reject);
+            })
+            .catch(reject);
         }
       }),
       this.timeout,
