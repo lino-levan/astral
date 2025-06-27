@@ -52,13 +52,13 @@ export type Cookie = Network_Cookie;
 /** The options for `waitFor` */
 export type WaitForOptions =
   | {
-      waitUntil: "load";
-    }
+    waitUntil: "load";
+  }
   | {
-      waitUntil?: "none" | "networkidle0" | "networkidle2";
-      idleTime?: number;
-      idleConnections?: number;
-    };
+    waitUntil?: "none" | "networkidle0" | "networkidle2";
+    idleTime?: number;
+    idleConnections?: number;
+  };
 
 /** The options for `waitForSelector` */
 export interface WaitForSelectorOptions {
@@ -76,11 +76,11 @@ export type SandboxOptions = {
   sandbox?:
     | boolean
     | {
-        permissions:
-          | "inherit"
-          | "none"
-          | Pick<Deno.PermissionOptionsObject, "read" | "net">;
-      };
+      permissions:
+        | "inherit"
+        | "none"
+        | Pick<Deno.PermissionOptionsObject, "read" | "net">;
+    };
 };
 
 type SandboxNormalizedOptions = SandboxOptions & {
@@ -360,9 +360,11 @@ export class Page extends EventTarget implements AsyncDisposable {
     }
     const { promise, resolve } = Promise.withResolvers<Deno.PermissionState>();
     const worker = new Worker(
-      `data:,postMessage(Deno.permissions.requestSync(${JSON.stringify(
-        descriptor,
-      )}).state);self.close()`,
+      `data:,postMessage(Deno.permissions.requestSync(${
+        JSON.stringify(
+          descriptor,
+        )
+      }).state);self.close()`,
       { type: "module", deno: { permissions } },
     );
     worker.onmessage = ({ data: state }) => resolve(state);
@@ -647,9 +649,11 @@ export class Page extends EventTarget implements AsyncDisposable {
     if (typeof func === "function") {
       collectCoverage = Boolean(this.#coverage);
       const args = evaluateOptions?.args ?? [];
-      func = `(${func.toString()})(${args
-        .map((arg) => `${JSON.stringify(arg)}`)
-        .join(",")})`;
+      func = `(${func.toString()})(${
+        args
+          .map((arg) => `${JSON.stringify(arg)}`)
+          .join(",")
+      })`;
     }
 
     if (collectCoverage) {
@@ -735,7 +739,9 @@ export class Page extends EventTarget implements AsyncDisposable {
           return obj;
         }
         throw new Error(
-          `Encountered unserializable value ${JSON.stringify(deepSerializedValue)}. Please file an issue for Astral.`,
+          `Encountered unserializable value ${
+            JSON.stringify(deepSerializedValue)
+          }. Please file an issue for Astral.`,
         );
       }
 
