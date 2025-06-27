@@ -45,7 +45,7 @@ Deno.test("Testing evaluate", async (t) => {
 
 Deno.test(
   "Testing evaluate with primative / simple object values",
-  async (t) => {
+  async () => {
     // Launch browser
     await using browser = await launch();
 
@@ -113,7 +113,7 @@ Deno.test(
   },
 );
 
-Deno.test("Testing evaluate with top-level typedarray", async (t) => {
+Deno.test("Testing evaluate with top-level typedarray", async () => {
   // Launch browser
   await using browser = await launch();
 

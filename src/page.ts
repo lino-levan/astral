@@ -712,9 +712,9 @@ export class Page extends EventTarget implements AsyncDisposable {
           propResult.map((res) => res.value!.value),
         );
       }
-      async function parseDeepSerializedValue(
+      const parseDeepSerializedValue = async (
         deepSerializedValue: Runtime_DeepSerializedValue,
-      ) {
+      ) => {
         if (
           deepSerializedValue.type === "string" ||
           deepSerializedValue.type === "boolean" ||
@@ -732,7 +732,7 @@ export class Page extends EventTarget implements AsyncDisposable {
             deepSerializedValue.value.map(parseDeepSerializedValue),
           );
         } else if (deepSerializedValue.type === "object") {
-          const obj: Record<string, any> = {};
+          const obj: Record<string, unknown> = {};
           for (const [key, val] of deepSerializedValue.value) {
             obj[key] = await parseDeepSerializedValue(val);
           }
@@ -740,10 +740,12 @@ export class Page extends EventTarget implements AsyncDisposable {
         }
         throw new Error(
           `Encountered unserializable value ${
-            JSON.stringify(deepSerializedValue)
+            JSON.stringify(
+              deepSerializedValue,
+            )
           }. Please file an issue for Astral.`,
         );
-      }
+      };
 
       // @ts-ignore Only returns this value if T does
       return await parseDeepSerializedValue(result.deepSerializedValue);
