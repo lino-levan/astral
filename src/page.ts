@@ -10,7 +10,7 @@ import type {
 import { Celestial } from "../bindings/celestial.ts";
 import type { Browser } from "./browser.ts";
 import { Dialog } from "./dialog.ts";
-import { ElementHandle } from "./element_handle.ts";
+import { ElementHandle, type SelectorOptions } from "./element_handle.ts";
 import { FileChooser } from "./file_chooser.ts";
 import { Keyboard } from "./keyboard/mod.ts";
 import { Locator } from "./locator.ts";
@@ -427,9 +427,12 @@ export class Page extends EventTarget implements AsyncDisposable {
    * const elementWithClass = await page.$(".class");
    * ```
    */
-  async $(selector: string): Promise<ElementHandle | null> {
+  async $(
+    selector: string,
+    opts?: SelectorOptions,
+  ): Promise<ElementHandle | null> {
     const root = await this.#getRoot();
-    return root.$(selector);
+    return root.$(selector, opts);
   }
 
   /**
@@ -440,9 +443,9 @@ export class Page extends EventTarget implements AsyncDisposable {
    * const elementsWithClass = await page.$$(".class");
    * ```
    */
-  async $$(selector: string): Promise<ElementHandle[]> {
+  async $$(selector: string, opts?: SelectorOptions): Promise<ElementHandle[]> {
     const root = await this.#getRoot();
-    return retryDeadline(root.$$(selector), this.timeout);
+    return retryDeadline(root.$$(selector, opts), this.timeout);
   }
 
   locator<T>(selector: string): Locator<T> {
@@ -946,7 +949,7 @@ export class Page extends EventTarget implements AsyncDisposable {
    */
   async waitForSelector(
     selector: string,
-    options?: WaitForSelectorOptions,
+    options?: WaitForSelectorOptions & SelectorOptions,
   ): Promise<ElementHandle> {
     const root = await this.#getRoot();
     return root.waitForSelector(selector, options);

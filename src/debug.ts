@@ -2,7 +2,7 @@
 // See: https://github.com/denoland/deploy_feedback/issues/527
 let querySync = Deno.permissions.querySync;
 if (!querySync) {
-  const permissions = {
+  const permissions: Record<string, Deno.PermissionState> = {
     run: "denied",
     read: "granted",
     write: "denied",
