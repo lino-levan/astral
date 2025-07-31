@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  TEST_SERVER_URL: http://localhost:8000
+
 jobs:
   build:
     name: tests (${{ matrix.os }})
@@ -31,6 +34,9 @@ jobs:
       - name: check linting
         if: matrix.os == 'ubuntu-latest'
         run: deno lint
+
+      - name: start test server
+        run: ./tests/utils/devserver.ts &
 
       - name: run tests
         run: deno task test

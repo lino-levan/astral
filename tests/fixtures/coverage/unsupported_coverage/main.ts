@@ -1,7 +1,8 @@
 import { launch } from "../../../../mod.ts";
+import { serverUrl } from "../../../utils/helpers.ts";
 
 await using browser = await launch();
-await using page = await browser.newPage("http://example.com", {
+await using page = await browser.newPage(serverUrl, {
   coverage: true,
 });
 

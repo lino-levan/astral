@@ -3,6 +3,7 @@
 import { assertEquals, assertExists } from "@std/assert";
 
 import { launch } from "../mod.ts";
+import { serverUrl } from "./utils/helpers.ts";
 
 Deno.test("Testing attributes", async () => {
   const browser = await launch();
@@ -13,7 +14,7 @@ Deno.test("Testing attributes", async () => {
       <title>Astral</title>
     </head>
     <body>
-      <a href="https://example.com" target="_blank" disabled>Hello world</a>
+      <a href="${serverUrl}" target="_blank" disabled>Hello world</a>
     </body>
   </html>`;
 
@@ -28,7 +29,7 @@ Deno.test("Testing attributes", async () => {
   const attributes = await element.getAttributes();
 
   assertEquals(attributes, {
-    href: "https://example.com",
+    href: serverUrl,
     target: "_blank",
     disabled: "",
   });

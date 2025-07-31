@@ -2,13 +2,14 @@ import { assertSnapshot } from "@std/testing/snapshot";
 import { assertRejects } from "@std/assert";
 
 import { launch } from "../mod.ts";
+import { serverUrl } from "./utils/helpers.ts";
 
 Deno.test("Wait for selector", async () => {
   // Launch browser
   const browser = await launch();
 
   // Open the webpage
-  const page = await browser.newPage("https://example.com");
+  const page = await browser.newPage(serverUrl);
 
   // Wait for selector
   const selected = await page.waitForSelector("h1");
@@ -23,7 +24,7 @@ Deno.test("Fail wait for selector", async () => {
   const browser = await launch();
 
   // Open the webpage
-  const page = await browser.newPage("https://example.com");
+  const page = await browser.newPage(serverUrl);
 
   await assertRejects(
     () => {

@@ -1,12 +1,14 @@
-import { type Browser, launch, type Page } from "../mod.ts";
 import { assertRejects } from "@std/assert";
+
+import { type Browser, launch, type Page } from "../mod.ts";
+import { serverUrl } from "./utils/helpers.ts";
 
 Deno.test("Page - close with 'using' keyword", async () => {
   const browser = await launch();
   let ref: Page | null = null;
   {
     await using page = await browser.newPage();
-    await page.goto("https://example.com");
+    await page.goto(serverUrl);
     await page.waitForNetworkIdle();
     ref = page;
   }
@@ -22,7 +24,7 @@ Deno.test("Browser - close with 'using' keyword", async () => {
     await using browser = await launch();
     ref = browser;
     const page = await browser.newPage();
-    await page.goto("https://example.com");
+    await page.goto(serverUrl);
     await page.waitForNetworkIdle();
     await page.close();
   }

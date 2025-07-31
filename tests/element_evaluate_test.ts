@@ -3,13 +3,14 @@
 import { assertEquals, assertRejects } from "@std/assert";
 
 import { launch } from "../mod.ts";
+import { serverUrl } from "./utils/helpers.ts";
 
 Deno.test("Testing element evaluate", async () => {
   // Launch browser
   const browser = await launch();
 
   // Open the webpage
-  const page = await browser.newPage("http://example.com");
+  const page = await browser.newPage(serverUrl);
 
   const element = (await page.$("div"))!;
 

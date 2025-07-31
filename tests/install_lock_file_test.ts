@@ -1,5 +1,7 @@
 import { deadline } from "@std/async/deadline";
+
 import { cleanCache, getBinary, launch } from "../mod.ts";
+import { serverUrl } from "./utils/helpers.ts";
 
 // Tests should be performed in directory different from others tests as cache is cleaned during this one
 //Deno.env.set("ASTRAL_QUIET_INSTALL", "true");
@@ -23,7 +25,7 @@ Deno.test("Test concurrent getBinary calls", async () => {
   await deadline(Promise.all(promises), 250);
 
   // Ensure binary is still working (no files overwritten)
-  await browser.newPage("https://example.com");
+  await browser.newPage(serverUrl);
   await browser.close();
 });
 

@@ -13,6 +13,9 @@
     "jsx": "react-jsx",
     "jsxImportSource": "https://esm.sh/preact@10.16.0"
   },
+  "fmt": {
+    "exclude": ["tests/fixtures/example.com.html"]
+  },
   "lock": false,
   "unstable": ["worker-options"],
   "imports": {

@@ -1,7 +1,9 @@
 import { assertMatch, assertRejects, assertStringIncludes } from "@std/assert";
 import { assert } from "@std/assert/assert";
 import { resolve } from "@std/path/resolve";
+
 import { cleanCache, getBinary, launch } from "../mod.ts";
+import { serverUrl } from "./utils/helpers.ts";
 
 const tempDir = Deno.env.get("TMPDIR") || Deno.env.get("TMP") ||
   Deno.env.get("TEMP") || "/tmp";
@@ -50,7 +52,7 @@ Deno.test("Test download", { permissions }, async () => {
 
   // Ensure browser is capable of loading pages
   const browser = await launch({ path });
-  const page = await browser.newPage("http://example.com");
+  const page = await browser.newPage(serverUrl);
   await page.waitForSelector("h1");
   await browser.close();
 });
