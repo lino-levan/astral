@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 
 import { assertEquals, assertExists } from "@std/assert";
+
 import { launch } from "../mod.ts";
 
 Deno.test("Keyboard - basic input", async () => {

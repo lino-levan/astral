@@ -1,4 +1,5 @@
 import { getDefaultCachePath, launch } from "../mod.ts";
+import { serverHost, serverUrl } from "./utils/helpers.ts";
 import { assertStrictEquals } from "@std/assert";
 import { fromFileUrl } from "@std/path/from-file-url";
 import { assert } from "@std/assert/assert";
@@ -10,10 +11,10 @@ const status =
   "window.performance.getEntriesByType('navigation')[0].responseStatus";
 
 Deno.test("Sandbox fulfill granted net permissions", {
-  permissions: { ...permissions, net: ["127.0.0.1", "example.com"] },
+  permissions: { ...permissions, net: ["127.0.0.1", serverHost] },
 }, async () => {
   const browser = await launch();
-  const page = await browser.newPage("http://example.com", { sandbox: true });
+  const page = await browser.newPage(serverUrl, { sandbox: true });
   assertStrictEquals(await page.evaluate(status), 200);
   await browser.close();
 });
@@ -22,7 +23,7 @@ Deno.test("Sandbox reject denied net permissions", {
   permissions: { ...permissions, net: ["127.0.0.1"] },
 }, async () => {
   const browser = await launch();
-  const page = await browser.newPage("http://example.com", { sandbox: true });
+  const page = await browser.newPage(serverUrl, { sandbox: true });
   assertStrictEquals(await page.evaluate(status), 0);
   await browser.close();
 });
@@ -50,10 +51,10 @@ Deno.test("Sandbox reject denied read permissions", {
 });
 
 Deno.test("Sandbox cannot be escaped with redirects or scripts", {
-  permissions: { ...permissions, net: ["127.0.0.1", "example.com"] },
+  permissions: { ...permissions, net: ["127.0.0.1", serverHost] },
 }, async () => {
   const browser = await launch();
-  const page = await browser.newPage("http://example.com", { sandbox: true });
+  const page = await browser.newPage(serverUrl, { sandbox: true });
   assertStrictEquals(await page.evaluate(status), 200);
   await page.evaluate("location = 'http://google.com'");
   assertStrictEquals(await page.evaluate(status), 0);
@@ -75,42 +76,42 @@ Deno.test("Sandbox supports granular permissions", {
   for (
     const { url, code, sandbox } of [
       {
-        url: "http://example.com",
+        url: serverUrl,
         code: 200,
         sandbox: { permissions: "inherit" as const },
       },
       {
-        url: "http://example.com",
+        url: serverUrl,
         code: 200,
         sandbox: { permissions: { net: "inherit" as const } },
       },
       {
-        url: "http://example.com",
+        url: serverUrl,
         code: 200,
         sandbox: { permissions: { net: true } },
       },
       {
-        url: "http://example.com",
+        url: serverUrl,
         code: 200,
         sandbox: { permissions: { net: undefined } },
       },
       {
-        url: "http://example.com",
+        url: serverUrl,
         code: 200,
-        sandbox: { permissions: { net: ["example.com"] } },
+        sandbox: { permissions: { net: [serverHost] } },
       },
       {
-        url: "http://example.com",
+        url: serverUrl,
         code: 0,
         sandbox: { permissions: "none" as const },
       },
       {
-        url: "http://example.com",
+        url: serverUrl,
         code: 0,
         sandbox: { permissions: { net: false } },
       },
       {
-        url: "http://example.com",
+        url: serverUrl,
         code: 0,
         sandbox: { permissions: { net: [] } },
       },

@@ -1,5 +1,7 @@
-import { getDefaultCachePath, InterceptorError, launch } from "../mod.ts";
 import { assertEquals, assertMatch, assertStrictEquals } from "@std/assert";
+
+import { getDefaultCachePath, InterceptorError, launch } from "../mod.ts";
+import { serverHost, serverUrl } from "./utils/helpers.ts";
 
 const cache = getDefaultCachePath();
 
@@ -11,7 +13,7 @@ Deno.test("HTTP interceptor (fulfill request)", {
   permissions: { ...permissions, net: ["127.0.0.1"] },
 }, async () => {
   await using browser = await launch();
-  await using page = await browser.newPage("http://example.com", {
+  await using page = await browser.newPage(serverUrl, {
     interceptor() {
       return new Response(
         "<!DOCTYPE html><html><head><title>Intercepted request!</title></head><body></body></html>",
@@ -24,10 +26,10 @@ Deno.test("HTTP interceptor (fulfill request)", {
 });
 
 Deno.test("HTTP interceptor (continue request)", {
-  permissions: { ...permissions, net: ["127.0.0.1", "example.com"] },
+  permissions: { ...permissions, net: ["127.0.0.1", serverHost] },
 }, async () => {
   await using browser = await launch();
-  await using page = await browser.newPage("http://example.com", {
+  await using page = await browser.newPage(serverUrl, {
     interceptor() {
       return null;
     },
@@ -37,10 +39,10 @@ Deno.test("HTTP interceptor (continue request)", {
 });
 
 Deno.test("HTTP interceptor (fail request)", {
-  permissions: { ...permissions, net: ["127.0.0.1", "example.com"] },
+  permissions: { ...permissions, net: ["127.0.0.1", serverHost] },
 }, async () => {
   await using browser = await launch();
-  await using page = await browser.newPage("http://example.com", {
+  await using page = await browser.newPage(serverUrl, {
     interceptor(request) {
       if (new URL(request.url).pathname === "/foo") {
         throw new InterceptorError();
@@ -55,10 +57,10 @@ Deno.test("HTTP interceptor (fail request)", {
 });
 
 Deno.test("HTTP interceptor, request body interception", {
-  permissions: { ...permissions, net: ["127.0.0.1", "example.com"] },
+  permissions: { ...permissions, net: ["127.0.0.1", serverHost] },
 }, async () => {
   await using browser = await launch();
-  await using page = await browser.newPage("http://example.com", {
+  await using page = await browser.newPage(serverUrl, {
     async interceptor(request) {
       if (request.method === "POST") {
         assertEquals(await request.json(), { foo: "bar" });

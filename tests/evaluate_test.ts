@@ -4,13 +4,14 @@ import { assertEquals } from "@std/assert";
 import { assertSnapshot } from "@std/testing/snapshot";
 
 import { launch } from "../mod.ts";
+import { serverUrl } from "./utils/helpers.ts";
 
 Deno.test("Testing evaluate", async (t) => {
   // Launch browser
   const browser = await launch();
 
   // Open the webpage
-  const page = await browser.newPage("http://example.com");
+  const page = await browser.newPage(serverUrl);
 
   // passing arguments to evaluate
   const result = await page.evaluate((x, y) => {
