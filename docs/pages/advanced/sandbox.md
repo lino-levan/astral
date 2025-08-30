@@ -6,8 +6,9 @@ index: 4
 
 `Browser.newPage()` supports a `sandbox` mode, which use
 [Deno permissions](https://docs.deno.com/runtime/manual/basics/permissions) to
-validate network requests (using `--allow-net` permissions) and file requests
-(using `--allow-read` permissions) on the opened page.
+validate network requests (using `--allow-net` permissions), file requests
+(using `--allow-read` permissions) and imported `<script>` requests (using
+`--allow-import` permissions) on the opened page.
 
 ## Code
 
@@ -51,14 +52,15 @@ You can choose to pass a
 to use a subset of these permissions instead and further restrict what a given
 page can access.
 
-Currently both
-[`Deno.ReadPermissionDescriptor`](https://docs.deno.com/api/deno/~/Deno.ReadPermissionDescriptor)
+Currently
+[`Deno.ReadPermissionDescriptor`](https://docs.deno.com/api/deno/~/Deno.ReadPermissionDescriptor),
+[`Deno.NetPermissionDescriptor`](https://docs.deno.com/api/deno/~/Deno.NetPermissionDescriptor),
 and
-[`Deno.NetPermissionDescriptor`](https://docs.deno.com/api/deno/~/Deno.NetPermissionDescriptor)
+[`Deno.ImportPermissionDescriptor`](https://docs.deno.com/api/deno/~/Deno.ImportPermissionDescriptor)
 are supported.
 
-Using `true` (e.g. `net: true` / `read: true`) is the same as using `"inherit"`
-and will not throw any permission escalation error.
+Using `true` (e.g. `net: true` / `read: true` / `import: true`) is the same as
+using `"inherit"` and will not throw any permission escalation error.
 
 ```ts
 await using browser = await launch();
