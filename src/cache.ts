@@ -169,6 +169,15 @@ export async function getBinary(
   browser: "chrome" | "firefox",
   { cache = getDefaultCachePath(), timeout = 60000 } = {},
 ): Promise<string> {
+  if (
+    (await Deno.permissions.query({
+        name: "env",
+        variable: "ASTRAL_BIN_PATH",
+      })).state === "granted" && (Deno.env.get("ASTRAL_BIN_PATH"))
+  ) {
+    return Deno.env.get("ASTRAL_BIN_PATH")!;
+  }
+
   // TODO(lino-levan): fix firefox downloading
   const VERSION = SUPPORTED_VERSIONS[browser];
   const product = `${browser}-${SUPPORTED_VERSIONS[browser]}`;

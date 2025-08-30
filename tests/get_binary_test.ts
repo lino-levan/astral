@@ -1,4 +1,9 @@
-import { assertMatch, assertRejects, assertStringIncludes } from "@std/assert";
+import {
+  assertEquals,
+  assertMatch,
+  assertRejects,
+  assertStringIncludes,
+} from "@std/assert";
 import { assert } from "@std/assert/assert";
 import { resolve } from "@std/path/resolve";
 import { cleanCache, getBinary, launch } from "../mod.ts";
@@ -75,3 +80,22 @@ Deno.test("Test download after failure", { permissions }, async () => {
 Deno.test("Clean cache after tests", async () => {
   await cleanCache({ cache });
 });
+
+Deno.test(
+  "Use path from environment variable if specified",
+  { permissions: { env: true } },
+  async () => {
+    const env = Deno.env.get("ASTRAL_BIN_PATH");
+    try {
+      const path = "/usr/bin/google-chrome-stable";
+      Deno.env.set("ASTRAL_BIN_PATH", path);
+      assertEquals(await getBinary("chrome"), path);
+    } finally {
+      if (typeof env === "string") {
+        Deno.env.set("ASTRAL_BIN_PATH", env);
+      } else {
+        Deno.env.delete("ASTRAL_BIN_PATH");
+      }
+    }
+  },
+);
