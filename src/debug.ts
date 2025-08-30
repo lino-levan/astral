@@ -10,6 +10,7 @@ if (!querySync) {
     env: "granted",
     sys: "denied",
     ffi: "denied",
+    import: "denied",
   } as const;
 
   querySync = ({ name }) => {

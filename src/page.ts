@@ -74,7 +74,7 @@ export type SandboxOptions = {
     permissions:
       | "inherit"
       | "none"
-      | Pick<Deno.PermissionOptionsObject, "read" | "net">;
+      | Pick<Deno.PermissionOptionsObject, "read" | "net" | "import">;
   };
 };
 
@@ -288,6 +288,7 @@ export class Page extends EventTarget implements AsyncDisposable {
           if (
             !await this.#validateRequest(
               e.detail,
+              resourceType,
               options as SandboxNormalizedOptions,
             )
           ) {
@@ -315,12 +316,13 @@ export class Page extends EventTarget implements AsyncDisposable {
 
   async #validateRequest(
     { request }: Fetch_requestPausedEvent["detail"],
+    resourceType: Network_ResourceType,
     sandbox: SandboxNormalizedOptions,
   ) {
     const { protocol, host, href } = new URL(request.url);
     if (host) {
       return (await this.#getPermissionState(sandbox, {
-        name: "net",
+        name: resourceType === "Script" ? "import" : "net",
         host,
       })) === "granted";
     }
@@ -336,7 +338,10 @@ export class Page extends EventTarget implements AsyncDisposable {
 
   async #getPermissionState(
     { sandbox: { permissions } }: SandboxNormalizedOptions,
-    descriptor: Deno.NetPermissionDescriptor | Deno.ReadPermissionDescriptor,
+    descriptor:
+      | Deno.NetPermissionDescriptor
+      | Deno.ReadPermissionDescriptor
+      | Deno.ImportPermissionDescriptor,
   ) {
     if (permissions === "none") {
       return "denied";
