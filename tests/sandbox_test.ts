@@ -71,7 +71,7 @@ Deno.test("Sandbox cannot be escaped with redirects or scripts", {
   await browser.close();
 });
 
-Deno.test.only("Sandbox supports granular permissions", {
+Deno.test("Sandbox supports granular permissions", {
   permissions: {
     ...permissions,
     read: [...permissions.read, fromFileUrl(import.meta.url)],
