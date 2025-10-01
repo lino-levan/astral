@@ -1,5 +1,5 @@
 /// <reference lib="dom" />
-import { assertEquals } from "@std/assert";
+import { assertEquals, assertExists } from "@std/assert";
 import { launch } from "../mod.ts";
 import * as path from "@std/path";
 
@@ -100,4 +100,51 @@ Deno.test("Locator - fill()", async () => {
 
   await page.close();
   await browser.close();
+});
+
+Deno.test("Locator - locator()", async () => {
+  await using server = await serveFixture("fixtures/wait_for_element.html");
+
+  await using browser = await launch();
+  await using page = await browser.newPage(server.address);
+  const targetLocator = page.locator<HTMLDivElement>("#target");
+
+  const h1Locator = targetLocator.locator<HTMLHeadingElement>("h1");
+
+  const res = await h1Locator.evaluate((el) => {
+    return document.querySelector("h1") === el;
+  });
+  assertEquals(res, true);
+});
+
+Deno.test("Locator - $()", async () => {
+  await using server = await serveFixture("fixtures/wait_for_element.html");
+
+  await using browser = await launch();
+  await using page = await browser.newPage(server.address);
+  const targetLocator = page.locator<HTMLDivElement>("#target");
+
+  const h1El = await targetLocator.$("h1");
+  assertExists(h1El);
+
+  const res = await h1El.evaluate((el) => {
+    return document.querySelector("h1") === el;
+  });
+  assertEquals(res, true);
+});
+
+Deno.test("Locator - $$()", async () => {
+  await using server = await serveFixture("fixtures/wait_for_element.html");
+
+  await using browser = await launch();
+  await using page = await browser.newPage(server.address);
+  const targetLocator = page.locator<HTMLDivElement>("#target");
+
+  const children = await targetLocator.$$("h1");
+  assertEquals(children.length, 1);
+
+  const res = await children[0].evaluate((el) => {
+    return document.querySelector("h1") === el;
+  });
+  assertEquals(res, true);
 });
