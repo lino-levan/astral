@@ -69,4 +69,37 @@ export class Locator<T> {
   async wait(): Promise<ElementHandle> {
     return await this.#page.waitForSelector(this.#selector);
   }
+
+  /** Creates a derived Locator for a descendant element. */
+  locator<T>(selector: string): Locator<T> {
+    return new Locator(
+      this.#page,
+      `${this.#selector} ${selector}`,
+      this.#timeout,
+    );
+  }
+
+  /**
+   * Queries the locator for an element matching the given selector.
+   *
+   * @example
+   * ```ts
+   * const elementWithClass = await locator.$(".class");
+   * ```
+   */
+  $(selector: string): Promise<ElementHandle | null> {
+    return this.#runLocator((handle) => handle.$(selector));
+  }
+
+  /**
+   * Queries the locator for all elements matching the given selector.
+   *
+   * @example
+   * ```ts
+   * const elementsWithClass = await locator.$$(".class");
+   * ```
+   */
+  $$(selector: string): Promise<ElementHandle[]> {
+    return this.#runLocator((handle) => handle.$$(selector));
+  }
 }
