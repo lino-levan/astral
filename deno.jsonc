@@ -36,5 +36,8 @@
       "docs/static/icon.png",
       "bindings/celestial.ts"
     ]
+  },
+  "lint": {
+    "exclude": ["docs"]
   }
 }
