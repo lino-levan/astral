@@ -293,11 +293,13 @@ export class ElementHandle {
       );
     }
 
+    const { cssLayoutViewport } = await this.#celestial.Page.getLayoutMetrics();
+
     return await this.#page.screenshot({
       ...opts,
       clip: {
-        x: boxModel.border[0].x,
-        y: boxModel.border[0].y,
+        x: boxModel.border[0].x + cssLayoutViewport.pageX,
+        y: boxModel.border[0].y + cssLayoutViewport.pageY,
         width: boxModel.border[2].x - boxModel.border[0].x,
         height: boxModel.border[2].y - boxModel.border[0].y,
         scale: opts?.scale ?? 1,
