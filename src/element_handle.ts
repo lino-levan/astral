@@ -9,6 +9,8 @@ import type {
   WaitForSelectorOptions,
 } from "./page.ts";
 import { retryDeadline } from "./util.ts";
+import { query, queryAll, type QueryStrategy } from "./query.ts";
+export { type QueryStrategy } from "./query.ts";
 
 /** The x and y coordinates of a point. */
 export interface Offset {
@@ -77,6 +79,11 @@ export interface ElementEvaluateOptions<T> {
   args: Readonly<T>;
 }
 
+/** The options for selector methods. */
+export type SelectorOptions = {
+  strategy?: QueryStrategy;
+};
+
 /**
  * ElementHandle represents an in-page DOM element.
  */
@@ -99,20 +106,24 @@ export class ElementHandle {
    * const elementWithClass = await element.$(".class");
    * ```
    */
-  async $(selector: string): Promise<ElementHandle | null> {
-    const result = await retryDeadline(
-      this.#celestial.DOM.querySelector({
+  async $(
+    selector: string,
+    opts?: SelectorOptions,
+  ): Promise<ElementHandle | null> {
+    const nodeId = await retryDeadline(
+      query(this.#celestial, {
         nodeId: this.#id,
         selector,
+        strategy: opts?.strategy || "native",
       }),
       this.#page.timeout,
     );
 
-    if (!result?.nodeId) {
+    if (!nodeId) {
       return null;
     }
 
-    return new ElementHandle(result.nodeId, this.#celestial, this.#page);
+    return new ElementHandle(nodeId, this.#celestial, this.#page);
   }
 
   /**
@@ -123,20 +134,17 @@ export class ElementHandle {
    * const elementsWithClass = await element.$$(".class");
    * ```
    */
-  async $$(selector: string): Promise<ElementHandle[]> {
-    const result = await retryDeadline(
-      this.#celestial.DOM.querySelectorAll({
+  async $$(selector: string, opts?: SelectorOptions): Promise<ElementHandle[]> {
+    const nodeIds = await retryDeadline(
+      queryAll(this.#celestial, {
         nodeId: this.#id,
         selector,
+        strategy: opts?.strategy || "native",
       }),
       this.#page.timeout,
     );
 
-    if (!result) {
-      return [];
-    }
-
-    return result.nodeIds.map((nodeId) =>
+    return nodeIds.map((nodeId) =>
       new ElementHandle(nodeId, this.#celestial, this.#page)
     );
   }
@@ -330,24 +338,25 @@ export class ElementHandle {
    */
   async waitForSelector(
     selector: string,
-    options?: WaitForSelectorOptions,
+    options?: WaitForSelectorOptions & SelectorOptions,
   ): Promise<ElementHandle> {
     // TODO(lino-levan): Make this easier to read, it's a little scuffed
     try {
       return await deadline<ElementHandle>(
         (async () => {
           while (true) {
-            const result = await this.#celestial.DOM.querySelector({
+            const nodeId = await query(this.#celestial, {
               nodeId: this.#id,
               selector,
+              strategy: options?.strategy || "native",
             });
 
-            if (!result?.nodeId) {
+            if (!nodeId) {
               continue;
             }
 
             return new ElementHandle(
-              result.nodeId,
+              nodeId,
               this.#celestial,
               this.#page,
             );
