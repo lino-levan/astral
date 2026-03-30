@@ -377,7 +377,7 @@ class Lock {
       }
     }, {
       maxTimeout: timeout,
-      maxAttempts: Infinity,
+      maxAttempts: 1000, // even worst case se
       multiplier: 1,
       minTimeout: 100,
     });
