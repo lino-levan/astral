@@ -61,6 +61,7 @@ export function generateBinArgs(
       "--disable-prompt-on-repost",
       "--disable-input-event-activation-protection",
       // Disable plugins, extensions, and defaults apps
+      "--ash-no-nudges",
       "--disable-plugins",
       "--disable-extensions",
       "--disable-default-apps",
@@ -89,6 +90,7 @@ export function generateBinArgs(
       "--disable-hang-monitor",
       "--disable-ipc-flooding-protection",
       // Rendering
+      "--font-render-hinting=none",
       "--force-color-profile=srgb",
       "--disable-renderer-backgrounding",
       "--disable-software-rasterizer",
@@ -111,12 +113,48 @@ export function generateBinArgs(
       "--disable-remote-playback-api",
       "--disable-presentation-api",
       "--disable-shared-workers",
-      "--disable-features=AcceptCHFrame,Translate,BackForwardCache,MediaRouter,OptimizationHints,DialMediaRouteProvider",
+      "--disable-print-preview",
+      "--disable-features=AcceptCHFrame,Translate,BackForwardCache,MediaRouter,OptimizationHints,DialMediaRouteProvider,AudioServiceOutOfProcess",
     );
   }
 
   if ((product === "chrome") && (launchPresets?.bgTransparent)) {
     binArgs.push("--default-background-color=00000000");
+  }
+
+  if (
+    (product === "chrome") &&
+    ((launchPresets?.containerized) || (launchPresets?.lambdaInstance))
+  ) {
+    binArgs.push(
+      // Disable chromium sandboxing
+      "--no-sandbox",
+      "--no-zygote",
+      "--disable-setuid-sandbox",
+    );
+  }
+
+  if ((product === "chrome") && (launchPresets?.lambdaInstance)) {
+    binArgs.push(
+      // Run
+      "--single-process",
+      "--disk-cache-size=33554432",
+      "--user-data-dir=/tmp",
+      "--disable-dev-shm-usage",
+      // GPU in process
+      "--in-process-gpu",
+      "--ignore-gpu-blocklist",
+      // As the unsafe WebGL fallback, SwANGLE (ANGLE + SwiftShader Vulkan)
+      // https://chromium.googlesource.com/chromium/src/+/main/docs/gpu/swiftshader.md
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-unsafe-swiftshader",
+      // Enable extras APIs
+      "--enable-features=SharedArrayBuffer",
+    );
+    if (headless) {
+      binArgs[binArgs.indexOf("--headless=new")] = "--headless=shell";
+    }
   }
 
   const envArgs = Deno.permissions.querySync({

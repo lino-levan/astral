@@ -69,3 +69,23 @@ Deno.test("Bin args for hardened chrome", () => {
     /--no-experiments/,
   );
 });
+
+Deno.test("Bin args for containerized chrome", () => {
+  assertNotMatch(generateBinArgs("chrome", {}).join(" "), /--no-sandbox/);
+  assertMatch(
+    generateBinArgs("chrome", { launchPresets: { containerized: true } }).join(
+      " ",
+    ),
+    /--no-sandbox/,
+  );
+});
+
+Deno.test("Bin args for lambda chrome", () => {
+  assertNotMatch(generateBinArgs("chrome", {}).join(" "), /--single-process/);
+  assertMatch(
+    generateBinArgs("chrome", { launchPresets: { lambdaInstance: true } }).join(
+      " ",
+    ),
+    /--single-process/,
+  );
+});

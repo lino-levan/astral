@@ -275,6 +275,8 @@ export type LaunchOptions = BrowserOptions & {
   cache?: string;
   launchPresets?: {
     hardened?: boolean;
+    containerized?: boolean;
+    lambdaInstance?: boolean;
     bgTransparent?: boolean;
     windowSize?: { width: number; height: number };
   };
@@ -320,7 +322,10 @@ export async function launch(opts?: LaunchOptions): Promise<Browser> {
     path = await getBinary(product, { cache });
   }
 
-  if (!args.find((arg) => arg.startsWith("--user-data-dir="))) {
+  if (
+    (!args.find((arg) => arg.startsWith("--user-data-dir="))) &&
+    (!launchPresets?.lambdaInstance)
+  ) {
     const tempDir = Deno.makeTempDirSync();
     args.push(`--user-data-dir=${tempDir}`);
   }
