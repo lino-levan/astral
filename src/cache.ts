@@ -9,7 +9,7 @@ import ProgressBar from "@deno-library/progress";
 
 /** The automatically downloaded browser versions that are known to work. */
 export const SUPPORTED_VERSIONS = {
-  chrome: "125.0.6400.0",
+  chrome: "138.0.7180.0",
   firefox: "116.0",
 } as const;
 
